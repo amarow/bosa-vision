@@ -1,0 +1,2864 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Turmhaus Bosa - Interaktiver 3D-Renovierungsplan</title>
+    <!-- Google Fonts: Outfit für edles Design, JetBrains Mono für Maße -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-glass: rgba(15, 23, 42, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #0284c7;
+            --accent-hover: #38bdf8;
+            --accent-glow: rgba(2, 132, 199, 0.4);
+            --warning: #ef4444;
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #0b0f19; 
+            font-family: 'Outfit', sans-serif; 
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Control Panel */
+        #control-panel { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            bottom: 20px;
+            width: 350px;
+            background: var(--bg-glass); 
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--border-glass);
+            padding: 24px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            z-index: 10; 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        /* Scrollbar styling for panel */
+        #control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        #control-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #control-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        h1 { 
+            font-size: 22px; 
+            font-weight: 700;
+            margin: 0 0 4px 0; 
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* State Toggle (Before/After) */
+        .state-selector {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 4px;
+            border: 1px solid var(--border-glass);
+            position: relative;
+        }
+
+        .state-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+            text-align: center;
+        }
+
+        .state-btn.active {
+            color: #ffffff;
+            background: var(--accent);
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+
+        /* Controls Block */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .slider-val {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-hover);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-hover);
+            cursor: pointer;
+            box-shadow: 0 0 6px var(--accent-glow);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Checkbox Switch */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* Floor buttons */
+        .floor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .floor-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .floor-btn:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .floor-btn.active {
+            background: var(--accent);
+            border-color: var(--accent-hover);
+            color: white;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* Legend */
+        .legend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.4;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Key Metric Banner */
+        .metric-card {
+            background: rgba(2, 132, 199, 0.1);
+            border: 1px solid rgba(2, 132, 199, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .metric-title {
+            font-weight: 600;
+            color: var(--accent-hover);
+            margin-bottom: 2px;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glass);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 5;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Pulse animation for breakthrough warning */
+        @keyframes warningPulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .lang-selector { display: flex; gap: 5px; margin-bottom: 15px; }
+        .lang-btn { flex: 1; padding: 6px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-glass); color: var(--text-secondary); border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; font-weight: 600; }
+        .lang-btn:hover { background: rgba(56, 189, 248, 0.2); }
+        .lang-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-hover); }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="control-panel">
+        <div class="lang-selector">
+            <button class="lang-btn active" id="btn-lang-de" onclick="setLanguage('de')">DE</button>
+            <button class="lang-btn" id="btn-lang-it" onclick="setLanguage('it')">IT</button>
+            <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">EN</button>
+        </div>
+
+        <div>
+            <h1 data-i18n="title">Turmhaus Bosa</h1>
+            <div class="subtitle" data-i18n="subtitle">Interaktives 3D-Modell</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-title" data-i18n="dimTitle">Baukörper-Maße (Innen)</div>
+            <span data-i18n="dimBody">Grundfläche: <b>3,0m x 5,0m</b><br>Außenwände: <b>0,5m massiv</b><br>Ausrichtung: <b>Eingang = Vorne (Süden)</b></span>
+        </div>
+
+        <!-- View Controllers -->
+        <div>
+            <div class="section-title" data-i18n="visTitle">Visualisierung</div>
+            <div class="control-group">
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span data-i18n="visExplosion">Explosionsansicht</span>
+                        <span class="slider-val" id="val-explosion">0%</span>
+                    </div>
+                    <input type="range" id="slider-explosion" min="0" max="100" value="0" oninput="adjustExplosion(this.value)">
+                </div>
+
+                <div class="switch-container">
+                    <span data-i18n="visWalls">Wände transparent</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-walls" checked onchange="toggleWallsTransparent(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
+                    <span data-i18n="visFloors">Böden transparent</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-floors" onchange="toggleFloorsTransparent(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
+                    <span data-i18n="visInstall">Installationen zeigen</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-installations" checked onchange="toggleInstallations(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
+                    <span data-i18n="visShaftPos">Schacht-Option: Rechts</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-shaft-pos" onchange="toggleShaftPosition(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="switch-container">
+                    <span data-i18n="visFurniture">Möbel einblenden</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-furniture" checked onchange="toggleFurniture(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="switch-container">
+                    <span data-i18n="visLabels">Labels einblenden</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-labels" checked onchange="toggleLabels(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floor Isolator -->
+        <div>
+            <div class="section-title" data-i18n="floorTitle">Etagen-Fokus</div>
+            <div class="floor-grid">
+                <button class="floor-btn" id="f-btn-all" onclick="focusFloor('all')" data-i18n="btnAll">Alle</button>
+                <button class="floor-btn" id="f-btn-4" onclick="focusFloor(4)" data-i18n="btnTerrace">Terrasse</button>
+                <button class="floor-btn" id="f-btn-3" onclick="focusFloor(3)" data-i18n="btn3">3. OG (Küche)</button>
+                <button class="floor-btn" id="f-btn-2" onclick="focusFloor(2)" data-i18n="btn2">2. OG</button>
+                <button class="floor-btn" id="f-btn-1" onclick="focusFloor(1)" data-i18n="btn1">1. OG</button>
+                <button class="floor-btn active" id="f-btn-0" onclick="focusFloor(0)" data-i18n="btn0">EG (Parterre)</button>
+            </div>
+        </div>
+
+        <!-- Color Legend -->
+        <div>
+            <div class="section-title" data-i18n="legTitle">Legende</div>
+            <ul class="legend-list">
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#f1f5f9; border: 1px solid rgba(255,255,255,0.3);"></span>
+                    <span data-i18n="legWall"><b>Mauerwerk:</b> 0.5m dicke Außenwände (transparent schaltbar).</span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#e2e8f0; border: 1px solid rgba(0,0,0,0.2);"></span>
+                    <span data-i18n="legFloor"><b>Böden / Decken:</b> Massive Zwischendecken. Im 2. OG historische Bogendecke.</span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#854d0e;"></span>
+                    <span data-i18n="legOldStairs"><b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).</span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#0f172a; border: 1px solid var(--accent-hover);"></span>
+                    <span data-i18n="legNewStairs"><b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.</span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background: linear-gradient(to right, #f97316, #3b82f6, #ef4444, #06b6d4);"></span>
+                    <span data-i18n="legPipes"><b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Alle in der Rückwand eingelassen bis 0.8m über Terrasse.</span>
+                </li>
+
+            </ul>
+        </div>
+
+
+    </div>
+    
+    <div id="instructions" data-i18n="instructions">
+        <b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen
+    </div>
+
+    <!-- Three.js und OrbitControls Bibliotheken -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- TRANSLATIONS ---
+        const floorLabelTranslations = {
+            de: ["Parterre (EG)", "1. OG (Schlafen)", "2. OG (Schlafen)", "3. OG (Küche)", "Terrasse"],
+            en: ["Ground Floor", "1st Floor (Bedroom)", "2nd Floor (Bedroom 2)", "3rd Floor (Kitchen)", "Roof Terrace"],
+            it: ["Piano Terra", "1° Piano (Camera)", "2° Piano (Camera 2)", "3° Piano (Cucina)", "Terrazza"]
+        };
+        let floorSprites = [];
+
+        const translations = {
+            de: {
+                title: "Turmhaus Bosa",
+                subtitle: "Interaktives 3D-Modell",
+                dimTitle: "Baukörper-Maße (Innen)",
+                dimBody: "Grundfläche: <b>3,0m x 5,0m</b><br>Außenwände: <b>0,5m massiv</b><br>Ausrichtung: <b>Eingang = Vorne (Süden)</b>",
+                phaseTitle: "Projekt-Phase",
+                
+                
+                visTitle: "Visualisierung",
+                visExplosion: "Explosionsansicht",
+                visWalls: "Wände transparent",
+                visFloors: "Böden transparent",
+                visInstall: "Installationen zeigen",
+                visShaftPos: "Schacht-Option: Rechts",
+                visFurniture: "Möbel einblenden",
+                visLabels: "Labels einblenden",
+                floorTitle: "Etagen-Fokus",
+                btnAll: "Alle",
+                btnTerrace: "Terrasse",
+                btn3: "3. OG (Küche)",
+                btn2: "2. OG",
+                btn1: "1. OG",
+                btn0: "EG (Parterre)",
+                legTitle: "Legende",
+                legWall: "<b>Mauerwerk:</b> 0.5m dicke Außenwände (transparent schaltbar).",
+                legFloor: "<b>Böden / Decken:</b> Massive Zwischendecken. Im 2. OG historische Bogendecke.",
+                legOldStairs: "<b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).",
+                legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
+                legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
+                numTitle: "Innenwand-Nummerierung",
+                instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
+            },
+            en: {
+                title: "Tower House Bosa",
+                subtitle: "Interactive 3D Model",
+                dimTitle: "Building Dimensions (Internal)",
+                dimBody: "Floor Area: <b>3.0m x 5.0m</b><br>Outer Walls: <b>0.5m solid</b><br>Orientation: <b>Entrance = Front (South)</b>",
+                phaseTitle: "Project Phase",
+                
+                
+                visTitle: "Visualization",
+                visExplosion: "Exploded View",
+                visWalls: "Transparent Walls",
+                visFloors: "Transparent Floors",
+                visInstall: "Show Installations",
+                visShaftPos: "Shaft Option: Right",
+                visFurniture: "Show Furniture",
+                visLabels: "Show Labels",
+                floorTitle: "Floor Focus",
+                btnAll: "All",
+                btnTerrace: "Terrace",
+                btn3: "3rd Floor (Kitchen)",
+                btn2: "2nd Floor",
+                btn1: "1st Floor",
+                btn0: "Ground Floor",
+                legTitle: "Legend",
+                legWall: "<b>Masonry:</b> 0.5m thick outer walls (can be transparent).",
+                legFloor: "<b>Floors / Ceilings:</b> Solid ceilings. Historic vault ceiling on 2nd floor.",
+                legOldStairs: "<b>Old Staircase:</b> Previous wooden stairs on the right side (0.9m x 2.5m).",
+                legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
+                legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
+                numTitle: "Internal Wall Numbering",
+                instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
+            },
+            it: {
+                title: "Casa a Torre Bosa",
+                subtitle: "Modello 3D Interattivo",
+                dimTitle: "Dimensioni (Interne)",
+                dimBody: "Superficie: <b>3,0m x 5,0m</b><br>Muri Esterni: <b>0,5m massiccio</b><br>Orientamento: <b>Ingresso = Fronte (Sud)</b>",
+                phaseTitle: "Fase del Progetto",
+                
+                
+                visTitle: "Visualizzazione",
+                visExplosion: "Vista Esplosa",
+                visWalls: "Muri Trasparenti",
+                visFloors: "Pavimenti Trasparenti",
+                visInstall: "Mostra Impianti",
+                visShaftPos: "Opzione Vano: Destra",
+                visFurniture: "Mostra Mobili",
+                visLabels: "Mostra Etichette",
+                floorTitle: "Focus Piano",
+                btnAll: "Tutti",
+                btnTerrace: "Terrazza",
+                btn3: "3° Piano (Cucina)",
+                btn2: "2° Piano",
+                btn1: "1° Piano",
+                btn0: "Piano Terra",
+                legTitle: "Legenda",
+                legWall: "<b>Muratura:</b> Muri esterni di 0,5m (rendibili trasparenti).",
+                legFloor: "<b>Pavimenti / Soffitti:</b> Solai massicci. Soffitto a volta storico al 2° piano.",
+                legOldStairs: "<b>Vecchia Scala:</b> Precedente scala in legno sul lato destro (0,9m x 2,5m).",
+                legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
+                legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
+                numTitle: "Numerazione Muri Interni",
+                instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
+            }
+        };
+
+        const equipLabelTranslations = {
+            de: {
+                wpTank: "Wärmepumpe & Warmwassertank",
+                wpTankAlt: "Wärmepumpe & Warmwassertank",
+                auto: "Autoclave (Druckausgleich)",
+                autoAlt: "Autoclave (Druckausgleich)",
+                elec: "Elektro-Hauptanschluss",
+                elecAlt: "Elektro-Hauptanschluss"
+            },
+            en: {
+                wpTank: "Heat Pump & Water Tank",
+                wpTankAlt: "Heat Pump & Water Tank",
+                auto: "Autoclave (Pressure Equalizer)",
+                autoAlt: "Autoclave (Pressure Equalizer)",
+                elec: "Main Electrical Panel",
+                elecAlt: "Main Electrical Panel"
+            },
+            it: {
+                wpTank: "Pompa di calore e Boiler",
+                wpTankAlt: "Pompa di calore e Boiler",
+                auto: "Autoclave (Compensatore)",
+                autoAlt: "Autoclave (Compensatore)",
+                elec: "Quadro Elettrico Principale",
+                elecAlt: "Quadro Elettrico Principale"
+            }
+        };
+        let equipLabelSprites = [];
+        let currentLang = 'de';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-lang-' + lang).classList.add('active');
+            
+            if (typeof updateFloorLabels === 'function') {
+                updateFloorLabels(lang);
+            }
+            if (typeof updateEquipLabels === 'function') {
+                updateEquipLabels(lang);
+            }
+        }
+
+        // --- 1. GLOBALE VARIABLEN & EINSTELLUNGEN ---
+        let scene, camera, renderer, controls;
+        let floorGroups = [];
+        let beforeObjects = [];
+        let afterObjects = [];
+        let installationObjects = [];
+        let shaftBackObjects = [];
+        let shaftRightObjects = [];
+        let labelObjects = [];
+        let furnitureObjects = [];
+
+        // Parameter
+        let currentProjectState = 'after'; // 'before' oder 'after'
+        let currentExplosion = 0.0;        // 0.0 (zusammen) bis 1.0 (explodiert)
+        let targetExplosion = 0.0;
+        let wallsTransparent = true;
+        let floorsTransparent = false;
+        let showInstallations = true;
+        let shaftOnRight = false;
+        let showFurniture = true;
+        let showLabels = true;
+        let activeFocusedFloor = 0; // 'all' oder 0, 1, 2, 3, 4
+
+        // Materialien definieren
+        let wallMat, frontWallMat, transparentWallMat, innerWallMat, floorMat, oldStairMat, newMetalMat, newWoodMat;
+        let pipeMat, glassMat, railingMetalMat, doorWoodMat, furnitureMat, woodFurnitureMat, bedMat;
+
+        const floorHeights = [0, 2.3, 4.8, 7.3, 10.5]; // Start Y-Koordinate (Slab) jeder Etage
+        const floorSizes = [2.5, 2.5, 2.5, 3.2, 1.2];  // Wandhöhe jeder Etage
+
+        // --- 2. INITIALISIERUNG ---
+        function init() {
+            const container = document.getElementById('canvas-container');
+            
+            // Szene erstellen
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color('#0b1329');
+            scene.fog = new THREE.FogExp2('#0b1329', 0.015);
+
+            // Kamera erstellen
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(12, 8, 14);
+
+            // Renderer erstellen - Keine Schatten berechnen
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = false;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 + 0.1; // Kamera nicht unter den Boden wandern lassen
+            controls.minDistance = 3;
+            controls.maxDistance = 40;
+            
+            // Initialer Fokus auf Erdgeschoss center
+            controls.target.set(0, 1.25, 0);
+
+            // Licht aufbauen
+            setupLighting();
+
+            // Materialien instanziieren
+            setupMaterials();
+
+            // Etagen-Gruppen anlegen
+            for (let i = 0; i < 5; i++) {
+                const group = new THREE.Group();
+                scene.add(group);
+                floorGroups.push(group);
+            }
+
+            // Gesamten Baukörper generieren
+            buildBuilding();
+
+            // UI Initialzustand synchronisieren
+            document.getElementById('chk-walls').checked = wallsTransparent;
+            document.getElementById('chk-floors').checked = floorsTransparent;
+            document.getElementById('chk-installations').checked = showInstallations;
+            document.getElementById('chk-furniture').checked = showFurniture;
+            document.getElementById('chk-labels').checked = showLabels;
+            
+            // Initiale Isolierung
+            focusFloor(0);
+
+            // Event Listener
+            window.addEventListener('resize', onWindowResize);
+
+            // Animation starten
+            animate();
+        }
+
+        // --- 3. BELEUCHTUNG & MATERIALIEN ---
+        function setupLighting() {
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambient);
+
+            // Sonne / Hauptlicht
+            const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+            sunLight.position.set(15, 25, 10);
+            scene.add(sunLight);
+
+            // Indirektes neutrales Fülllicht
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            fillLight.position.set(-15, 15, -10);
+            scene.add(fillLight);
+
+            // Sanftes Punktlicht im Kern des Haus-Skeletts
+            const coreLight = new THREE.PointLight(0xfff7ed, 0.6, 20);
+            coreLight.position.set(0, 5, 0);
+            scene.add(coreLight);
+        }
+
+        function setupMaterials() {
+            wallMat = new THREE.MeshStandardMaterial({ 
+                color: '#8eb6c4', // Hellblau für alle Außenwände (Bosa-Fassadenfarbe)
+                roughness: 0.85, 
+                metalness: 0.05,
+                side: THREE.DoubleSide 
+            });
+
+            frontWallMat = new THREE.MeshStandardMaterial({ 
+                color: '#8eb6c4', 
+                roughness: 0.85, 
+                metalness: 0.05,
+                side: THREE.DoubleSide 
+            });
+
+            innerWallMat = new THREE.MeshStandardMaterial({ 
+                color: '#eceef2', // Weißer Putz für alle Innenwände / Partitionen
+                roughness: 0.85, 
+                metalness: 0.05,
+                side: THREE.DoubleSide 
+            });
+            
+            transparentWallMat = new THREE.MeshStandardMaterial({ 
+                color: '#94a3b8', 
+                roughness: 0.5, 
+                transparent: true, 
+                opacity: 0.15,
+                side: THREE.DoubleSide
+            });
+
+            floorMat = new THREE.MeshStandardMaterial({ 
+                color: '#e2e8f0', 
+                roughness: 0.7, 
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+
+            oldStairMat = new THREE.MeshStandardMaterial({ 
+                color: '#999999', 
+                roughness: 0.75, 
+                metalness: 0.1 
+            });
+
+            newMetalMat = new THREE.MeshStandardMaterial({ 
+                color: '#0f172a', 
+                metalness: 0.85, 
+                roughness: 0.2 
+            });
+
+            newWoodMat = new THREE.MeshStandardMaterial({ 
+                color: '#d97706', 
+                roughness: 0.5, 
+                metalness: 0.1 
+            });
+
+            pipeMat = new THREE.MeshStandardMaterial({ 
+                color: '#0284c7', 
+                metalness: 0.8, 
+                roughness: 0.25 
+            });
+
+            glassMat = new THREE.MeshStandardMaterial({ 
+                color: '#bae6fd', 
+                transparent: true, 
+                opacity: 0.3, 
+                roughness: 0.1 
+            });
+
+            railingMetalMat = new THREE.MeshStandardMaterial({ 
+                color: '#334155', 
+                metalness: 0.7, 
+                roughness: 0.3 
+            });
+
+            doorWoodMat = new THREE.MeshStandardMaterial({ 
+                color: '#654321', 
+                roughness: 0.9 
+            });
+
+            furnitureMat = new THREE.MeshLambertMaterial({ color: 0xd4d4d8 });
+            woodFurnitureMat = new THREE.MeshLambertMaterial({ color: 0x854d0e });
+            bedMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+        }
+
+        // Helper zum Registrieren von Wänden für die Transparenzsteuerung
+        let registeredWalls = [];
+        function registerWall(mesh, isFront = false, isSideWall = false) {
+            if (isSideWall) {
+                const matArray = [wallMat, wallMat, wallMat, wallMat, frontWallMat, wallMat];
+                mesh.userData.originalMat = matArray;
+                mesh.userData.isSide = true;
+            } else {
+                mesh.userData.isFront = isFront;
+                mesh.userData.originalMat = isFront ? frontWallMat : wallMat;
+            }
+            registeredWalls.push(mesh);
+            
+            if (wallsTransparent) {
+                if (mesh.userData.isSide) {
+                    mesh.material = mesh.userData.originalMat.map(() => transparentWallMat);
+                } else {
+                    mesh.material = transparentWallMat;
+                }
+            } else {
+                mesh.material = mesh.userData.originalMat;
+            }
+        }
+
+        // --- 4. GEOMETRIEBAU ---
+        function buildBuilding() {
+            // Jede Etage wird als geschlossene Gruppe aufgebaut
+            buildFloor0_EG();
+            buildFloor1_Schlaf1();
+            buildFloor2_2OG();
+            buildFloor3_3OG_Kueche();
+            buildFloor4_Terrasse();
+
+            // Globale Installationen
+            buildVerticalInstallations();
+            buildDownspout();
+            
+            // Labels hinzufügen
+            addFloorLabels();
+        }
+
+        // --- HISTORISCHE RUNDDECKE (BOGENDECKE) GENERATOR ---
+        function createVaultMesh(xMin, xMax, zStart, zEnd) {
+            const shape = new THREE.Shape();
+            shape.moveTo(xMin, 7.5);
+            shape.lineTo(xMax, 7.5);
+            
+            if (xMax > 1.5) {
+                shape.lineTo(xMax, 6.85);
+                shape.lineTo(1.5, 6.85);
+            } else {
+                const yVal = (xMax >= -1.5 && xMax <= 1.5) ? (-0.222 * xMax * xMax + 7.35) : 6.85;
+                shape.lineTo(xMax, yVal);
+            }
+            
+            const archStart = Math.min(xMax, 1.5);
+            const archEnd = Math.max(xMin, -1.5);
+            const steps = 30;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const x = archStart - t * (archStart - archEnd);
+                const y = -0.222 * x * x + 7.35;
+                shape.lineTo(x, y);
+            }
+            
+            if (xMin < -1.5) {
+                shape.lineTo(-1.5, 6.85);
+                shape.lineTo(xMin, 6.85);
+            }
+            
+            shape.closePath();
+            
+            const depth = zEnd - zStart;
+            const extrudeSettings = { depth: depth, bevelEnabled: false };
+            const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const mesh = new THREE.Mesh(geo, floorMat);
+            mesh.position.z = zStart;
+            
+            return mesh;
+        }
+
+        // --- DIAGONALER WANDBAU MIT BÜNDIGER BADTÜR ---
+        function createDiagonalDoorWall(xStart, zStart, xEnd, zEnd, doorWidth, doorHeight, H, wallMat, doorMat) {
+            const group = new THREE.Group();
+            const dx = xEnd - xStart;
+            const dz = zEnd - zStart;
+            const length = Math.sqrt(dx * dx + dz * dz);
+            const angle = Math.atan2(dz, dx);
+            
+            group.position.set((xStart + xEnd)/2, 0, (zStart + zEnd)/2);
+            group.rotation.y = -angle;
+            
+            const sideWidth = (length - doorWidth) / 2;
+            
+            const wLeft = new THREE.Mesh(new THREE.BoxGeometry(sideWidth, H, 0.05), wallMat);
+            wLeft.position.set(-length/2 + sideWidth/2, H/2, 0);
+            group.add(wLeft);
+            
+            const wRight = new THREE.Mesh(new THREE.BoxGeometry(sideWidth, H, 0.05), wallMat);
+            wRight.position.set(length/2 - sideWidth/2, H/2, 0);
+            group.add(wRight);
+            
+            const headerH = H - doorHeight;
+            const wHeader = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, headerH, 0.05), wallMat);
+            wHeader.position.set(0, H - headerH/2, 0);
+            group.add(wHeader);
+            
+            const hinge = new THREE.Group();
+            hinge.position.set(-doorWidth/2, 0, 0);
+            
+            const leaf = new THREE.Mesh(new THREE.BoxGeometry(doorWidth - 0.02, doorHeight - 0.02, 0.03), doorMat);
+            leaf.position.set(doorWidth/2, doorHeight/2, 0);
+            hinge.add(leaf);
+            
+            hinge.rotation.y = Math.PI / 3;
+            group.add(hinge);
+            
+            return group;
+        }
+
+        // --- ETAGE 0: ERDGESCHOSS (PARTERRE) ---
+        function buildFloor0_EG() {
+            const grp = floorGroups[0];
+            const H = 2.3;
+
+            // Bodenplatte (nur Innenbereich: 3.0m x 5.0m)
+            const floorGeo = new THREE.BoxGeometry(3.0, 0.2, 5.0);
+            const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.position.set(0, -0.1, 0);
+            grp.add(floorMesh);
+
+            // Außenwände (Starten bei -0.2, um den eigenen Boden zu umschließen)
+            const H_wall = H + 0.2;
+            const wallYStart = -0.2;
+            const lWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            lWall.position.set(-1.75, wallYStart + H_wall/2, 0);
+            grp.add(lWall);
+            registerWall(lWall, false, true);
+
+            const rWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            rWall.position.set(1.75, wallYStart + H_wall/2, 0);
+            grp.add(rWall);
+            registerWall(rWall, false, true);
+
+            const bWall = new THREE.Mesh(new THREE.BoxGeometry(3.0, H_wall, 0.5), wallMat);
+            bWall.position.set(0, wallYStart + H_wall/2, -2.75);
+            grp.add(bWall);
+            registerWall(bWall);
+
+            // Vorderwand mit zweiflügliger Eingangstür (links)
+            // Rechter Wandteil (X = -0.5 bis 1.5)
+            const fWallR = new THREE.Mesh(new THREE.BoxGeometry(2.0, H_wall, 0.5), frontWallMat);
+            fWallR.position.set(0.5, wallYStart + H_wall/2, 2.75);
+            grp.add(fWallR);
+            registerWall(fWallR, true);
+            
+            // Unterer Schwelle (X = -1.5 bis -0.5). Reicht von -0.2 bis 0.0
+            const fWallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.2, 0.5), frontWallMat);
+            fWallB.position.set(-1.0, -0.1, 2.75);
+            grp.add(fWallB);
+            registerWall(fWallB, true);
+
+            // Oberer Sturz (X = -1.5 bis -0.5). Reicht von 2.0 bis 2.3
+            const topH = (wallYStart + H_wall) - 2.0; 
+            const fWallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
+            fWallT.position.set(-1.0, 2.0 + topH/2, 2.75);
+            grp.add(fWallT);
+            registerWall(fWallT, true);
+
+            // Zweiflüglige Eingangstür (Öffnung X = -1.5 bis -0.5)
+            const doorGroup = new THREE.Group();
+            doorGroup.position.set(0, 0, 2.75);
+
+            // Linker Türflügel (Anschlag links bei X = -1.45)
+            const leftHinge = new THREE.Group();
+            leftHinge.position.set(-1.45, 0, 0);
+
+            // Unterer geschlossener Holzteil (Höhe 1.0m)
+            const leftLower = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.04), doorWoodMat);
+            leftLower.position.set(0.225, 0.5, 0);
+            leftHinge.add(leftLower);
+
+            // Oberer Rahmen: Seitenteile (6cm breit, 1.0m hoch)
+            const leftStileL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 0.04), doorWoodMat);
+            leftStileL.position.set(0.03, 1.5, 0);
+            leftHinge.add(leftStileL);
+
+            const leftStileR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 0.04), doorWoodMat);
+            leftStileR.position.set(0.42, 1.5, 0);
+            leftHinge.add(leftStileR);
+
+            // Oberer Rahmen: Kopfstück (33cm breit, 8cm hoch)
+            const leftRailT = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.08, 0.04), doorWoodMat);
+            leftRailT.position.set(0.225, 1.96, 0);
+            leftHinge.add(leftRailT);
+
+            // Fensterscheibe (33cm breit, 92cm hoch, 1cm dick)
+            const leftGlass = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.92, 0.01), glassMat);
+            leftGlass.position.set(0.225, 1.46, 0);
+            leftHinge.add(leftGlass);
+
+            // Stahlgitter (2 vertikale und 3 horizontale Stäbe)
+            const gridMat = new THREE.MeshStandardMaterial({ color: '#333333', metalness: 0.8, roughness: 0.3 });
+            
+            // Vertikale Gitterstäbe
+            const barVGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.92, 8);
+            const leftBarV1 = new THREE.Mesh(barVGeo, gridMat);
+            leftBarV1.position.set(0.17, 1.46, 0.01);
+            leftHinge.add(leftBarV1);
+
+            const leftBarV2 = new THREE.Mesh(barVGeo, gridMat);
+            leftBarV2.position.set(0.28, 1.46, 0.01);
+            leftHinge.add(leftBarV2);
+
+            // Horizontale Gitterstäbe
+            const barHGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.33, 8);
+            barHGeo.rotateZ(Math.PI / 2); // horizontal legen
+
+            const leftBarH1 = new THREE.Mesh(barHGeo, gridMat);
+            leftBarH1.position.set(0.225, 1.23, 0.01);
+            leftHinge.add(leftBarH1);
+
+            const leftBarH2 = new THREE.Mesh(barHGeo, gridMat);
+            leftBarH2.position.set(0.225, 1.46, 0.01);
+            leftHinge.add(leftBarH2);
+
+            const leftBarH3 = new THREE.Mesh(barHGeo, gridMat);
+            leftBarH3.position.set(0.225, 1.69, 0.01);
+            leftHinge.add(leftBarH3);
+
+            leftHinge.rotation.y = Math.PI / 4.5;
+            doorGroup.add(leftHinge);
+
+            // Rechter Türflügel (Anschlag rechts bei X = -0.55)
+            const rightHinge = new THREE.Group();
+            rightHinge.position.set(-0.55, 0, 0);
+
+            // Unterer geschlossener Holzteil (Höhe 1.0m)
+            const rightLower = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.0, 0.04), doorWoodMat);
+            rightLower.position.set(-0.225, 0.5, 0);
+            rightHinge.add(rightLower);
+
+            // Oberer Rahmen: Seitenteile (6cm breit, 1.0m hoch)
+            const rightStileL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 0.04), doorWoodMat);
+            rightStileL.position.set(-0.42, 1.5, 0);
+            rightHinge.add(rightStileL);
+
+            const rightStileR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 0.04), doorWoodMat);
+            rightStileR.position.set(-0.03, 1.5, 0);
+            rightHinge.add(rightStileR);
+
+            // Oberer Rahmen: Kopfstück (33cm breit, 8cm hoch)
+            const rightRailT = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.08, 0.04), doorWoodMat);
+            rightRailT.position.set(-0.225, 1.96, 0);
+            rightHinge.add(rightRailT);
+
+            // Fensterscheibe (33cm breit, 92cm hoch, 1cm dick)
+            const rightGlass = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.92, 0.01), glassMat);
+            rightGlass.position.set(-0.225, 1.46, 0);
+            rightHinge.add(rightGlass);
+
+            // Stahlgitter (2 vertikale und 3 horizontale Stäbe)
+            const rightBarV1 = new THREE.Mesh(barVGeo, gridMat);
+            rightBarV1.position.set(-0.17, 1.46, 0.01);
+            rightHinge.add(rightBarV1);
+
+            const rightBarV2 = new THREE.Mesh(barVGeo, gridMat);
+            rightBarV2.position.set(-0.28, 1.46, 0.01);
+            rightHinge.add(rightBarV2);
+
+            // Horizontale Gitterstäbe
+            const rightBarH1 = new THREE.Mesh(barHGeo, gridMat);
+            rightBarH1.position.set(-0.225, 1.23, 0.01);
+            rightHinge.add(rightBarH1);
+
+            const rightBarH2 = new THREE.Mesh(barHGeo, gridMat);
+            rightBarH2.position.set(-0.225, 1.46, 0.01);
+            rightHinge.add(rightBarH2);
+
+            const rightBarH3 = new THREE.Mesh(barHGeo, gridMat);
+            rightBarH3.position.set(-0.225, 1.69, 0.01);
+            rightHinge.add(rightBarH3);
+
+            rightHinge.rotation.y = -Math.PI / 4.5;
+            doorGroup.add(rightHinge);
+
+            // Tuffstein-Rahmen für die Eingangstür (bündig/leicht vorstehend, damit er sichtbar wird)
+            const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
+            const dFrameL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.0, 0.05), tuffMat);
+            dFrameL.position.set(-1.575, 1.0, 0.25); // bündig/leicht vorstehend bei Z = 3.0 (Wand liegt bei Z = 3.0)
+            doorGroup.add(dFrameL);
+
+            const dFrameR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.0, 0.05), tuffMat);
+            dFrameR.position.set(-0.425, 1.0, 0.25);
+            doorGroup.add(dFrameR);
+
+            const dFrameT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
+            dFrameT.position.set(-1.0, 2.075, 0.25);
+            doorGroup.add(dFrameT);
+
+            grp.add(doorGroup);
+
+            // Tragende Wand links vom Treppenhaus (0.25m dick, immer halb transparent)
+            const stairWallMat = new THREE.MeshLambertMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+            const stairWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, H, 1.9), stairWallMat);
+            stairWall.position.set(0.475, H/2, 0.95);
+            grp.add(stairWall);
+            // registerWall weggelassen, damit sie immer transparent bleibt
+            
+            
+            // Treppenhaus (rechts: 0.9m x 2.5m) mit Podest
+            const podestD = 0.6;
+            const stairSteps = 14; 
+            const stepH = H / (stairSteps + 1); 
+            const stepD = (2.5 - podestD) / stairSteps;
+
+            const podest = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, podestD), oldStairMat);
+            podest.position.set(1.05, stepH/2, 2.5 - podestD/2);
+            grp.add(podest);
+
+            for (let i = 0; i < stairSteps; i++) {
+                const step = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, stepD), oldStairMat);
+                step.position.set(
+                    1.05,
+                    (i + 1) * stepH + stepH/2,
+                    2.5 - podestD - (i * stepD) - stepD/2
+                );
+                grp.add(step);
+            }
+
+            // --- BADEZIMMER (EG) ---
+            // Das Bad geht nicht ganz nach hinten (endet bei Z = -1.0), hat eine diagonale Türwand
+            // und startet exakt 0.7m entfernt von der Eingangstür (bei Z = 1.8, statt an der Außenwand bei Z = 2.5)
+            // Es werden keine unnötigen Wände bis zur Vorderseite des Gebäudes gezeichnet.
+            
+            const bathNew = new THREE.Group();
+            
+            // Rückwand des Bades (Z = -1.0)
+            const backPartitionNew = new THREE.Mesh(new THREE.BoxGeometry(1.2, H, 0.05), innerWallMat);
+            backPartitionNew.position.set(-0.9, H/2, -1.0);
+            bathNew.add(backPartitionNew);
+
+            // Längswand hinten (X = -0.3, Z = -1.0 bis 1.0)
+            const wallNewB = new THREE.Mesh(new THREE.BoxGeometry(0.05, H, 2.0), innerWallMat);
+            wallNewB.position.set(-0.3, H/2, 0.0);
+            bathNew.add(wallNewB);
+
+            // Diagonale Türwand von (-0.3, 1.0) bis (-0.7, 1.8)
+            const diagWallNew = createDiagonalDoorWall(-0.3, 1.0, -0.7, 1.8, 0.65, 2.0, H, innerWallMat, doorWoodMat);
+            bathNew.add(diagWallNew);
+
+            // Querwand vorne des Bades (Z = 1.8)
+            const frontPartitionNew = new THREE.Mesh(new THREE.BoxGeometry(0.8, H, 0.05), innerWallMat);
+            frontPartitionNew.position.set(-1.1, H/2, 1.8);
+            bathNew.add(frontPartitionNew);
+
+            // --- BADEZIMMER-MÖBEL (EG) ---
+            const egBathFurniture = new THREE.Group();
+            egBathFurniture.visible = showFurniture;
+            furnitureObjects.push(egBathFurniture);
+
+            const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', metalness: 0.8, roughness: 0.2 });
+            const ceramicMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.1 });
+
+            // 1. Dusche hinten (Z = -1.0 bis -0.1)
+            // Duschwanne
+            const showerTray = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.04, 0.9), new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.9 }));
+            showerTray.position.set(-0.9, 0.02, -0.55); // auf dem Fußboden Y = 0.0
+            egBathFurniture.add(showerTray);
+
+            // Duschwand (Glas) bei Z = -0.1, geht von X = -1.5 bis -0.7 (40cm Einstieg rechts frei)
+            const showerGlass = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.0, 0.01), glassMat);
+            showerGlass.position.set(-1.1, 1.0, -0.1);
+            egBathFurniture.add(showerGlass);
+
+            // Duscharmatur (Stange, Duschkopf und Mischbatterie)
+            const showerPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6, 8), chromeMat);
+            showerPipe.position.set(-0.9, 0.8, -0.98);
+            egBathFurniture.add(showerPipe);
+
+            const showerHead = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.02, 16), chromeMat);
+            showerHead.position.set(-0.9, 1.6, -0.85);
+            egBathFurniture.add(showerHead);
+
+            const showerArm = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.15), chromeMat);
+            showerArm.position.set(-0.9, 1.6, -0.925);
+            egBathFurniture.add(showerArm);
+
+            // 2. Waschtisch links (Z = 0.2 bis 0.8)
+            // Unterschrank (schwebend, 35cm tief, 50cm hoch, 60cm breit)
+            const vanity = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.6), woodFurnitureMat);
+            vanity.position.set(-1.325, 0.4, 0.5); // an der linken Wand
+            egBathFurniture.add(vanity);
+
+            // Keramikwaschbecken (liegt oben auf dem Unterschrank)
+            const basin = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.45), ceramicMat);
+            basin.position.set(-1.325, 0.69, 0.5);
+            egBathFurniture.add(basin);
+
+            // Verchromter Wasserhahn
+            const tap = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.1, 0.08), chromeMat);
+            tap.position.set(-1.425, 0.74, 0.5);
+            egBathFurniture.add(tap);
+
+            // 3. Toilette links (Z = 1.1 bis 1.5)
+            // Toilettenbecken (X = -1.5 bis -1.15, Z = 1.05 bis 1.55)
+            const toilet = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), ceramicMat);
+            toilet.position.set(-1.325, 0.2, 1.3);
+            egBathFurniture.add(toilet);
+
+            // Toilettensitz (soft close deckel)
+            const toiletSeat = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.02, 0.51), new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.5 }));
+            toiletSeat.position.set(-1.325, 0.41, 1.3);
+            egBathFurniture.add(toiletSeat);
+
+            // Spülkasten an der linken Wand
+            const cistern = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.4, 0.35), ceramicMat);
+            cistern.position.set(-1.425, 0.6, 1.3);
+            egBathFurniture.add(cistern);
+
+            bathNew.add(egBathFurniture);
+
+            // 1. OPTION A: Wärmepumpe & Warmwassertank & Autoclave (kompakt neben Steigleitung an der Rückwand)
+            const equipGrpBack = new THREE.Group();
+            
+            const tankMat = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // rot = warm wasser
+            const tankBack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
+            tankBack.position.set(-0.6, 0.5, -2.25);
+            equipGrpBack.add(tankBack);
+            
+            const wpMat = new THREE.MeshLambertMaterial({ color: 0xc62828 });
+            const wpBack = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), wpMat);
+            wpBack.position.set(-0.6, 1.175, -2.25);
+            equipGrpBack.add(wpBack);
+            
+            const autoMat = new THREE.MeshLambertMaterial({ color: 0x00ffff }); // cyan = kalt wasser
+            const autoBack = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16), autoMat);
+            autoBack.position.set(-1.05, 0.25, -2.25);
+            equipGrpBack.add(autoBack);
+
+            // Verbindungsleitungen in der Wand von Aggregaten zur Steigleitung (Option A: Rückwand)
+            const pipeRedMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
+            const pipeCyanMat = new THREE.MeshLambertMaterial({ color: 0x06b6d4 });
+
+            // Rote Warmwasser-Verbindungsleitung (Tank/WP -> Steigrohr, in der Rückwand verlegt)
+            const stubRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8), pipeRedMat);
+            stubRedBack.rotation.x = Math.PI / 2;
+            stubRedBack.position.set(-0.6, 0.8, -2.4);
+            equipGrpBack.add(stubRedBack);
+
+            const connRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.46, 8), pipeRedMat);
+            connRedBack.rotation.z = Math.PI / 2;
+            connRedBack.position.set(-0.37, 0.8, -2.55); // in der Rückwand bei Z=-2.55
+            equipGrpBack.add(connRedBack);
+
+            // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr, in der Rückwand hinter dem Tank verlegt)
+            const stubCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8), pipeCyanMat);
+            stubCyanBack.rotation.x = Math.PI / 2;
+            stubCyanBack.position.set(-1.05, 0.3, -2.4);
+            equipGrpBack.add(stubCyanBack);
+
+            const connCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.855, 8), pipeCyanMat);
+            connCyanBack.rotation.z = Math.PI / 2;
+            connCyanBack.position.set(-0.6225, 0.3, -2.55); // in der Rückwand bei Z=-2.55 hinter dem Tank
+            equipGrpBack.add(connCyanBack);
+
+            const labelWpTankBack = createTextSpriteSmall("wpTank", "#ef4444");
+            labelWpTankBack.position.set(-0.6, 1.6, -3.4);
+            equipGrpBack.add(labelWpTankBack);
+
+            const labelAutoBack = createTextSpriteSmall("auto", "#06b6d4");
+            labelAutoBack.position.set(-1.05, 0.6, -3.4);
+            equipGrpBack.add(labelAutoBack);
+
+            equipGrpBack.visible = showInstallations && !shaftOnRight;
+            grp.add(equipGrpBack);
+            installationObjects.push(equipGrpBack);
+            shaftBackObjects.push(equipGrpBack);
+
+            // 2. OPTION B: Wärmepumpe & Warmwassertank & Autoclave (kompakt neben Steigleitung an der rechten Wand)
+            const equipGrpRight = new THREE.Group();
+            
+            const tankRight = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
+            tankRight.position.set(1.2, 0.5, 0.6);
+            equipGrpRight.add(tankRight);
+            
+            const wpRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), wpMat);
+            wpRight.position.set(1.2, 1.175, 0.6);
+            equipGrpRight.add(wpRight);
+            
+            const autoRight = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16), autoMat);
+            autoRight.position.set(1.2, 0.25, 1.1);
+            equipGrpRight.add(autoRight);
+
+            // Verbindungsleitungen an der rechten Wand (Option B: Rechte Wand, in der Wand verlegt)
+            const stubRedRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeRedMat);
+            stubRedRight.rotation.z = Math.PI / 2;
+            stubRedRight.position.set(1.375, 0.8, 0.6);
+            equipGrpRight.add(stubRedRight);
+
+            const connRedRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 8), pipeRedMat);
+            connRedRight.rotation.x = Math.PI / 2;
+            connRedRight.position.set(1.55, 0.8, 0.3); // in der rechten Wand bei X=1.55
+            equipGrpRight.add(connRedRight);
+
+            const stubCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
+            stubCyanRight.rotation.z = Math.PI / 2;
+            stubCyanRight.position.set(1.375, 0.3, 1.1);
+            equipGrpRight.add(stubCyanRight);
+
+            const connCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 8), pipeCyanMat);
+            connCyanRight.rotation.x = Math.PI / 2;
+            connCyanRight.position.set(1.55, 0.3, 0.55); // in der rechten Wand bei X=1.55 hinter dem Tank
+            equipGrpRight.add(connCyanRight);
+
+            const labelWpTankRight = createTextSpriteSmall("wpTankAlt", "#ef4444");
+            labelWpTankRight.position.set(2.6, 1.6, 0.6);
+            equipGrpRight.add(labelWpTankRight);
+
+            const labelAutoRight = createTextSpriteSmall("autoAlt", "#06b6d4");
+            labelAutoRight.position.set(2.6, 0.6, 1.1);
+            equipGrpRight.add(labelAutoRight);
+
+            equipGrpRight.visible = showInstallations && shaftOnRight;
+            grp.add(equipGrpRight);
+            installationObjects.push(equipGrpRight);
+            shaftRightObjects.push(equipGrpRight);
+
+            grp.add(bathNew);
+            
+        }
+
+        // --- ETAGE 1: 1. OBERGESCHOSS ---
+        function buildFloor1_Schlaf1() {
+            const grp = floorGroups[1];
+            const H = 2.3;
+            const Y_start = 2.3;
+
+            // Bodenplatte (nur Innenbereich: 3.0m x 5.0m) mit Treppendurchbruch rechts
+            const slabShape = new THREE.Shape();
+            slabShape.moveTo(-1.5, -2.5);
+            slabShape.lineTo(1.5, -2.5);
+            slabShape.lineTo(1.5, 2.5);
+            slabShape.lineTo(-1.5, 2.5);
+            slabShape.closePath();
+
+            const stairHole = new THREE.Path();
+            stairHole.moveTo(0.7, 0.0);
+            stairHole.lineTo(1.5, 0.0);
+            stairHole.lineTo(1.5, -2.5);
+            stairHole.lineTo(0.7, -2.5);
+            stairHole.closePath();
+            slabShape.holes.push(stairHole);
+
+            const slabGeo = new THREE.ExtrudeGeometry(slabShape, { depth: 0.2, bevelEnabled: false });
+            const slabMesh = new THREE.Mesh(slabGeo, floorMat);
+            slabMesh.rotation.x = -Math.PI / 2;
+            slabMesh.position.y = Y_start;
+            grp.add(slabMesh);
+
+            // Außenwände (Starten bei Y_start, um den eigenen Boden zu umschließen)
+            const H_wall = H + 0.2;
+            const wallYStart = Y_start;
+            const floorYStart = Y_start + 0.2;
+
+            const lWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            lWall.position.set(-1.75, wallYStart + H_wall/2, 0);
+            grp.add(lWall);
+            registerWall(lWall, false, true);
+
+            const rWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            rWall.position.set(1.75, wallYStart + H_wall/2, 0);
+            grp.add(rWall);
+            registerWall(rWall, false, true);
+
+            const bWall = new THREE.Mesh(new THREE.BoxGeometry(3.0, H_wall, 0.5), wallMat);
+            bWall.position.set(0, wallYStart + H_wall/2, -2.75);
+            grp.add(bWall);
+            registerWall(bWall);
+
+            buildWindowWall(grp, wallYStart, floorYStart, H_wall, 2.75);
+
+            // Tragende Wand links vom Treppenhaus (0.25m dick, immer halb transparent)
+            const stairWallMat = new THREE.MeshLambertMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+            const stairWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, H, 1.9), stairWallMat);
+            stairWall.position.set(0.475, Y_start + 0.2 + H/2, 0.95);
+            grp.add(stairWall);
+            // registerWall weggelassen, damit sie immer transparent bleibt
+            
+            
+            // Treppe mit Podest
+            const podestD = 0.6;
+            const stairSteps = 14;
+            const stepH = H / (stairSteps + 1);
+            const stepD = (2.5 - podestD) / stairSteps;
+
+            const podest = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, podestD), oldStairMat);
+            podest.position.set(1.05, Y_start + 0.2 + stepH/2, 2.5 - podestD/2);
+            grp.add(podest);
+
+            for (let i = 0; i < stairSteps; i++) {
+                const step = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, stepD), oldStairMat);
+                step.position.set(
+                    1.05,
+                    Y_start + 0.2 + (i + 1) * stepH + stepH/2,
+                    2.5 - podestD - (i * stepD) - stepD/2
+                );
+                grp.add(step);
+            }
+
+            // Möbel: Bett hinten links (1.6m x 2.0m)
+            const bed1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 2.0), bedMat);
+            bed1.position.set(-0.6, Y_start + 0.2 + 0.2, -1.5);
+            bed1.visible = showFurniture;
+            grp.add(bed1);
+            furnitureObjects.push(bed1);
+
+            // Stahlträger H-Form 12x12cm zur Verstärkung (in Wände eingelassen bis in die Ecke)
+            const beamMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+            const startX = 0.475, startZ = 0.0;     // Treppenwand Mitte
+            const endX = -1.75, endZ = -2.75;       // Hintere linke Ecke (Wandmitte)
+            const dx = endX - startX; 
+            const dz = endZ - startZ; 
+            const length = Math.sqrt(dx*dx + dz*dz);
+            
+            const hBeam = new THREE.Group();
+            
+            // Flansch oben
+            const topFlange = new THREE.Mesh(new THREE.BoxGeometry(length, 0.01, 0.12), beamMat);
+            topFlange.position.y = 0.055;
+            hBeam.add(topFlange);
+            
+            // Steg Mitte
+            const web = new THREE.Mesh(new THREE.BoxGeometry(length, 0.10, 0.01), beamMat);
+            hBeam.add(web);
+            
+            // Flansch unten
+            const botFlange = new THREE.Mesh(new THREE.BoxGeometry(length, 0.01, 0.12), beamMat);
+            botFlange.position.y = -0.055;
+            hBeam.add(botFlange);
+            
+            // Decke des 1. OG ist bei Y = 4.8. Stahlträger ist 0.12m hoch. 
+            // Position (center of beam) should be at 4.8 - 0.06 = 4.74.
+            // Y_start(2.3) + H(2.3) + 0.2 = 4.8. 
+            hBeam.position.set(startX + dx/2, Y_start + H + 0.2 - 0.06, startZ + dz/2); 
+            hBeam.rotation.y = Math.atan2(-dz, dx);
+            grp.add(hBeam);
+
+            // Arbeitsplatz vorne links (Tisch + Stuhl)
+            buildBedroomWorkplace(grp, Y_start);
+        }
+
+        // --- ETAGE 2: 2. OBERGESCHOSS ---
+        function buildFloor2_2OG() {
+            const grp = floorGroups[2];
+            const H = 2.3;
+            const Y_start = 4.8;
+
+            // Bodenplatte (nur Innenbereich: 3.0m x 5.0m)
+            const slabShape = new THREE.Shape();
+            slabShape.moveTo(-1.5, -2.5);
+            slabShape.lineTo(1.5, -2.5);
+            slabShape.lineTo(1.5, 2.5);
+            slabShape.lineTo(-1.5, 2.5);
+            slabShape.closePath();
+
+            const stairHole = new THREE.Path();
+            stairHole.moveTo(0.7, 0.0);
+            stairHole.lineTo(1.5, 0.0);
+            stairHole.lineTo(1.5, -2.5);
+            stairHole.lineTo(0.7, -2.5);
+            stairHole.closePath();
+            slabShape.holes.push(stairHole);
+
+            const slabGeo = new THREE.ExtrudeGeometry(slabShape, { depth: 0.2, bevelEnabled: false });
+            const slabMesh = new THREE.Mesh(slabGeo, floorMat);
+            slabMesh.rotation.x = -Math.PI / 2;
+            slabMesh.position.y = Y_start;
+            grp.add(slabMesh);
+
+            // Außenwände (Starten bei Y_start, um den eigenen Boden zu umschließen)
+            const H_wall = H + 0.2;
+            const wallYStart = Y_start;
+            const floorYStart = Y_start + 0.2;
+
+            const lWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            lWall.position.set(-1.75, wallYStart + H_wall/2, 0);
+            grp.add(lWall);
+            registerWall(lWall, false, true);
+
+            const rWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            rWall.position.set(1.75, wallYStart + H_wall/2, 0);
+            grp.add(rWall);
+            registerWall(rWall, false, true);
+
+            const bWall = new THREE.Mesh(new THREE.BoxGeometry(3.0, H_wall, 0.5), wallMat);
+            bWall.position.set(0, wallYStart + H_wall/2, -2.75);
+            grp.add(bWall);
+            registerWall(bWall);
+
+            buildWindowWall(grp, wallYStart, floorYStart, H_wall, 2.75);
+
+            // Tragende Wand links vom Treppenhaus (0.25m dick, immer halb transparent)
+            const stairWallMat = new THREE.MeshLambertMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+            const stairWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, H, 1.9), stairWallMat);
+            stairWall.position.set(0.475, Y_start + 0.2 + H/2, 0.95);
+            grp.add(stairWall);
+            // registerWall weggelassen, damit sie immer transparent bleibt
+            
+            
+            // Treppe mit Podest
+            const podestD = 0.6;
+            const stairSteps = 14;
+            const stepH = H / (stairSteps + 1);
+            const stepD = (2.5 - podestD) / stairSteps;
+
+            const podest = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, podestD), oldStairMat);
+            podest.position.set(1.05, Y_start + 0.2 + stepH/2, 2.5 - podestD/2);
+            grp.add(podest);
+
+            for (let i = 0; i < stairSteps; i++) {
+                const step = new THREE.Mesh(new THREE.BoxGeometry(0.9, stepH, stepD), oldStairMat);
+                step.position.set(
+                    1.05,
+                    Y_start + 0.2 + (i + 1) * stepH + stepH/2,
+                    2.5 - podestD - (i * stepD) - stepD/2
+                );
+                grp.add(step);
+            }
+
+            // Toilette hinten rechts 1m x 1m (als Raum / Wände)
+            // Vordere Wand mit Tür (Gesamtbreite 1.0m, von X = 0.5 bis 1.5, Z = -1.45)
+            // Tür ist 0.7m breit (von X = 0.5 bis 1.2), 2.0m hoch.
+            
+            // Kein linkes Wandstück nötig, da die Tür direkt an der Seitenwand ansetzt.
+
+            const wcWallR = new THREE.Mesh(new THREE.BoxGeometry(0.3, H, 0.1), innerWallMat);
+            wcWallR.position.set(1.35, Y_start + 0.2 + H/2, -1.45);
+            grp.add(wcWallR);
+
+            const wcWallTop = new THREE.Mesh(new THREE.BoxGeometry(0.7, H - 2.0, 0.1), innerWallMat);
+            wcWallTop.position.set(0.85, Y_start + 0.2 + 2.0 + (H - 2.0)/2, -1.45);
+            grp.add(wcWallTop);
+
+            // Holztür
+            const wcDoorHinge = new THREE.Group();
+            wcDoorHinge.position.set(0.5, Y_start + 0.2, -1.45);
+            const wcDoorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.7, 2.0, 0.04), doorWoodMat);
+            wcDoorLeaf.position.set(0.35, 1.0, 0);
+            wcDoorHinge.add(wcDoorLeaf);
+            wcDoorHinge.rotation.y = -Math.PI / 4; // Tür leicht geöffnet
+            grp.add(wcDoorHinge);
+
+
+            const wcWall2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, H, 1.0), innerWallMat);
+            wcWall2.position.set(0.45, Y_start + 0.2 + H/2, -2.0); // Versetzt von 0.25 auf 0.45, da das Bad nun schmaler ist
+            grp.add(wcWall2);
+            
+
+            // Toiletten-Möbel
+            const toiletBowl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 0.6), bedMat);
+            toiletBowl.position.set(1.0, Y_start + 0.2 + 0.225, -2.2); // Leicht nach rechts verschoben
+            toiletBowl.visible = showFurniture;
+            grp.add(toiletBowl);
+            furnitureObjects.push(toiletBowl);
+
+            // Möbel: Bett hinten links (1.6m x 2.0m)
+            const bed2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 2.0), bedMat);
+            bed2.position.set(-0.65, Y_start + 0.2 + 0.2, -1.5);
+            bed2.visible = showFurniture;
+            grp.add(bed2);
+            furnitureObjects.push(bed2);
+
+            // Arbeitsplatz vorne links (Tisch + Stuhl)
+            buildBedroomWorkplace(grp, Y_start);
+        }
+
+        // --- ETAGE 3: 3. OBERGESCHOSS (KÜCHE/WOHNEN) ---
+        function buildFloor3_3OG_Kueche() {
+            const grp = floorGroups[3];
+            const H = 3.0;
+            const Y_start = 7.3;
+
+            // --- BOGENDECKE (GEWÖLBE ALS KÜCHENBODEN) ---
+            const vaultLeft = createVaultMesh(-1.5, 0.7, -2.5, 2.5);
+            grp.add(vaultLeft);
+
+            const vaultRightBack = createVaultMesh(0.7, 1.5, -2.5, 0.0);
+            grp.add(vaultRightBack);
+
+            const vaultRightFront = createVaultMesh(0.7, 1.5, 1.5, 2.5);
+            grp.add(vaultRightFront);
+
+
+            // Außenwände (Starten bei Y_start, um den eigenen Boden (Gewölbe) zu umschließen)
+            const H_wall = H + 0.2;
+            const wallYStart = Y_start;
+            const floorYStart = Y_start + 0.2;
+
+            const lWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            lWall.position.set(-1.75, wallYStart + H_wall/2, 0);
+            grp.add(lWall);
+            registerWall(lWall, false, true);
+
+            const rWall = new THREE.Mesh(new THREE.BoxGeometry(0.5, H_wall, 6.0), wallMat);
+            rWall.position.set(1.75, wallYStart + H_wall/2, 0);
+            grp.add(rWall);
+            registerWall(rWall, false, true);
+
+            const bWall = new THREE.Mesh(new THREE.BoxGeometry(3.0, H_wall, 0.5), wallMat);
+            bWall.position.set(0, wallYStart + H_wall/2, -2.75);
+            grp.add(bWall);
+            registerWall(bWall);
+
+            buildFrenchBalconyWall(grp, wallYStart, floorYStart, H_wall, 2.75);
+
+            
+            
+
+                        
+
+
+
+            // Neue Wendeltreppe hinten rechts (1.2m x 1.2m)
+            const spiralPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.2, 16), newMetalMat);
+            spiralPole.position.set(0.9, Y_start + 1.6, -1.9);
+            grp.add(spiralPole);
+
+            const spiralSteps = 18;
+            const spiralHeight = 10.7 - 7.5;
+            for (let i = 0; i < spiralSteps; i++) {
+                const stepH = spiralHeight / spiralSteps;
+                const stepAngle = i * (Math.PI * 1.5 / (spiralSteps - 1)) - Math.PI / 2; 
+                
+                const stepGroup = new THREE.Group();
+                stepGroup.position.set(0.9, Y_start + i * stepH, -1.9);
+                stepGroup.rotation.y = stepAngle;
+
+                const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.04, 0.18), newWoodMat);
+                stepMesh.position.set(0.275, 0, 0);
+                stepGroup.add(stepMesh);
+
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.95, 8), newMetalMat);
+                post.position.set(0.5, 0.45, 0);
+                stepGroup.add(post);
+
+                grp.add(stepGroup);
+            }
+
+            // Filigranes Geländer um das Treppenauge der alten Treppe (Z=0.0 bis 1.5, X=0.7 bis 1.5)
+            // Offene Seiten sind Links (X=0.7) und Vorne (Z=1.5).
+            const railingOld = new THREE.Group();
+            const postGeo = new THREE.CylinderGeometry(0.015, 0.015, 1.0, 8);
+            const rMat = new THREE.MeshLambertMaterial({ color: 0x333333 }); // dunkles Metall
+
+            // Pfosten Linke Kante (X=0.7, Z=0.0 bis 1.5)
+            for (let z = 0.0; z <= 1.51; z += 0.3) {
+                const p = new THREE.Mesh(postGeo, rMat);
+                p.position.set(0.7, Y_start + 0.5, z);
+                railingOld.add(p);
+            }
+            // Pfosten Vordere Kante (Z=1.5, X=0.7 bis 1.5)
+            for (let x = 0.7; x <= 1.51; x += 0.26) {
+                if (Math.abs(x - 0.7) < 0.01) continue; 
+                const p = new THREE.Mesh(postGeo, rMat);
+                p.position.set(x, Y_start + 0.5, 1.5);
+                railingOld.add(p);
+            }
+
+            // Handläufe
+            const handrailLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.5, 8), rMat);
+            handrailLeft.rotation.x = Math.PI / 2;
+            handrailLeft.position.set(0.7, Y_start + 1.0, 0.75);
+            railingOld.add(handrailLeft);
+
+            const handrailFront = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.8, 8), rMat);
+            handrailFront.rotation.z = Math.PI / 2;
+            handrailFront.position.set(1.1, Y_start + 1.0, 1.5);
+            railingOld.add(handrailFront);
+
+            // Mittelstreben (filigraner Look)
+            const midrailLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.5, 8), rMat);
+            midrailLeft.rotation.x = Math.PI / 2;
+            midrailLeft.position.set(0.7, Y_start + 0.5, 0.75);
+            railingOld.add(midrailLeft);
+
+            const midrailFront = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.8, 8), rMat);
+            midrailFront.rotation.z = Math.PI / 2;
+            midrailFront.position.set(1.1, Y_start + 0.5, 1.5);
+            railingOld.add(midrailFront);
+
+            grp.add(railingOld);
+            
+            // Küchenmöbel (Boden ist hier durch das Gewölbe bei 7.5, also Y_start + 0.2)
+            const floorTop = Y_start + 0.2;
+            const counter1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 0.6), woodFurnitureMat);
+            counter1.position.set(-0.25, floorTop + 0.4, -2.2); 
+            counter1.visible = showFurniture;
+            grp.add(counter1);
+            furnitureObjects.push(counter1);
+
+            const counter2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 1.9), woodFurnitureMat);
+            counter2.position.set(-1.2, floorTop + 0.4, -0.95);
+            counter2.visible = showFurniture;
+            grp.add(counter2);
+            furnitureObjects.push(counter2);
+
+            // Runder Tisch + vier Stühle vor dem franz. Balkon
+            const tableGrp = new THREE.Group();
+            tableGrp.position.set(-0.6, floorTop, 1.2); 
+            
+            const tableTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.05, 32), woodFurnitureMat);
+            tableTop.position.set(0, 0.75, 0);
+            tableGrp.add(tableTop);
+            
+            const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.725, 16), newMetalMat);
+            tableLeg.position.set(0, 0.3625, 0);
+            tableGrp.add(tableLeg);
+
+            for (let i = 0; i < 4; i++) {
+                const chairGrp = new THREE.Group();
+                chairGrp.rotation.y = (i * Math.PI) / 2 + Math.PI / 4; // slight rotation for aesthetics
+                
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.4), woodFurnitureMat);
+                seat.position.set(0, 0.45, 0.8);
+                chairGrp.add(seat);
+                
+                const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.05), woodFurnitureMat);
+                backrest.position.set(0, 0.65, 0.975);
+                chairGrp.add(backrest);
+                
+                const legGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.45, 8);
+                const leg1 = new THREE.Mesh(legGeo, newMetalMat);
+                leg1.position.set(-0.15, 0.225, 0.65);
+                chairGrp.add(leg1);
+                
+                const leg2 = new THREE.Mesh(legGeo, newMetalMat);
+                leg2.position.set(0.15, 0.225, 0.65);
+                chairGrp.add(leg2);
+                
+                const leg3 = new THREE.Mesh(legGeo, newMetalMat);
+                leg3.position.set(-0.15, 0.225, 0.95);
+                chairGrp.add(leg3);
+                
+                const leg4 = new THREE.Mesh(legGeo, newMetalMat);
+                leg4.position.set(0.15, 0.225, 0.95);
+                chairGrp.add(leg4);
+
+                tableGrp.add(chairGrp);
+            }
+            
+            tableGrp.visible = showFurniture;
+            grp.add(tableGrp);
+            furnitureObjects.push(tableGrp);
+
+            
+            
+        }
+
+        // --- ETAGE 4: DACHTERRASSE ---
+        function buildFloor4_Terrasse() {
+            const grp = floorGroups[4];
+            const Y_start = 10.5;
+            const H_parapet = 1.0;
+
+            const deckMat = new THREE.MeshStandardMaterial({ 
+                color: '#8a5229', // Teakbraun für Außendielen & Außenküche
+                roughness: 0.7, 
+                metalness: 0.1 
+            });
+
+            // --- DECKENSLAB ---
+            
+            
+
+            const slabShapeNew = new THREE.Shape();
+            slabShapeNew.moveTo(-1.5, -2.5);
+            slabShapeNew.lineTo(1.5, -2.5);
+            slabShapeNew.lineTo(1.5, 2.5);
+            slabShapeNew.lineTo(-1.5, 2.5);
+            slabShapeNew.closePath();
+
+            const holeNew = new THREE.Path();
+            holeNew.moveTo(0.3, 2.5);
+            holeNew.lineTo(1.5, 2.5);
+            holeNew.lineTo(1.5, 1.3);
+            holeNew.lineTo(0.3, 1.3);
+            holeNew.closePath();
+            slabShapeNew.holes.push(holeNew);
+
+            const slabNewMesh = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(slabShapeNew, { depth: 0.2, bevelEnabled: false }),
+                floorMat
+            );
+            slabNewMesh.rotation.x = -Math.PI / 2;
+            slabNewMesh.position.y = Y_start;
+            grp.add(slabNewMesh);
+            
+
+            // --- BRÜSTUNGSWÄNDE & NACHBARWÄNDE (0.5m dick) ---
+            // Starten bei Y_start, um den eigenen Boden zu umschließen
+            const wallYStart = Y_start;
+
+            // Linke Wand vom Nachbarhaus 4m hoch (innen), also 4.2m gesamt (jetzt blau)
+            const pWallL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.2, 6.0), frontWallMat);
+            pWallL.position.set(-1.75, wallYStart + 4.2/2, 0);
+            grp.add(pWallL);
+            registerWall(pWallL, true);
+
+            // Rechte Brüstung 1m hoch (innen), also 1.2m gesamt
+            const pWallR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 6.0), wallMat);
+            pWallR.position.set(1.75, wallYStart + 1.2/2, 0);
+            grp.add(pWallR);
+            registerWall(pWallR, false, true);
+
+            // Hintere Wand zum Nachbarhaus 1.8m hoch (innen), also 2.0m gesamt
+            const pWallB = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.0, 0.5), wallMat);
+            pWallB.position.set(0, wallYStart + 2.0/2, -2.75);
+            grp.add(pWallB);
+            registerWall(pWallB);
+
+            // Vordere Brüstung 1m hoch (innen), also 1.2m gesamt
+            const pWallF = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.2, 0.5), frontWallMat);
+            pWallF.position.set(0, wallYStart + 1.2/2, 2.75);
+            grp.add(pWallF);
+            registerWall(pWallF, true);
+
+            // Stahlgeländer auf rechter und vorderer Mauer (20cm hoch)
+            const railingMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
+            
+            // Handlauf und Pfosten rechts (Außenkante X = 1.98)
+            const handrailR = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 6.0, 8), railingMat);
+            handrailR.rotation.x = Math.PI / 2;
+            handrailR.position.set(1.98, Y_start + 0.2 + H_parapet + 0.2, 0);
+            grp.add(handrailR);
+            
+            for(let z = -2.8; z <= 2.8; z += 0.4) {
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.2, 8), railingMat);
+                post.position.set(1.98, Y_start + 0.2 + H_parapet + 0.1, z);
+                grp.add(post);
+            }
+
+            // Handlauf und Pfosten vorne (Außenkante Z = 2.98) - verlängert bis zu den Ecken (Länge 4.0)
+            const handrailF = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 4.0, 8), railingMat);
+            handrailF.rotation.z = Math.PI / 2;
+            handrailF.position.set(0, Y_start + 0.2 + H_parapet + 0.2, 2.98);
+            grp.add(handrailF);
+
+            for(let x = -1.98; x <= 1.98; x += 0.396) {
+                const post = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.2, 8), railingMat);
+                post.position.set(x, Y_start + 0.2 + H_parapet + 0.1, 2.98);
+                grp.add(post);
+            }
+
+            // --- SOLL-ZUSTAND: AUSTRITTSHAUS ÜBER DER WENDELTREPPE (1.2m x 1.2m, Y: 10.7 bis 12.8) ---
+            const austrittsHaus = new THREE.Group();
+
+            const roofSlope = Math.atan2(0.06, 1.3); // Verringerte Neigung nach vorne (6cm über 1.3m)
+
+            // Wände auf einheitliche vertikale Höhe setzen (keine Schrägstellung der gesamten Wand, um Schiefheit zu vermeiden)
+            const H_wall = 2.12;
+
+            // Linke Wand des Hauses (X = 0.3, Z = -2.5 bis -1.3)
+            const aWallL = new THREE.Mesh(new THREE.BoxGeometry(0.05, H_wall, 1.2), wallMat);
+            aWallL.position.set(0.3, Y_start + 0.2 + H_wall/2, -1.9);
+            austrittsHaus.add(aWallL);
+
+            // Rechte Wand des Hauses (X = 1.5, Z = -2.5 bis -1.3)
+            const aWallR = new THREE.Mesh(new THREE.BoxGeometry(0.05, H_wall, 1.2), wallMat);
+            aWallR.position.set(1.5, Y_start + 0.2 + H_wall/2, -1.9);
+            austrittsHaus.add(aWallR);
+
+            // Rückwand des Hauses (Z = -2.5, X = 0.3 bis 1.5)
+            const aWallB = new THREE.Mesh(new THREE.BoxGeometry(1.2, H_wall, 0.05), wallMat);
+            aWallB.position.set(0.9, Y_start + 0.2 + H_wall/2, -2.5);
+            austrittsHaus.add(aWallB);
+
+            // Vorderwand des Hauses mit Türöffnung (Z = -1.3, X = 0.3 bis 1.5)
+            // Türöffnung von X = 0.5 bis 1.2 (0.7m breit), Höhe 1.9m
+            const aWallFR = new THREE.Mesh(new THREE.BoxGeometry(0.2, H_wall, 0.05), wallMat);
+            aWallFR.position.set(0.4, Y_start + 0.2 + H_wall/2, -1.3); // Linker Pfosten
+            austrittsHaus.add(aWallFR);
+
+            const aWallFL = new THREE.Mesh(new THREE.BoxGeometry(0.3, H_wall, 0.05), wallMat);
+            aWallFL.position.set(1.35, Y_start + 0.2 + H_wall/2, -1.3); // Rechter Pfosten
+            austrittsHaus.add(aWallFL);
+
+            const aWallFT = new THREE.Mesh(new THREE.BoxGeometry(0.7, H_wall - 1.9, 0.05), wallMat);
+            aWallFT.position.set(0.85, Y_start + 0.2 + 1.9 + (H_wall - 1.9)/2, -1.3); // Überleger
+            austrittsHaus.add(aWallFT);
+
+            // Tür für Austrittshaus (nach außen geöffnet, 5cm Schwelle wegen Holzbeplankung)
+            const aDoorHinge = new THREE.Group();
+            aDoorHinge.position.set(0.5, Y_start + 0.2 + 0.05, -1.3);
+            const aDoorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.85, 0.03), doorWoodMat);
+            aDoorLeaf.position.set(0.35, 0.925, 0);
+            aDoorHinge.add(aDoorLeaf);
+            aDoorHinge.rotation.y = -Math.PI / 2.5; // Nach außen (Richtung +Z) geöffnet
+            austrittsHaus.add(aDoorHinge);
+
+
+
+            // --- NEUES ZIEGELDACH FÜR DAS AUSTRITTSHÄUSCHEN (Rote Ziegel, nach vorne geneigt) ---
+            const tileMat = new THREE.MeshStandardMaterial({
+                color: '#8f5044', // weniger knalliges Ziegelrot (verwittertes Terracotta)
+                roughness: 0.9,
+                metalness: 0.05
+            });
+
+            const pitchedRoofGroup = new THREE.Group();
+            pitchedRoofGroup.position.set(0.9, Y_start + 0.2 + 2.15, -1.9); // Center at X=0.9, Y=12.85, Z=-1.9
+            pitchedRoofGroup.rotation.x = roofSlope;
+
+            // Basis-Dachplatte (Unterkonstruktion - jetzt 10cm dick, um Lücken zu überdecken)
+            const roofBaseGeo = new THREE.BoxGeometry(1.3, 0.10, 1.3);
+            const roofBase = new THREE.Mesh(roofBaseGeo, tileMat);
+            pitchedRoofGroup.add(roofBase);
+
+            // Halbzylindrische Ziegel (Coppi)
+            // Ein Ziegel hat Radius 3.5cm, Länge 1.3m
+            const tileGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.3, 12, 1, false, 0, Math.PI);
+            tileGeo.rotateX(Math.PI / 2); // Zylinderachse entlang Z legen
+
+            // 12 Ziegelreihen nebeneinander in X-Richtung
+            const tileLocXs = [-0.55, -0.45, -0.35, -0.25, -0.15, -0.05, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55];
+            tileLocXs.forEach(xLoc => {
+                const tile = new THREE.Mesh(tileGeo, tileMat);
+                tile.position.set(xLoc, 0.05, 0); // auf die 10cm dicke Basisplatte auflegen (Y = 0.05)
+                tile.rotation.y = Math.PI; // wölbung nach oben drehen
+                pitchedRoofGroup.add(tile);
+            });
+
+            austrittsHaus.add(pitchedRoofGroup);
+
+            // Schwarze Bitumen-Pappe unter der Holzkonstruktion (5mm stark, gleicher Grundriss wie Betonplatte)
+            const bitumenMat = new THREE.MeshStandardMaterial({ 
+                color: '#1c1917', // dunkles Anthrazit/Schwarz für Bitumen
+                roughness: 0.95, 
+                metalness: 0.0 
+            });
+            const bitumenThick = 0.005; // 5mm Bitumenpappe
+            const bitumenMesh = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(slabShapeNew, { depth: bitumenThick, bevelEnabled: false }),
+                bitumenMat
+            );
+            bitumenMesh.rotation.x = -Math.PI / 2;
+            bitumenMesh.position.y = Y_start + 0.2; // Liegt direkt auf der Betonplatte (Y = 10.7)
+            grp.add(bitumenMesh);
+
+            // Bitumen-Hochzug an den Wänden (5 cm hoch, 5 mm dick)
+            const bitumenUpH = 0.05;
+            const bitumenUpThick = 0.005;
+            
+            // 1. Linke Nachbarwand (X = -1.5, Z = -2.5 bis 2.5)
+            const bUpL = new THREE.Mesh(new THREE.BoxGeometry(bitumenUpThick, bitumenUpH, 5.0), bitumenMat);
+            bUpL.position.set(-1.5 + bitumenUpThick/2, Y_start + 0.2 + bitumenUpH/2, 0.0);
+            grp.add(bUpL);
+            
+            // 2. Rechte Brüstungswand (X = 1.5, Z = -1.3 bis 2.5)
+            const bUpR = new THREE.Mesh(new THREE.BoxGeometry(bitumenUpThick, bitumenUpH, 3.8), bitumenMat);
+            bUpR.position.set(1.5 - bitumenUpThick/2, Y_start + 0.2 + bitumenUpH/2, 0.6);
+            grp.add(bUpR);
+            
+            // 3. Hintere Nachbarwand (Z = -2.5, X = -1.5 bis 0.3)
+            const bUpB = new THREE.Mesh(new THREE.BoxGeometry(1.8, bitumenUpH, bitumenUpThick), bitumenMat);
+            bUpB.position.set(-0.6, Y_start + 0.2 + bitumenUpH/2, -2.5 + bitumenUpThick/2);
+            grp.add(bUpB);
+            
+            // 4. Vordere Brüstungswand (Z = 2.5, X = -1.5 bis 1.5)
+            const bUpF = new THREE.Mesh(new THREE.BoxGeometry(3.0, bitumenUpH, bitumenUpThick), bitumenMat);
+            bUpF.position.set(0.0, Y_start + 0.2 + bitumenUpH/2, 2.5 - bitumenUpThick/2);
+            grp.add(bUpF);
+            
+            // 5. Austrittshaus Wände (Außenseite)
+            // Left wall: X = 0.3, Z = -2.5 bis -1.3
+            const bUpAustrittL = new THREE.Mesh(new THREE.BoxGeometry(bitumenUpThick, bitumenUpH, 1.2), bitumenMat);
+            bUpAustrittL.position.set(0.3 - bitumenUpThick/2, Y_start + 0.2 + bitumenUpH/2, -1.9);
+            grp.add(bUpAustrittL);
+            
+            // Front wall (mit Schwelle): Z = -1.3, X = 0.3 bis 1.5
+            const bUpAustrittF = new THREE.Mesh(new THREE.BoxGeometry(1.2, bitumenUpH, bitumenUpThick), bitumenMat);
+            bUpAustrittF.position.set(0.9, Y_start + 0.2 + bitumenUpH/2, -1.3 + bitumenUpThick/2);
+            grp.add(bUpAustrittF);
+
+            const thick = 0.021; // 21mm Dicke (2.1cm)
+            const w = 0.145; // 14.5cm Breite
+
+            // Möbel: Küchenplatte außen (bis zur linken Wand, 1.8m breit, steht auf der Holzbeplankung)
+            const counterExt = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 0.6), deckMat);
+            counterExt.position.set(-0.6, Y_start + 0.2 + bitumenThick + thick * 2 + 0.4, -2.2);
+            counterExt.visible = showFurniture;
+            austrittsHaus.add(counterExt);
+            furnitureObjects.push(counterExt);
+
+            grp.add(austrittsHaus);
+            
+            // Holzbeplankung der Terrasse (5 Elemente à 3m x 1m mit Unterkonstruktion aus den selben Dielen)
+            // Mit 1cm Fuge ringsherum zum Bitumenbelag (der 5mm dick an den Wänden hochgezogen ist)
+            const deckGroup = new THREE.Group();
+            
+            // X-Verteilung der Unterkonstruktions-Hölzer (für volle Breite)
+            const subXPositions = [-1.35, -0.45, 0.45, 1.35];
+            
+            // Die Terrasse geht in Z von -2.5 bis 2.5 (5.0m Gesamtlänge)
+            // Bitumen-Upstands sind an den Wänden Z = -2.5 (hinten) und Z = 2.5 (vorne), jeweils 5mm dick.
+            // Mit 1cm Fuge an beiden Enden beträgt der verfügbare Z-Bereich für das Deck:
+            // Z_start_deck = -2.5 + 0.005 + 0.01 = -2.485
+            // Z_end_deck = 2.5 - 0.005 - 0.01 = 2.485
+            // Gesamtlänge des Decks in Z = 4.97m.
+            // Jedes der 5 Module hat somit eine Länge von elementL = 4.97 / 5 = 0.994m.
+            const elementL = 0.994;
+            
+            // Relativer Z-Versatz der 6 Dielen pro Element (skaliert für elementL = 0.994m)
+            const relDielenZ = [-0.4125, -0.2475, -0.0825, 0.0825, 0.2475, 0.4125].map(rz => rz * elementL);
+            
+            // Wir erstellen die 5 Elemente
+            for (let e = 0; e < 5; e++) {
+                const zStart = -2.485 + e * elementL;
+                const zEnd = -2.485 + (e + 1) * elementL;
+                const zCenter = -2.485 + (e + 0.5) * elementL;
+                
+                // 1. UNTERKONSTRUKTION (Unterzüge in Z-Richtung, Länge = elementL)
+                subXPositions.forEach(x => {
+                    // Prüfen, ob dieser Träger in der Treppenöffnung liegt
+                    // Treppenöffnung: X > 0.3, Z in [-2.5, -1.3]
+                    // Mit 5mm Bitumen + 1cm Fuge am Austrittshaus (Z = -1.3) endet die Öffnung für das Deck bei Z = -1.285.
+                    if (x > 0.3) {
+                        if (zEnd <= -1.285) {
+                            // Komplett im Loch -> weglassen
+                            return;
+                        } else if (zStart < -1.285 && zEnd > -1.285) {
+                            // Schneidet das Loch (Element 2)
+                            // Träger geht nur von -1.285 bis zEnd
+                            const subL = zEnd - (-1.285);
+                            const subZ = (-1.285 + zEnd) / 2;
+                            const subBeam = new THREE.Mesh(new THREE.BoxGeometry(w, thick, subL), deckMat);
+                            subBeam.position.set(x, Y_start + 0.2 + bitumenThick + thick/2, subZ);
+                            deckGroup.add(subBeam);
+                        } else {
+                            // Außerhalb des Lochs -> volle Segmentlänge
+                            const subBeam = new THREE.Mesh(new THREE.BoxGeometry(w, thick, elementL), deckMat);
+                            subBeam.position.set(x, Y_start + 0.2 + bitumenThick + thick/2, zCenter);
+                            deckGroup.add(subBeam);
+                        }
+                    } else {
+                        // Auf der linken Seite -> immer volle Segmentlänge
+                        const subBeam = new THREE.Mesh(new THREE.BoxGeometry(w, thick, elementL), deckMat);
+                        subBeam.position.set(x, Y_start + 0.2 + bitumenThick + thick/2, zCenter);
+                        deckGroup.add(subBeam);
+                    }
+                });
+                
+                // 2. DECK DIELEN (Dielen in X-Richtung, auf der Unterkonstruktion)
+                relDielenZ.forEach(rz => {
+                    const dieleZ = zCenter + rz;
+                    
+                    // Liegt diese Diele im Lochbereich (Z < -1.285)?
+                    const inHole = (dieleZ < -1.285);
+                    
+                    let board;
+                    if (inHole) {
+                        // Diele gekürzt: von linker Wand bis Austrittshaus links (unter Berücksichtigung von Bitumen + 1cm Fuge an beiden Seiten)
+                        // Links: -1.5 + 0.005 + 0.01 = -1.485
+                        // Rechts: 0.3 - 0.005 - 0.01 = 0.285
+                        // Länge = 0.285 - (-1.485) = 1.77m
+                        board = new THREE.Mesh(new THREE.BoxGeometry(1.77, thick, w), deckMat);
+                        board.position.set(-0.6, Y_start + 0.2 + bitumenThick + thick + thick/2, dieleZ);
+                    } else {
+                        // Volle Länge: von linker Wand bis rechter Wand (unter Berücksichtigung von Bitumen + 1cm Fuge an beiden Seiten)
+                        // Links: -1.5 + 0.005 + 0.01 = -1.485
+                        // Rechts: 1.5 - 0.005 - 0.01 = 1.485
+                        // Länge = 1.485 - (-1.485) = 2.97m
+                        board = new THREE.Mesh(new THREE.BoxGeometry(2.97, thick, w), deckMat);
+                        board.position.set(0.0, Y_start + 0.2 + bitumenThick + thick + thick/2, dieleZ);
+                    }
+                    deckGroup.add(board);
+                });
+            }
+            grp.add(deckGroup);
+
+            // --- 3. PERGOLA UND BEPFLANZUNG (in 2,5 m Höhe, nach hinten verschoben, über dem Austrittshaus) ---
+            const pergolaMainGroup = new THREE.Group();
+            pergolaMainGroup.visible = showFurniture;
+            furnitureObjects.push(pergolaMainGroup);
+            grp.add(pergolaMainGroup);
+
+            const pergolaWoodMat = new THREE.MeshStandardMaterial({
+                color: '#8a5229', // Teakbraun für Pergola
+                roughness: 0.8,
+                metalness: 0.05
+            });
+
+            // 3.1 Pfosten (leichte Ausführung, 6x6cm)
+            const postW = 0.06;
+            const Y_deck = Y_start + 0.2 + bitumenThick + thick * 2; // ca. 10.75m
+            const Y_left = Y_deck + 2.65;  // Höhe links: 2.65m (Weltkoordinate ca. 13.4m)
+            const Y_right = Y_deck + 2.35; // Höhe rechts: 2.35m (Weltkoordinate ca. 13.1m)
+
+            // Linke Pfosten (X = -1.45, Z = -2.5, -0.5 und 1.5)
+            const hL = Y_left - Y_deck; // 2.65m
+            const postGeoL = new THREE.BoxGeometry(postW, hL, postW);
+            
+            // Vorne links (Z = 1.5)
+            const postLF = new THREE.Mesh(postGeoL, pergolaWoodMat);
+            postLF.position.set(-1.45, Y_deck + hL/2, 1.5);
+            pergolaMainGroup.add(postLF);
+
+            // Mitte links (Z = -0.5)
+            const postLM = new THREE.Mesh(postGeoL, pergolaWoodMat);
+            postLM.position.set(-1.45, Y_deck + hL/2, -0.5);
+            pergolaMainGroup.add(postLM);
+
+            // Hinten links (Z = -2.5)
+            const postLB = new THREE.Mesh(postGeoL, pergolaWoodMat);
+            postLB.position.set(-1.45, Y_deck + hL/2, -2.5);
+            pergolaMainGroup.add(postLB);
+
+            // Rechte Pfosten (X = 1.45)
+            // Vorne rechts (Z = 1.5, auf dem Deck)
+            const hR = Y_right - Y_deck; // 2.35m
+            const postGeoR = new THREE.BoxGeometry(postW, hR, postW);
+            const postRF = new THREE.Mesh(postGeoR, pergolaWoodMat);
+            postRF.position.set(1.45, Y_deck + hR/2, 1.5);
+            pergolaMainGroup.add(postRF);
+
+            // Mitte rechts (Z = -0.5, auf dem Deck)
+            const postRM = new THREE.Mesh(postGeoR, pergolaWoodMat);
+            postRM.position.set(1.45, Y_deck + hR/2, -0.5);
+            pergolaMainGroup.add(postRM);
+
+            // Hinten rechts (Z = -2.5, auf dem neuen Ziegeldach des Austrittshauses!)
+            const Z_loc_br = -2.5 - (-1.9); // -0.6
+            const Y_loc_br = 0.085 * Math.cos(roofSlope) - Z_loc_br * Math.sin(roofSlope); // Mathematisch korrekte Höhe auf der geneigten Ebene (Ziegeloberkante bei 10cm Plattendicke)
+            const Y_roof_br = (Y_start + 0.2 + 2.15) + Y_loc_br; // Weltkoordinate
+            const hR_back = Y_right - Y_roof_br; // ca. 11-12cm
+            
+            const postGeoRBack = new THREE.BoxGeometry(postW, hR_back, postW);
+            const postRB = new THREE.Mesh(postGeoRBack, pergolaWoodMat);
+            postRB.position.set(1.45, Y_roof_br + hR_back/2, -2.5);
+            pergolaMainGroup.add(postRB);
+
+            // 3.2 Längsträger (Z-Richtung, horizontal auf unterschiedlicher Höhe)
+            // Dimensions: 6cm breit, 10cm hoch, 4.4m lang (Z-Überhang von -2.7 bis 1.7)
+            const beamGeo = new THREE.BoxGeometry(0.06, 0.10, 4.4);
+            
+            const beamL = new THREE.Mesh(beamGeo, pergolaWoodMat);
+            beamL.position.set(-1.45, Y_left + 0.05, -0.5); // liegt auf linken Pfosten auf
+            pergolaMainGroup.add(beamL);
+
+            const beamR = new THREE.Mesh(beamGeo, pergolaWoodMat);
+            beamR.position.set(1.45, Y_right + 0.05, -0.5); // liegt auf rechten Pfosten auf
+            pergolaMainGroup.add(beamR);
+
+            // 3.3 Dachgruppe für Rafter (Quersparren) und Slats (Holzstreben)
+            // Die gesamte Gruppe wird geneigt, damit alle Dachelemente perfekt fluchten.
+            const alpha = Math.atan2(-0.3, 2.9); // Neigungswinkel nach rechts
+            const roofGroup = new THREE.Group();
+            roofGroup.position.set(0, Y_deck + 2.5 + 0.10, -0.5); // Mitte bei X=0, Y=Deck+2.5m+Balkenhöhe, Z=Mitte der Pergola (-0.5)
+            roofGroup.rotation.z = alpha;
+
+            // Quersparren (Rafters, X-Richtung in lokaler Dachgruppe)
+            // Länge 3.2m (X-Überhang von -1.6 bis 1.6), 4cm breit (Z), 8cm hoch (Y)
+            const rafterGeo = new THREE.BoxGeometry(3.2, 0.08, 0.04);
+            // 8 Rafters verteilt über 4m Länge (lokal Z = -2.0 bis 2.0)
+            const zRafters = [-2.0, -1.43, -0.86, -0.29, 0.28, 0.85, 1.42, 2.0];
+            
+            zRafters.forEach(zLoc => {
+                const rafter = new THREE.Mesh(rafterGeo, pergolaWoodMat);
+                rafter.position.set(0, 0.04, zLoc); // liegt auf Y_loc = 0 auf
+                roofGroup.add(rafter);
+            });
+
+            // Dünne Längsstreben (Slats, Z-Richtung, liegen auf den Quersparren)
+            // 2cm breit (X), 3cm hoch (Y), 4.4m lang (Z)
+            const slatGeo = new THREE.BoxGeometry(0.02, 0.03, 4.4);
+            const xSlats = [-1.4, -1.0, -0.6, -0.2, 0.2, 0.6, 1.0, 1.4]; // Lokale X-Koordinaten
+            
+            xSlats.forEach(xLoc => {
+                const slat = new THREE.Mesh(slatGeo, pergolaWoodMat);
+                slat.position.set(xLoc, 0.08 + 0.015, 0); // liegt auf Rafters auf (Y_loc = 8cm + halbe Slat-Höhe)
+                roofGroup.add(slat);
+            });
+
+            pergolaMainGroup.add(roofGroup);
+        }
+
+        // --- GLOBAL: VERTIKALE INSTALLATIONEN (STEIGLEITUNG & DURCHBRUCH) ---
+        function buildVerticalInstallations() {
+            const pipeMatElec = new THREE.MeshLambertMaterial({ color: 0x3b82f6 }); // Blau
+            const pipeMatWaste = new THREE.MeshLambertMaterial({ color: 0xf97316 }); // Orange
+            const pipeMatHot = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // Rot (weniger grell)
+            const pipeMatCold = new THREE.MeshLambertMaterial({ color: 0x06b6d4 }); // Cyan
+            const shaftMat = new THREE.MeshLambertMaterial({ color: 0x999999, transparent: true, opacity: 0.3 });
+            const steelMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+
+            const pipes = [
+                { mat: pipeMatElec, isChannel: true, w: 0.1, d: 0.06, x: 0.06 },        // Blue (Kanal 100x60mm)
+                { mat: pipeMatWaste, r: 0.05, x: -0.06 },      // Orange
+                { mat: pipeMatHot, r: 0.025, x: -0.14 },       // Red
+                { mat: pipeMatCold, r: 0.025, x: -0.195 }      // Cyan
+            ];
+
+            const segments = [
+                { idx: 0, y: 1.25, l: 2.5 },
+                { idx: 1, y: 3.75, l: 2.5 },
+                { idx: 2, y: 6.25, l: 2.5 },
+                { idx: 3, y: 9.1, l: 3.2 },
+                { idx: 4, y: 11.1, l: 0.8 } 
+            ];
+
+            // 1. OPTION A: Schacht an der Rückwand (Z = -2.6)
+            segments.forEach(seg => {
+                const sMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, seg.l, 0.2), shaftMat);
+                sMesh.position.set(-0.05, seg.y, -2.6);
+                floorGroups[seg.idx].add(sMesh);
+                installationObjects.push(sMesh);
+                shaftBackObjects.push(sMesh);
+            });
+
+            pipes.forEach((p) => {
+                segments.forEach(seg => {
+                    let mesh = p.isChannel 
+                        ? new THREE.Mesh(new THREE.BoxGeometry(p.w, seg.l, p.d), p.mat)
+                        : new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, seg.l, 16), p.mat);
+                    mesh.position.set(p.x, seg.y, -2.6);
+                    floorGroups[seg.idx].add(mesh);
+                    installationObjects.push(mesh);
+                    shaftBackObjects.push(mesh);
+                });
+            });
+
+            // Untergrund-Abwasserleitung (Option A: vom Steigrohr unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
+            const undergroundWasteBack = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 5.8, 16), pipeMatWaste);
+            undergroundWasteBack.rotation.x = Math.PI / 2;
+            undergroundWasteBack.rotation.y = Math.atan2(0.06, 5.8);
+            undergroundWasteBack.position.set(-0.03, -0.15, 0.3); // von Z=-2.6 bis Z=3.2 (Straße, X=0.0)
+            floorGroups[0].add(undergroundWasteBack);
+            installationObjects.push(undergroundWasteBack);
+            shaftBackObjects.push(undergroundWasteBack);
+
+            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
+            const elecBoxBack = new THREE.Group();
+            const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), elecBoxMat);
+            elecBoxBackMesh.position.set(0.35, 1.5, -2.55);
+            elecBoxBack.add(elecBoxBackMesh);
+            
+            // Verbindungsleitung Kasten -> Steigleitung (Rückwand)
+            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.04), elecBoxMat);
+            connElecBack.position.set(0.2, 1.5, -2.55);
+            elecBoxBack.add(connElecBack);
+
+            const labelElecBack = createTextSpriteSmall("elec", "#3b82f6");
+            labelElecBack.position.set(0.35, 1.85, -3.4);
+            elecBoxBack.add(labelElecBack);
+            floorGroups[0].add(elecBoxBack);
+            installationObjects.push(elecBoxBack);
+            shaftBackObjects.push(elecBoxBack);
+
+            // U-Stahl Verstärkung für den gesamten Durchbruch durch die Bogendecke (2. OG, Y=7.44m, bündig mit Küchenboden)
+            const steelThick = 0.04, steelDepth = 0.12, frameYBack = 7.44;
+            const steelDepthRight = 0.65, frameYRight = 7.175; // Option B: Reicht von Y=6.85 (Unterkante Bogen) bis Y=7.50 (Oberkante Decke)
+            const steelBackGroup = new THREE.Group();
+            const steelF = new THREE.Mesh(new THREE.BoxGeometry(0.39, steelDepth, steelThick), steelMat);
+            steelF.position.set(-0.05, frameYBack, -2.48);
+            steelBackGroup.add(steelF);
+            const steelB = new THREE.Mesh(new THREE.BoxGeometry(0.39, steelDepth, steelThick), steelMat);
+            steelB.position.set(-0.05, frameYBack, -2.72);
+            steelBackGroup.add(steelB);
+            const steelL = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepth, 0.24), steelMat);
+            steelL.position.set(-0.245, frameYBack, -2.6);
+            steelBackGroup.add(steelL);
+            const steelR = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepth, 0.24), steelMat);
+            steelR.position.set(0.145, frameYBack, -2.6);
+            steelBackGroup.add(steelR);
+            floorGroups[2].add(steelBackGroup);
+            installationObjects.push(steelBackGroup);
+            shaftBackObjects.push(steelBackGroup);
+
+
+            // 2. OPTION B: Schacht rechts in der Mitte (X = 1.6, Z = 0.0, wo Treppe endet)
+            segments.forEach(seg => {
+                const sMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, seg.l, 0.35), shaftMat);
+                sMesh.position.set(1.6, seg.y, 0.0);
+                sMesh.visible = false;
+                floorGroups[seg.idx].add(sMesh);
+                installationObjects.push(sMesh);
+                shaftRightObjects.push(sMesh);
+            });
+
+            pipes.forEach((p) => {
+                segments.forEach(seg => {
+                    let mesh = p.isChannel
+                        ? new THREE.Mesh(new THREE.BoxGeometry(p.d, seg.l, p.w), p.mat)
+                        : new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, seg.l, 16), p.mat);
+                    mesh.position.set(1.6, seg.y, p.x);
+                    mesh.visible = false;
+                    floorGroups[seg.idx].add(mesh);
+                    installationObjects.push(mesh);
+                    shaftRightObjects.push(mesh);
+                });
+            });
+
+            // Untergrund-Abwasserleitung (Option B: von der rechten Steigleitung unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
+            const undergroundWasteRight = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.555, 16), pipeMatWaste);
+            undergroundWasteRight.rotation.x = Math.PI / 2;
+            undergroundWasteRight.rotation.y = Math.atan2(-1.55, 3.2);
+            undergroundWasteRight.position.set(0.775, -0.15, 1.6); // von Z=0.0 (rechts) bis Z=3.2 (Straße, mittig X=0.0)
+            undergroundWasteRight.visible = false;
+            floorGroups[0].add(undergroundWasteRight);
+            installationObjects.push(undergroundWasteRight);
+            shaftRightObjects.push(undergroundWasteRight);
+
+            const elecBoxRight = new THREE.Group();
+            const elecBoxRightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.3), elecBoxMat);
+            elecBoxRightMesh.position.set(1.55, 1.5, 0.4);
+            elecBoxRight.add(elecBoxRightMesh);
+
+            // Verbindungsleitung Kasten -> Steigleitung (Rechte Wand)
+            const connElecRight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.4), elecBoxMat);
+            connElecRight.position.set(1.55, 1.5, 0.2);
+            elecBoxRight.add(connElecRight);
+
+            const labelElecRight = createTextSpriteSmall("elecAlt", "#3b82f6");
+            labelElecRight.position.set(2.6, 1.85, 0.4);
+            elecBoxRight.add(labelElecRight);
+            elecBoxRight.visible = false;
+            floorGroups[0].add(elecBoxRight);
+            installationObjects.push(elecBoxRight);
+            shaftRightObjects.push(elecBoxRight);
+
+            // U-Stahl Verstärkung für den gesamten Durchbruch durch die Bogendecke (Option B: Rechte Wand, 2. OG, Y=7.175m, reicht von Unterkante Bogen bis Oberkante Decke)
+            const steelRightGroup = new THREE.Group();
+            const sRF = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepthRight, 0.39), steelMat);
+            sRF.position.set(1.48, frameYRight, 0.0);
+            steelRightGroup.add(sRF);
+            const sRB = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepthRight, 0.39), steelMat);
+            sRB.position.set(1.72, frameYRight, 0.0);
+            steelRightGroup.add(sRB);
+            const sRL = new THREE.Mesh(new THREE.BoxGeometry(0.24, steelDepthRight, steelThick), steelMat);
+            sRL.position.set(1.6, frameYRight, -0.195);
+            steelRightGroup.add(sRL);
+            const sRR = new THREE.Mesh(new THREE.BoxGeometry(0.24, steelDepthRight, steelThick), steelMat);
+            sRR.position.set(1.6, frameYRight, 0.195);
+            steelRightGroup.add(sRR);
+            steelRightGroup.visible = false;
+            floorGroups[2].add(steelRightGroup);
+            installationObjects.push(steelRightGroup);
+            shaftRightObjects.push(steelRightGroup);
+
+
+
+        }
+
+        function buildDownspout() {
+            // 80mm Durchmesser -> 40mm Radius (0.04m)
+            const pipeRad = 0.04;
+            const pipeX = 1.5;    // Ausgerichtet auf die Innenecke der Terrasse vorne rechts
+            const pipeZ = 3.03;   // knapp vor der Fassade (Außenfläche ist bei Z=3.0)
+
+            // Segmente für die einzelnen Etagen
+            // EG: Y=0 bis 2.5
+            const pipeEG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 2.5, 16), frontWallMat);
+            pipeEG.position.set(pipeX, 1.25, pipeZ);
+            floorGroups[0].add(pipeEG);
+
+            // 1. OG: Y=2.5 bis 5.0
+            const pipe1OG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 2.5, 16), frontWallMat);
+            pipe1OG.position.set(pipeX, 3.75, pipeZ);
+            floorGroups[1].add(pipe1OG);
+
+            // 2. OG: Y=5.0 bis 7.5
+            const pipe2OG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 2.5, 16), frontWallMat);
+            pipe2OG.position.set(pipeX, 6.25, pipeZ);
+            floorGroups[2].add(pipe2OG);
+
+            // 3. OG: Y=7.5 bis 10.7
+            const pipe3OG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 3.2, 16), frontWallMat);
+            pipe3OG.position.set(pipeX, 9.1, pipeZ);
+            floorGroups[3].add(pipe3OG);
+
+            // Terrasse (Etage 4): Wasserfangkasten und Wasserspeier (Speiber)
+            // Wasserfangkasten bei Y = 10.7 bis 10.9 (Größe 12x15x12cm)
+            const hopper = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.15, 0.12), frontWallMat);
+            hopper.position.set(pipeX, 10.8, pipeZ);
+            floorGroups[4].add(hopper);
+
+            // Speiber (horizontales Abflussrohr durch die Brüstung, Durchmesser 60mm -> Radius 30mm)
+            // Geht von Z = 2.45 (innen) bis Z = 3.03 (Außenkante Hopper)
+            const speiberL = 3.03 - 2.45; // 0.58m
+            const speiber = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, speiberL, 16), frontWallMat);
+            speiber.rotation.x = Math.PI / 2; // Horizontale Ausrichtung
+            speiber.position.set(pipeX, 10.8, 2.74); // Mittig durch die 50cm dicke Wand bei Z=2.75
+            floorGroups[4].add(speiber);
+        }
+
+        function buildBedroomWorkplace(group, Y_start) {
+            const workplaceGroup = new THREE.Group();
+            workplaceGroup.visible = showFurniture;
+
+            // Schreibtisch (Breite 0.8m, Höhe 0.75m, Tiefe 0.4m)
+            const deskTop = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.03, 0.4), woodFurnitureMat);
+            deskTop.position.set(-1.1, Y_start + 0.2 + 0.735, 2.2); // Tischplatte bei Y=0.75m
+            workplaceGroup.add(deskTop);
+
+            // Tischbeine (4 Stück)
+            const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.72, 8);
+            const legXOffsets = [-0.36, 0.36];
+            const legZOffsets = [-0.16, 0.16];
+            legXOffsets.forEach(xOff => {
+                legZOffsets.forEach(zOff => {
+                    const leg = new THREE.Mesh(legGeo, woodFurnitureMat);
+                    leg.position.set(-1.1 + xOff, Y_start + 0.2 + 0.36, 2.2 + zOff);
+                    workplaceGroup.add(leg);
+                });
+            });
+
+            // Stuhl
+            const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.03, 0.35), woodFurnitureMat);
+            chairSeat.position.set(-1.1, Y_start + 0.2 + 0.435, 1.7); // Sitzfläche bei Y=0.45m
+            workplaceGroup.add(chairSeat);
+
+            // Stuhlbeine (4 Stück)
+            const chairLegGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.42, 8);
+            const chairLegXOffsets = [-0.15, 0.15];
+            const chairLegZOffsets = [-0.15, 0.15];
+            chairLegXOffsets.forEach(xOff => {
+                chairLegZOffsets.forEach(zOff => {
+                    const leg = new THREE.Mesh(chairLegGeo, woodFurnitureMat);
+                    leg.position.set(-1.1 + xOff, Y_start + 0.2 + 0.21, 1.7 + zOff);
+                    workplaceGroup.add(leg);
+                });
+            });
+
+            // Stuhllehne
+            const chairBack = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.02), woodFurnitureMat);
+            chairBack.position.set(-1.1, Y_start + 0.2 + 0.625, 1.525); // Rückenlehne hinten bei Z=1.525
+            workplaceGroup.add(chairBack);
+
+            // Lehnenstützen (2 vertikale Stangen)
+            const supportGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.20, 8);
+            const supportL = new THREE.Mesh(supportGeo, woodFurnitureMat);
+            supportL.position.set(-1.1 - 0.12, Y_start + 0.2 + 0.535, 1.525);
+            workplaceGroup.add(supportL);
+
+            const supportR = new THREE.Mesh(supportGeo, woodFurnitureMat);
+            supportR.position.set(-1.1 + 0.12, Y_start + 0.2 + 0.535, 1.525);
+            workplaceGroup.add(supportR);
+
+            // Schmales Sideboard an der linken Wand (mittig zwischen Bett und Schreibtisch)
+            // Abmessungen: 1.4m breit (in Z), 0.35m tief (in X), 0.7m hoch (in Y)
+            const sbGroup = new THREE.Group();
+            
+            // Hauptkorpus (33cm tief, 65cm hoch, 1.4m breit)
+            const sbBody = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.65, 1.4), woodFurnitureMat);
+            sbBody.position.set(-1.335, Y_start + 0.2 + 0.325, 0.75); // links an der Wand (X = -1.5 bis -1.17)
+            sbGroup.add(sbBody);
+
+            // Deckplatte (leicht überstehend: 35cm tief, 3cm hoch, 1.42m breit)
+            const sbTop = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.03, 1.42), woodFurnitureMat);
+            sbTop.position.set(-1.325, Y_start + 0.2 + 0.665, 0.75);
+            sbGroup.add(sbTop);
+
+            // Schattenfugen/Linien für die Tür- und Schubladenfronten
+            const lineMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            // Horizontale Fuge unter der Deckplatte
+            const gapH = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.005, 1.38), lineMat);
+            gapH.position.set(-1.168, Y_start + 0.2 + 0.64, 0.75);
+            sbGroup.add(gapH);
+
+            // Vertikale Fugen für 3 Türen
+            const gapV1 = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.63, 0.005), lineMat);
+            gapV1.position.set(-1.168, Y_start + 0.2 + 0.315, 0.75 - 0.23);
+            sbGroup.add(gapV1);
+
+            const gapV2 = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.63, 0.005), lineMat);
+            gapV2.position.set(-1.168, Y_start + 0.2 + 0.315, 0.75 + 0.23);
+            sbGroup.add(gapV2);
+
+            workplaceGroup.add(sbGroup);
+
+            group.add(workplaceGroup);
+            furnitureObjects.push(workplaceGroup);
+        }
+
+        function buildWindowWall(group, wallYStart, floorYStart, wallHeight, zPos) {
+            const wallL = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
+            wallL.position.set(-1.0, wallYStart + wallHeight/2, zPos);
+            group.add(wallL);
+            registerWall(wallL, true);
+
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(1.0, wallYStart + wallHeight/2, zPos);
+            group.add(wallR);
+            registerWall(wallR, true);
+
+            const bottomH = (floorYStart + 0.9) - wallYStart;
+            const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
+            wallB.position.set(0, wallYStart + bottomH/2, zPos);
+            group.add(wallB);
+            registerWall(wallB, true);
+
+            const topH = (wallYStart + wallHeight) - (floorYStart + 2.0);
+            const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
+            wallT.position.set(0, floorYStart + 2.0 + topH/2, zPos);
+            group.add(wallT);
+            registerWall(wallT, true);
+
+            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 1.06, 0.05), glassMat);
+            windowGlass.position.set(0, floorYStart + 1.45, zPos);
+            group.add(windowGlass);
+
+            // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
+            const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
+            const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
+            tL.position.set(-0.575, floorYStart + 1.45, zPos + 0.25); // bündig/leicht vorstehend gegenüber der Wand (zPos + 0.25)
+            group.add(tL);
+
+            const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
+            tR.position.set(0.575, floorYStart + 1.45, zPos + 0.25);
+            group.add(tR);
+
+            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
+            tT.position.set(0, floorYStart + 2.075, zPos + 0.25);
+            group.add(tT);
+
+            const tB = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
+            tB.position.set(0, floorYStart + 0.825, zPos + 0.25);
+            group.add(tB);
+        }
+
+        function buildFrenchBalconyWall(group, wallYStart, floorYStart, wallHeight, zPos) {
+            const wallL = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
+            wallL.position.set(-1.0, wallYStart + wallHeight/2, zPos);
+            group.add(wallL);
+            registerWall(wallL, true);
+
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(1.0, wallYStart + wallHeight/2, zPos);
+            group.add(wallR);
+            registerWall(wallR, true);
+
+            const bottomH = floorYStart - wallYStart;
+            if (bottomH > 0.001) {
+                const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
+                wallB.position.set(0, wallYStart + bottomH/2, zPos);
+                group.add(wallB);
+                registerWall(wallB, true);
+            }
+
+            const topH = (wallYStart + wallHeight) - (floorYStart + 2.2);
+            const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
+            wallT.position.set(0, floorYStart + 2.2 + topH/2, zPos);
+            group.add(wallT);
+            registerWall(wallT, true);
+
+            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 2.16, 0.05), glassMat);
+            windowGlass.position.set(0, floorYStart + 1.1, zPos);
+            group.add(windowGlass);
+
+            // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
+            const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
+            const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
+            tL.position.set(-0.575, floorYStart + 1.1, zPos + 0.25); // bündig/leicht vorstehend gegenüber der Wand (zPos + 0.25)
+            group.add(tL);
+
+            const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
+            tR.position.set(0.575, floorYStart + 1.1, zPos + 0.25);
+            group.add(tR);
+
+            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
+            tT.position.set(0, floorYStart + 2.275, zPos + 0.25);
+            group.add(tT);
+
+            // Stahlgeländer (französischer Balkon) außen
+            const railingGroup = new THREE.Group();
+            const rMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
+            
+            const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
+            handrail.rotation.z = Math.PI / 2;
+            handrail.position.set(0, floorYStart + 1.0, zPos + 0.3);
+            railingGroup.add(handrail);
+            
+            const bottomRail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
+            bottomRail.rotation.z = Math.PI / 2;
+            bottomRail.position.set(0, floorYStart + 0.1, zPos + 0.3);
+            railingGroup.add(bottomRail);
+            
+            for (let x = -0.55; x <= 0.55; x += 0.11) {
+                const stab = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.9, 8), rMat);
+                stab.position.set(x, floorYStart + 0.55, zPos + 0.3);
+                railingGroup.add(stab);
+            }
+            
+            group.add(railingGroup);
+        }
+
+        // --- 5. TEXT SPRITES FÜR ETAGEN-LABELS ---
+        function addFloorLabels() {
+            const texts = floorLabelTranslations['de'];
+            const yPos = [1.25, 3.75, 6.25, 9.1, 11.2];
+
+            texts.forEach((text, idx) => {
+                const sprite = createTextSprite(text);
+                sprite.position.set(-3.2, yPos[idx], 0); // Position näher an das Gebäude herangezogen
+                floorGroups[idx].add(sprite);
+                labelObjects.push(sprite);
+                floorSprites.push(sprite);
+            });
+        }
+
+        function updateFloorLabels(lang) {
+            if (floorSprites.length === 0) return;
+            const texts = floorLabelTranslations[lang] || floorLabelTranslations['de'];
+            floorSprites.forEach((sprite, idx) => {
+                const newSprite = createTextSprite(texts[idx]);
+                sprite.material.map.dispose();
+                sprite.material.dispose();
+                sprite.material = newSprite.material;
+            });
+        }
+
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            // Filigranes, modernes Glasmorphismus-Design
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)'; // transparenterer Hintergrund
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; // sehr dünne, feine weiße Linie
+            ctx.lineWidth = 2; // dünnerer Rahmen
+            
+            const r = 16;
+            ctx.beginPath();
+            ctx.roundRect(4, 4, 504, 120, r); // moderne abgerundete Ecken
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.font = '500 24px "Outfit", sans-serif'; // dünnere Schriftart, nicht fett, kleinere Größe
+            ctx.fillStyle = '#f8fafc';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 256, 64);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1.8, 0.45, 1.0); // deutlich kleinere, weniger klobige Sprite-Größe
+            return sprite;
+        }
+
+
+
+        function updateEquipLabels(lang) {
+            equipLabelSprites.forEach((sprite) => {
+                const key = sprite.userData.translationKey;
+                const color = sprite.userData.accentColor;
+                const text = (equipLabelTranslations[lang] && equipLabelTranslations[lang][key]) 
+                    || (equipLabelTranslations['de'] && equipLabelTranslations['de'][key]) 
+                    || key;
+                const newSprite = createTextSpriteSmall(key, color, false);
+                sprite.material.map.dispose();
+                sprite.material.dispose();
+                sprite.material = newSprite.material;
+            });
+        }
+
+        function createTextSpriteSmall(key, accentColor = '#38bdf8', register = true) {
+            const lang = currentLang || 'de';
+            const text = (equipLabelTranslations[lang] && equipLabelTranslations[lang][key]) 
+                || (equipLabelTranslations['de'] && equipLabelTranslations['de'][key]) 
+                || key;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 384;
+            canvas.height = 80;
+            
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 3;
+            
+            ctx.beginPath();
+            ctx.roundRect(4, 4, 376, 72, 10);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.font = 'bold 20px "Outfit", sans-serif';
+            ctx.fillStyle = accentColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 192, 40);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1.5, 0.3125, 1.0);
+            sprite.visible = showLabels;
+
+            if (register) {
+                sprite.userData.translationKey = key;
+                sprite.userData.accentColor = accentColor;
+                labelObjects.push(sprite);
+                equipLabelSprites.push(sprite);
+            }
+            return sprite;
+        }
+
+
+
+        // --- 6. ANIMATION & STATE-LOGIK ---
+        
+
+        function adjustExplosion(val) {
+            targetExplosion = parseFloat(val) / 100.0;
+            document.getElementById('val-explosion').innerText = val + "%";
+        }
+
+        function toggleWallsTransparent(val) {
+            wallsTransparent = val;
+            registeredWalls.forEach(wall => {
+                if (wall.userData.isSide) {
+                    wall.material = val ? wall.userData.originalMat.map(() => transparentWallMat) : wall.userData.originalMat;
+                } else {
+                    wall.material = val ? transparentWallMat : wall.userData.originalMat;
+                }
+            });
+        }
+
+        // Böden transparent machen
+        function toggleFloorsTransparent(val) {
+            floorsTransparent = val;
+            floorMat.transparent = val;
+            floorMat.opacity = val ? 0.35 : 1.0;
+            floorMat.needsUpdate = true;
+        }
+
+        function toggleInstallations(val) {
+            showInstallations = val;
+            installationObjects.forEach(obj => {
+                if (shaftBackObjects.includes(obj)) {
+                    obj.visible = val && !shaftOnRight;
+                } else if (shaftRightObjects.includes(obj)) {
+                    obj.visible = val && shaftOnRight;
+                } else {
+                    obj.visible = val;
+                }
+            });
+        }
+
+        function toggleShaftPosition(val) {
+            shaftOnRight = val;
+            if (showInstallations) {
+                shaftBackObjects.forEach(obj => obj.visible = !val);
+                shaftRightObjects.forEach(obj => obj.visible = val);
+            }
+        }
+
+        function toggleLabels(val) {
+            showLabels = val;
+            labelObjects.forEach(obj => obj.visible = val);
+        }
+
+        function toggleFurniture(val) {
+            showFurniture = val;
+            furnitureObjects.forEach(obj => obj.visible = val);
+        }
+
+
+
+        function focusFloor(floorIdx) {
+            activeFocusedFloor = floorIdx;
+            
+            const buttons = document.querySelectorAll('.floor-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (floorIdx === 'all') {
+                document.getElementById('f-btn-all').classList.add('active');
+                floorGroups.forEach(grp => grp.visible = true);
+                animateCameraTarget(0, 5.5, 0);
+            } else {
+                document.getElementById(`f-btn-${floorIdx}`).classList.add('active');
+                floorGroups.forEach((grp, idx) => {
+                    grp.visible = (idx === floorIdx);
+                });
+                
+                const targetY = floorHeights[floorIdx] + (floorSizes[floorIdx] / 2);
+                animateCameraTarget(0, targetY, 0);
+            }
+        }
+
+        let targetCameraY = 5.5;
+        function animateCameraTarget(x, y, z) {
+            targetCameraY = y;
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Animations-Schleife
+        function animate() {
+            requestAnimationFrame(animate);
+
+            currentExplosion += (targetExplosion - currentExplosion) * 0.08;
+            
+            floorGroups.forEach((group, idx) => {
+                if (activeFocusedFloor !== 'all') {
+                    group.position.y = 0;
+                } else {
+                    group.position.y = idx * 2.8 * currentExplosion;
+                }
+            });
+
+            controls.target.y += (targetCameraY - controls.target.y) * 0.1;
+            controls.update();
+
+
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
