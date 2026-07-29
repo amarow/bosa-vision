@@ -757,7 +757,7 @@
             shaftOnRight = getBool('bosa_shaftOnRight', false);
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
-            
+            const floorVal = getVal('bosa_focusedFloor', '0');
             activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
 
             currentLang = getVal('bosa_lang', 'de');
