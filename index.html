@@ -340,6 +340,7 @@
         .lang-btn { flex: 1; padding: 6px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-glass); color: var(--text-secondary); border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s; font-weight: 600; }
         .lang-btn:hover { background: rgba(56, 189, 248, 0.2); }
         .lang-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-hover); }
+        .version-tag { font-size: 11px; color: var(--text-secondary); opacity: 0.7; text-align: right; margin-top: -10px; font-family: "Outfit", sans-serif; }
     </style>
 </head>
 <body>
@@ -399,6 +400,14 @@
                 </div>
 
                 <div class="switch-container">
+                    <span data-i18n="visCraneFold">Kran einklappen</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-crane-fold" onchange="toggleCraneFold(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
                     <span data-i18n="visShaftPos">Schacht-Option: Rechts</span>
                     <label class="switch">
                         <input type="checkbox" id="chk-shaft-pos" onchange="toggleShaftPosition(this.checked)">
@@ -413,6 +422,8 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+
+
                 
                 <div class="switch-container">
                     <span data-i18n="visLabels">Labels einblenden</span>
@@ -461,11 +472,15 @@
                     <span class="legend-color" style="background: linear-gradient(to right, #f97316, #3b82f6, #ef4444, #06b6d4);"></span>
                     <span data-i18n="legPipes"><b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Alle in der Rückwand eingelassen bis 0.8m über Terrasse.</span>
                 </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#bbbbbb; border: 1px solid #888888;"></span>
+                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit oberer Dreiecksabstützung zur linken Wand und schwenkbarer elektrischer Winde.</span>
+                </li>
 
             </ul>
         </div>
 
-
+        <div class="version-tag">v2.1.0</div>
     </div>
     
     <div id="instructions" data-i18n="instructions">
@@ -499,6 +514,7 @@
                 visWalls: "Wände transparent",
                 visFloors: "Böden transparent",
                 visInstall: "Installationen zeigen",
+                visCraneFold: "Kran einklappen",
                 visShaftPos: "Schacht-Option: Rechts",
                 visFurniture: "Möbel einblenden",
                 visLabels: "Labels einblenden",
@@ -515,6 +531,7 @@
                 legOldStairs: "<b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).",
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
                 legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
+                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit oberer Dreiecksabstützung zur linken Wand und schwenkbarer elektrischer Winde.",
                 numTitle: "Innenwand-Nummerierung",
                 instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
             },
@@ -531,6 +548,7 @@
                 visWalls: "Transparent Walls",
                 visFloors: "Transparent Floors",
                 visInstall: "Show Installations",
+                visCraneFold: "Fold Crane",
                 visShaftPos: "Shaft Option: Right",
                 visFurniture: "Show Furniture",
                 visLabels: "Show Labels",
@@ -547,6 +565,7 @@
                 legOldStairs: "<b>Old Staircase:</b> Previous wooden stairs on the right side (0.9m x 2.5m).",
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
                 legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
+                legCrane: "<b>Terrace Crane:</b> 2.5m high vertical mast on front parapet, braced at the top to the left wall, with a swiveling electric winch.",
                 numTitle: "Internal Wall Numbering",
                 instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
             },
@@ -563,6 +582,7 @@
                 visWalls: "Muri Trasparenti",
                 visFloors: "Pavimenti Trasparenti",
                 visInstall: "Mostra Impianti",
+                visCraneFold: "Ripiegare la gru",
                 visShaftPos: "Opzione Vano: Destra",
                 visFurniture: "Mostra Mobili",
                 visLabels: "Mostra Etichette",
@@ -579,6 +599,7 @@
                 legOldStairs: "<b>Vecchia Scala:</b> Precedente scala in legno sul lato destro (0,9m x 2,5m).",
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
                 legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
+                legCrane: "<b>Gru a terrazza:</b> Montante verticale da 2,5m sul parapetto anteriore, rinforzato in alto sulla parete sinistra, con verricello elettrico girevole.",
                 numTitle: "Numerazione Muri Interni",
                 instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
             }
@@ -591,7 +612,8 @@
                 auto: "Autoclave (Druckausgleich)",
                 autoAlt: "Autoclave (Druckausgleich)",
                 elec: "Elektro-Hauptanschluss",
-                elecAlt: "Elektro-Hauptanschluss"
+                elecAlt: "Elektro-Hauptanschluss",
+                crane: "abnehmbarer Kran"
             },
             en: {
                 wpTank: "Heat Pump & Water Tank",
@@ -599,7 +621,8 @@
                 auto: "Autoclave (Pressure Equalizer)",
                 autoAlt: "Autoclave (Pressure Equalizer)",
                 elec: "Main Electrical Panel",
-                elecAlt: "Main Electrical Panel"
+                elecAlt: "Main Electrical Panel",
+                crane: "removable crane"
             },
             it: {
                 wpTank: "Pompa di calore e Boiler",
@@ -607,7 +630,8 @@
                 auto: "Autoclave (Compensatore)",
                 autoAlt: "Autoclave (Compensatore)",
                 elec: "Quadro Elettrico Principale",
-                elecAlt: "Quadro Elettrico Principale"
+                elecAlt: "Quadro Elettrico Principale",
+                crane: "gru rimovibile"
             }
         };
         let equipLabelSprites = [];
@@ -615,6 +639,7 @@
 
         function setLanguage(lang) {
             currentLang = lang;
+            localStorage.setItem('bosa_lang', lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
@@ -642,6 +667,10 @@
         let shaftRightObjects = [];
         let labelObjects = [];
         let furnitureObjects = [];
+        let craneObjects = [];
+        let swivelArmGroup; // Global für Position und Rotation
+        let labelCrane;     // Global für das Kran-Label
+        let craneCable, craneWeight, craneHook; // Global für Seilanimation
 
         // Parameter
         let currentProjectState = 'after'; // 'before' oder 'after'
@@ -653,6 +682,13 @@
         let shaftOnRight = false;
         let showFurniture = true;
         let showLabels = true;
+        let showCrane = true;
+        let craneFolded = false;
+        let craneFoldStartTime = 0;
+        let craneFoldStartAngle = 0;
+        let craneFoldTargetAngle = 0;
+        const craneFoldDuration = 1000; // 1 Sekunde in Millisekunden
+        let isCraneFoldAnimating = false;
         let activeFocusedFloor = 0; // 'all' oder 0, 1, 2, 3, 4
 
         // Materialien definieren
@@ -662,8 +698,39 @@
         const floorHeights = [0, 2.3, 4.8, 7.3, 10.5]; // Start Y-Koordinate (Slab) jeder Etage
         const floorSizes = [2.5, 2.5, 2.5, 3.2, 1.2];  // Wandhöhe jeder Etage
 
+        // --- PERSISTENZ-LOGIK ---
+        function loadPersistedState() {
+            function getBool(key, def) {
+                const val = localStorage.getItem(key);
+                return val !== null ? (val === 'true') : def;
+            }
+            function getVal(key, def) {
+                const val = localStorage.getItem(key);
+                return val !== null ? val : def;
+            }
+
+            const explosionVal = getVal('bosa_explosion', '0');
+            targetExplosion = parseFloat(explosionVal) / 100.0;
+            currentExplosion = targetExplosion;
+
+            wallsTransparent = getBool('bosa_wallsTransparent', true);
+            floorsTransparent = getBool('bosa_floorsTransparent', false);
+            showInstallations = getBool('bosa_showInstallations', true);
+            showCrane = showInstallations;
+            craneFolded = getBool('bosa_craneFolded', false);
+            shaftOnRight = getBool('bosa_shaftOnRight', false);
+            showFurniture = getBool('bosa_showFurniture', true);
+            showLabels = getBool('bosa_showLabels', true);
+            
+            const floorVal = getVal('bosa_focusedFloor', '0');
+            activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
+
+            currentLang = getVal('bosa_lang', 'de');
+        }
+
         // --- 2. INITIALISIERUNG ---
         function init() {
+            loadPersistedState();
             const container = document.getElementById('canvas-container');
             
             // Szene erstellen
@@ -694,6 +761,22 @@
             // Initialer Fokus auf Erdgeschoss center
             controls.target.set(0, 1.25, 0);
 
+            // Kamera- und Target-Persistenz bei Bewegung (debounced)
+            let camSaveTimeout;
+            controls.addEventListener('change', () => {
+                clearTimeout(camSaveTimeout);
+                camSaveTimeout = setTimeout(() => {
+                    if (camera && controls) {
+                        localStorage.setItem('bosa_cam_pos_x', camera.position.x);
+                        localStorage.setItem('bosa_cam_pos_y', camera.position.y);
+                        localStorage.setItem('bosa_cam_pos_z', camera.position.z);
+                        localStorage.setItem('bosa_cam_target_x', controls.target.x);
+                        localStorage.setItem('bosa_cam_target_y', controls.target.y);
+                        localStorage.setItem('bosa_cam_target_z', controls.target.z);
+                    }
+                }, 300);
+            });
+
             // Licht aufbauen
             setupLighting();
 
@@ -711,14 +794,38 @@
             buildBuilding();
 
             // UI Initialzustand synchronisieren
+            document.getElementById('slider-explosion').value = Math.round(targetExplosion * 100);
+            document.getElementById('val-explosion').innerText = Math.round(targetExplosion * 100) + "%";
             document.getElementById('chk-walls').checked = wallsTransparent;
             document.getElementById('chk-floors').checked = floorsTransparent;
             document.getElementById('chk-installations').checked = showInstallations;
+            document.getElementById('chk-crane-fold').checked = craneFolded;
+            document.getElementById('chk-shaft-pos').checked = shaftOnRight;
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
             
-            // Initiale Isolierung
-            focusFloor(0);
+            // Sprache initial anwenden
+            setLanguage(currentLang);
+
+            // Initiale Isolierung laden
+            focusFloor(activeFocusedFloor);
+
+            // Kamera- und Target-Zustand laden falls vorhanden
+            const px = localStorage.getItem('bosa_cam_pos_x');
+            const py = localStorage.getItem('bosa_cam_pos_y');
+            const pz = localStorage.getItem('bosa_cam_pos_z');
+            const tx = localStorage.getItem('bosa_cam_target_x');
+            const ty = localStorage.getItem('bosa_cam_target_y');
+            const tz = localStorage.getItem('bosa_cam_target_z');
+
+            if (px !== null && py !== null && pz !== null) {
+                camera.position.set(parseFloat(px), parseFloat(py), parseFloat(pz));
+            }
+            if (tx !== null && ty !== null && tz !== null) {
+                controls.target.set(parseFloat(tx), parseFloat(ty), parseFloat(tz));
+                targetCameraY = parseFloat(ty);
+            }
+            controls.update();
 
             // Event Listener
             window.addEventListener('resize', onWindowResize);
@@ -1449,36 +1556,25 @@
             grp.add(bed1);
             furnitureObjects.push(bed1);
 
-            // Stahlträger H-Form 12x12cm zur Verstärkung (in Wände eingelassen bis in die Ecke)
-            const beamMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
-            const startX = 0.475, startZ = 0.0;     // Treppenwand Mitte
-            const endX = -1.75, endZ = -2.75;       // Hintere linke Ecke (Wandmitte)
+            // Holzträger Kastanie 15x15cm zur Verstärkung (in Wände eingelassen)
+            const chestnutWoodMat = new THREE.MeshStandardMaterial({
+                color: 0x5c3a21, // Kastanienbraun (warmes Dunkelbraun)
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            const startX = 0.475, startZ = 0.15;     // Treppenwand (15cm in die Wand hineinragend)
+            const endX = -0.7, endZ = -2.75;        // Hintere Wand (nach links verschoben)
             const dx = endX - startX; 
             const dz = endZ - startZ; 
             const length = Math.sqrt(dx*dx + dz*dz);
             
-            const hBeam = new THREE.Group();
+            const woodBeam = new THREE.Mesh(new THREE.BoxGeometry(length, 0.15, 0.15), chestnutWoodMat);
             
-            // Flansch oben
-            const topFlange = new THREE.Mesh(new THREE.BoxGeometry(length, 0.01, 0.12), beamMat);
-            topFlange.position.y = 0.055;
-            hBeam.add(topFlange);
-            
-            // Steg Mitte
-            const web = new THREE.Mesh(new THREE.BoxGeometry(length, 0.10, 0.01), beamMat);
-            hBeam.add(web);
-            
-            // Flansch unten
-            const botFlange = new THREE.Mesh(new THREE.BoxGeometry(length, 0.01, 0.12), beamMat);
-            botFlange.position.y = -0.055;
-            hBeam.add(botFlange);
-            
-            // Decke des 1. OG ist bei Y = 4.8. Stahlträger ist 0.12m hoch. 
-            // Position (center of beam) should be at 4.8 - 0.06 = 4.74.
-            // Y_start(2.3) + H(2.3) + 0.2 = 4.8. 
-            hBeam.position.set(startX + dx/2, Y_start + H + 0.2 - 0.06, startZ + dz/2); 
-            hBeam.rotation.y = Math.atan2(-dz, dx);
-            grp.add(hBeam);
+            // Decke des 1. OG ist bei Y = 4.8. Holzträger ist 0.15m hoch. 
+            // Position (Mitte des Trägers) liegt bei Y = Y_start(2.3) + H(2.3) + 0.2 - 0.075 = 4.725
+            woodBeam.position.set(startX + dx/2, Y_start + H + 0.2 - 0.075, startZ + dz/2); 
+            woodBeam.rotation.y = Math.atan2(-dz, dx);
+            grp.add(woodBeam);
 
             // Arbeitsplatz vorne links (Tisch + Stuhl)
             buildBedroomWorkplace(grp, Y_start);
@@ -1795,7 +1891,7 @@
         function buildFloor4_Terrasse() {
             const grp = floorGroups[4];
             const Y_start = 10.5;
-            const H_parapet = 1.0;
+            const H_parapet = 0.6;
 
             const deckMat = new THREE.MeshStandardMaterial({ 
                 color: '#8a5229', // Teakbraun für Außendielen & Außenküche
@@ -1841,9 +1937,9 @@
             grp.add(pWallL);
             registerWall(pWallL, true);
 
-            // Rechte Brüstung 1m hoch (innen), also 1.2m gesamt
-            const pWallR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 6.0), wallMat);
-            pWallR.position.set(1.75, wallYStart + 1.2/2, 0);
+            // Rechte Brüstung 0.6m hoch (innen), also 0.8m gesamt
+            const pWallR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 6.0), wallMat);
+            pWallR.position.set(1.75, wallYStart + 0.8/2, 0);
             grp.add(pWallR);
             registerWall(pWallR, false, true);
 
@@ -1853,36 +1949,36 @@
             grp.add(pWallB);
             registerWall(pWallB);
 
-            // Vordere Brüstung 1m hoch (innen), also 1.2m gesamt
-            const pWallF = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.2, 0.5), frontWallMat);
-            pWallF.position.set(0, wallYStart + 1.2/2, 2.75);
+            // Vordere Brüstung 0.6m hoch (innen), also 0.8m gesamt
+            const pWallF = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.8, 0.5), frontWallMat);
+            pWallF.position.set(0, wallYStart + 0.8/2, 2.75);
             grp.add(pWallF);
             registerWall(pWallF, true);
 
             // Stahlgeländer auf rechter und vorderer Mauer (20cm hoch)
             const railingMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
             
-            // Handlauf und Pfosten rechts (Außenkante X = 1.98)
-            const handrailR = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 6.0, 8), railingMat);
+            // Handlauf und Pfosten rechts (5cm nach innen eingerückt bei X = 1.93, gekürzt auf 5.73m, damit er genau an der Vorderecke bei Z = 2.93 endet)
+            const handrailR = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 5.73, 8), railingMat);
             handrailR.rotation.x = Math.PI / 2;
-            handrailR.position.set(1.98, Y_start + 0.2 + H_parapet + 0.2, 0);
+            handrailR.position.set(1.93, Y_start + 0.2 + H_parapet + 0.2, 0.065);
             grp.add(handrailR);
             
             for(let z = -2.8; z <= 2.8; z += 0.4) {
                 const post = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.2, 8), railingMat);
-                post.position.set(1.98, Y_start + 0.2 + H_parapet + 0.1, z);
+                post.position.set(1.93, Y_start + 0.2 + H_parapet + 0.1, z);
                 grp.add(post);
             }
 
-            // Handlauf und Pfosten vorne (Außenkante Z = 2.98) - verlängert bis zu den Ecken (Länge 4.0)
-            const handrailF = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 4.0, 8), railingMat);
+            // Handlauf und Pfosten vorne (5cm nach innen eingerückt bei Z = 2.93, Länge auf 3.86m angepasst, damit er an der Ecke bei X = 1.93 endet)
+            const handrailF = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.86, 8), railingMat);
             handrailF.rotation.z = Math.PI / 2;
-            handrailF.position.set(0, Y_start + 0.2 + H_parapet + 0.2, 2.98);
+            handrailF.position.set(0, Y_start + 0.2 + H_parapet + 0.2, 2.93);
             grp.add(handrailF);
 
-            for(let x = -1.98; x <= 1.98; x += 0.396) {
+            for(let x = -1.93; x <= 1.93; x += 0.386) {
                 const post = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.2, 8), railingMat);
-                post.position.set(x, Y_start + 0.2 + H_parapet + 0.1, 2.98);
+                post.position.set(x, Y_start + 0.2 + H_parapet + 0.1, 2.93);
                 grp.add(post);
             }
 
@@ -2208,7 +2304,6 @@
             // 2cm breit (X), 3cm hoch (Y), 4.4m lang (Z)
             const slatGeo = new THREE.BoxGeometry(0.02, 0.03, 4.4);
             const xSlats = [-1.4, -1.0, -0.6, -0.2, 0.2, 0.6, 1.0, 1.4]; // Lokale X-Koordinaten
-            
             xSlats.forEach(xLoc => {
                 const slat = new THREE.Mesh(slatGeo, pergolaWoodMat);
                 slat.position.set(xLoc, 0.08 + 0.015, 0); // liegt auf Rafters auf (Y_loc = 8cm + halbe Slat-Höhe)
@@ -2216,6 +2311,210 @@
             });
 
             pergolaMainGroup.add(roofGroup);
+
+            // --- 4. TERRASSENKRAN MIT GERÜSTROHR, WANDABSTÜTZUNG UND WINDE ---
+            // Einheitlicher Silberton für die gesamte Krankonstruktion (wie der Schwenkarm)
+            const craneSilverMat = new THREE.MeshStandardMaterial({
+                color: 0xcccccc,
+                metalness: 0.7,
+                roughness: 0.3
+            });
+
+            const scaffoldTubeMat = craneSilverMat;
+            const clampMat = craneSilverMat;
+
+            const winchRedMat = new THREE.MeshStandardMaterial({
+                color: 0xd32f2f,
+                roughness: 0.4,
+                metalness: 0.3
+            });
+
+            const winchSilverMat = new THREE.MeshStandardMaterial({
+                color: 0xdddddd,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+
+            const cableMat = new THREE.MeshStandardMaterial({
+                color: 0x777777,
+                metalness: 0.9,
+                roughness: 0.5
+            });
+
+            const controllerYellowMat = new THREE.MeshStandardMaterial({
+                color: 0xfdd835,
+                roughness: 0.5,
+                metalness: 0.1
+            });
+
+            const controllerCableMat = new THREE.MeshBasicMaterial({
+                color: 0x111111
+            });
+
+            // Stabilisierung an der linken 4m Wand mit einem waagerechten Dreieck am oberen Ende der senkrechten Stange (Y = 13.25)
+            // Horizontaler Querriegel vom Standrohr zur Wand (Länge 0.25m, zentriert bei X = -1.375)
+            const topHorizTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.25, 16);
+            topHorizTubeGeo.rotateZ(Math.PI / 2);
+            const topHorizTube = new THREE.Mesh(topHorizTubeGeo, scaffoldTubeMat);
+            topHorizTube.position.set(-1.375, 13.25, 2.45);
+            topHorizTube.visible = showCrane;
+            grp.add(topHorizTube);
+            craneObjects.push(topHorizTube);
+
+            // Wandbefestigung für den Querriegel
+            const topWallClampL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
+            topWallClampL.position.set(-1.52, 13.25, 2.45);
+            topWallClampL.visible = showCrane;
+            grp.add(topWallClampL);
+            craneObjects.push(topWallClampL);
+
+            // Diagonalstrebe Horizontal - schließt das Dreieck an der Wand (verbindet Z=1.95 und Z=2.45 bei X=-1.25 auf Höhe Y=13.25, Länge ~0.56m)
+            const diagTubeGeo2 = new THREE.CylinderGeometry(0.024, 0.024, 0.559, 16);
+            diagTubeGeo2.rotateX(Math.PI / 2);
+            diagTubeGeo2.rotateY(0.4636);
+            const diagTube2 = new THREE.Mesh(diagTubeGeo2, scaffoldTubeMat);
+            diagTube2.position.set(-1.375, 13.25, 2.20);
+            diagTube2.visible = showCrane;
+            grp.add(diagTube2);
+            craneObjects.push(diagTube2);
+
+            // Wandbefestigung für die Diagonalstrebe
+            const wallClampL3 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
+            wallClampL3.position.set(-1.52, 13.25, 1.95);
+            wallClampL3.visible = showCrane;
+            grp.add(wallClampL3);
+            craneObjects.push(wallClampL3);
+
+            // Schelle am oberen Ende des Standrohrs für die Dreiecksverbindung (bei X = -1.25)
+            const topConnectionClamp = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.01, 8, 16), clampMat);
+            topConnectionClamp.position.set(-1.25, 13.25, 2.45);
+            topConnectionClamp.visible = showCrane;
+            grp.add(topConnectionClamp);
+            craneObjects.push(topConnectionClamp);
+
+            // Vertikales Standrohr mittig über den Fenstern (X = -1.25, Z = 2.45), geht bis auf den Boden (Y_deck = 10.75), Höhe 2.5m
+            const vertMasterTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.5, 16);
+            const vertMasterTubeMat = craneSilverMat;
+            const vertMasterTube = new THREE.Mesh(vertMasterTubeGeo, vertMasterTubeMat);
+            vertMasterTube.position.set(-1.25, 12.0, 2.45); // Y-Mitte bei (10.75 + 13.25)/2 = 12.0
+            vertMasterTube.visible = showCrane;
+            grp.add(vertMasterTube);
+            craneObjects.push(vertMasterTube);
+
+            // Befestigung direkt an der Brüstungswand (2 Wandschellen bei X = -1.25)
+            const parapetClampPositionsY = [10.8, 11.2];
+            parapetClampPositionsY.forEach(cy => {
+                const clampAnchor = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.06, 0.06, 0.12),
+                    clampMat
+                );
+                clampAnchor.position.set(-1.25, cy, 2.51); // liegt an/in der Brüstungsmauer (Z=2.5) an
+                clampAnchor.visible = showCrane;
+                grp.add(clampAnchor);
+                craneObjects.push(clampAnchor);
+
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.025, 0.008, 8, 24),
+                    clampMat
+                );
+                ring.rotation.y = Math.PI / 2;
+                ring.position.set(-1.25, cy, 2.45);
+                ring.visible = showCrane;
+                grp.add(ring);
+                craneObjects.push(ring);
+            });
+
+            // Schwenkarm (Schwenkbar an dem vertikalen Rohr montiert, so hoch wie möglich, bei X = -1.25)
+            swivelArmGroup = new THREE.Group();
+            swivelArmGroup.position.set(-1.25, 12.55, 2.45);
+            swivelArmGroup.rotation.y = craneFolded ? Math.PI : 0; // Rechter Winkel (0) oder eingeklappt (PI)
+
+            // Hinge/Hülsen an dem Rohr (gleicher Silberton wie Gerüstrohre)
+            const hingeMat = scaffoldTubeMat;
+            const hingeLower = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.06, 16), hingeMat);
+            hingeLower.position.set(0, 0, 0);
+            swivelArmGroup.add(hingeLower);
+
+            const hingeUpper = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.06, 16), hingeMat);
+            hingeUpper.position.set(0, 0.6, 0);
+            swivelArmGroup.add(hingeUpper);
+
+            // Horizontaler Hauptarm (Vierkantstahl 45x45mm, Länge 0.78m)
+            const armMat = craneSilverMat;
+            const mainArm = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 0.78), armMat);
+            mainArm.position.set(0, 0.03, 0.39);
+            swivelArmGroup.add(mainArm);
+
+            // Ausziehbarer Arm (Vierkantstahl 40x40mm, Länge 0.32m)
+            const extArm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.32), armMat);
+            extArm.position.set(0, 0.03, 0.94);
+            swivelArmGroup.add(extArm);
+
+            // Diagonalstrebe (Rundrohr 29mm, verbindet obere Hülse mit Hauptarm)
+            const diagRodGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.966, 12);
+            diagRodGeo.rotateX(-0.94);
+            const diagRod = new THREE.Mesh(diagRodGeo, armMat);
+            diagRod.position.set(0, 0.315, 0.39);
+            swivelArmGroup.add(diagRod);
+
+            // Elektrische Winde
+            // Winden-Gehäuse (rot)
+            const winchBody = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.28), winchRedMat);
+            winchBody.position.set(0, -0.10, 0.95);
+            swivelArmGroup.add(winchBody);
+
+            // Motor (silberner Zylinder an der Seite)
+            const motorGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.16, 16);
+            motorGeo.rotateX(Math.PI / 2);
+            const motor = new THREE.Mesh(motorGeo, winchSilverMat);
+            motor.position.set(0.06, -0.10, 0.95);
+            swivelArmGroup.add(motor);
+
+            // Befestigungsbügel oben auf dem Arm
+            const bracket1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.02), winchSilverMat);
+            bracket1.position.set(0, 0.03, 0.85);
+            swivelArmGroup.add(bracket1);
+
+            const bracket2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.02), winchSilverMat);
+            bracket2.position.set(0, 0.03, 1.05);
+            swivelArmGroup.add(bracket2);
+
+            // Stahlseil (hängt herunter)
+            const cableLen = 1.6;
+            const cableGeo = new THREE.CylinderGeometry(0.003, 0.003, cableLen, 8);
+            craneCable = new THREE.Mesh(cableGeo, cableMat);
+            craneCable.position.set(-0.03, -0.19 - cableLen/2, 0.88);
+            swivelArmGroup.add(craneCable);
+
+            // Rote Endabschaltungs-Scheibe
+            craneWeight = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.015, 12), winchRedMat);
+            craneWeight.position.set(-0.03, -0.19 - cableLen, 0.88);
+            swivelArmGroup.add(craneWeight);
+
+            // Lastenhaken (silberner Haken)
+            craneHook = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.006, 8, 16, Math.PI * 1.5), winchSilverMat);
+            craneHook.position.set(-0.03, -0.19 - cableLen - 0.03, 0.88);
+            craneHook.rotation.z = Math.PI;
+            swivelArmGroup.add(craneHook);
+
+            // Initiale Seillänge basierend auf Klappzustand setzen
+            const initL = craneFolded ? 0.05 : 1.6;
+            craneCable.scale.y = initL / 1.6;
+            craneCable.position.y = -0.19 - initL / 2;
+            craneWeight.position.y = -0.19 - initL;
+            craneHook.position.y = -0.19 - initL - 0.03;
+
+
+
+            swivelArmGroup.visible = showCrane;
+            grp.add(swivelArmGroup);
+            craneObjects.push(swivelArmGroup);
+
+            // Label für den Kran ("abnehmbarer Kran")
+            labelCrane = createTextSpriteSmall("crane", "#bbbbbb"); // Gleicher Silberton wie Kran
+            labelCrane.position.set(-0.4, 13.0, 2.45); // Rechts neben dem Kran, damit es nicht in der linken Wand verschwindet
+            labelCrane.visible = showLabels && showCrane;
+            grp.add(labelCrane);
         }
 
         // --- GLOBAL: VERTIKALE INSTALLATIONEN (STEIGLEITUNG & DURCHBRUCH) ---
@@ -2518,111 +2817,114 @@
         }
 
         function buildWindowWall(group, wallYStart, floorYStart, wallHeight, zPos) {
-            const wallL = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
-            wallL.position.set(-1.0, wallYStart + wallHeight/2, zPos);
-            group.add(wallL);
-            registerWall(wallL, true);
-
-            const wallR = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
-            wallR.position.set(1.0, wallYStart + wallHeight/2, zPos);
+            // Rechter Wandteil: geht von X = -0.5 bis 1.5, Breite 2.0m, zentriert bei X = 0.5
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.0, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(0.5, wallYStart + wallHeight/2, zPos);
             group.add(wallR);
             registerWall(wallR, true);
 
+            // Fensteröffnung ist von X = -1.5 bis -0.5 (zentriert bei X = -1.0)
             const bottomH = (floorYStart + 0.9) - wallYStart;
             const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
-            wallB.position.set(0, wallYStart + bottomH/2, zPos);
+            wallB.position.set(-1.0, wallYStart + bottomH/2, zPos);
             group.add(wallB);
             registerWall(wallB, true);
 
             const topH = (wallYStart + wallHeight) - (floorYStart + 2.0);
             const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
-            wallT.position.set(0, floorYStart + 2.0 + topH/2, zPos);
+            wallT.position.set(-1.0, floorYStart + 2.0 + topH/2, zPos);
             group.add(wallT);
             registerWall(wallT, true);
 
             const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 1.06, 0.05), glassMat);
-            windowGlass.position.set(0, floorYStart + 1.45, zPos);
+            windowGlass.position.set(-1.0, floorYStart + 1.45, zPos);
             group.add(windowGlass);
 
             // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
             const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
+            
+            // Linke Einfassung (bei X = -1.0 - 0.575 = -1.575)
             const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
-            tL.position.set(-0.575, floorYStart + 1.45, zPos + 0.25); // bündig/leicht vorstehend gegenüber der Wand (zPos + 0.25)
+            tL.position.set(-1.575, floorYStart + 1.45, zPos + 0.25);
             group.add(tL);
 
+            // Rechte Einfassung (bei X = -1.0 + 0.575 = -0.425)
             const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
-            tR.position.set(0.575, floorYStart + 1.45, zPos + 0.25);
+            tR.position.set(-0.425, floorYStart + 1.45, zPos + 0.25);
             group.add(tR);
 
+            // Obere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
             const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tT.position.set(0, floorYStart + 2.075, zPos + 0.25);
+            tT.position.set(-1.0, floorYStart + 2.075, zPos + 0.25);
             group.add(tT);
 
+            // Untere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
             const tB = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tB.position.set(0, floorYStart + 0.825, zPos + 0.25);
+            tB.position.set(-1.0, floorYStart + 0.825, zPos + 0.25);
             group.add(tB);
         }
 
         function buildFrenchBalconyWall(group, wallYStart, floorYStart, wallHeight, zPos) {
-            const wallL = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
-            wallL.position.set(-1.0, wallYStart + wallHeight/2, zPos);
-            group.add(wallL);
-            registerWall(wallL, true);
-
-            const wallR = new THREE.Mesh(new THREE.BoxGeometry(1.0, wallHeight, 0.5), frontWallMat);
-            wallR.position.set(1.0, wallYStart + wallHeight/2, zPos);
+            // Rechter Wandteil: geht von X = -0.5 bis 1.5, Breite 2.0m, zentriert bei X = 0.5
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.0, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(0.5, wallYStart + wallHeight/2, zPos);
             group.add(wallR);
             registerWall(wallR, true);
 
+            // Öffnung ist von X = -1.5 bis -0.5 (zentriert bei X = -1.0)
             const bottomH = floorYStart - wallYStart;
             if (bottomH > 0.001) {
                 const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
-                wallB.position.set(0, wallYStart + bottomH/2, zPos);
+                wallB.position.set(-1.0, wallYStart + bottomH/2, zPos);
                 group.add(wallB);
                 registerWall(wallB, true);
             }
 
             const topH = (wallYStart + wallHeight) - (floorYStart + 2.2);
             const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
-            wallT.position.set(0, floorYStart + 2.2 + topH/2, zPos);
+            wallT.position.set(-1.0, floorYStart + 2.2 + topH/2, zPos);
             group.add(wallT);
             registerWall(wallT, true);
 
             const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 2.16, 0.05), glassMat);
-            windowGlass.position.set(0, floorYStart + 1.1, zPos);
+            windowGlass.position.set(-1.0, floorYStart + 1.1, zPos);
             group.add(windowGlass);
 
             // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
             const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
+            
+            // Linke Einfassung (bei X = -1.0 - 0.575 = -1.575)
             const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
-            tL.position.set(-0.575, floorYStart + 1.1, zPos + 0.25); // bündig/leicht vorstehend gegenüber der Wand (zPos + 0.25)
+            tL.position.set(-1.575, floorYStart + 1.1, zPos + 0.25);
             group.add(tL);
 
+            // Rechte Einfassung (bei X = -1.0 + 0.575 = -0.425)
             const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
-            tR.position.set(0.575, floorYStart + 1.1, zPos + 0.25);
+            tR.position.set(-0.425, floorYStart + 1.1, zPos + 0.25);
             group.add(tR);
 
+            // Obere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
             const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tT.position.set(0, floorYStart + 2.275, zPos + 0.25);
+            tT.position.set(-1.0, floorYStart + 2.275, zPos + 0.25);
             group.add(tT);
 
-            // Stahlgeländer (französischer Balkon) außen
+            // Stahlgeländer (französischer Balkon) außen, zentriert bei X = -1.0
             const railingGroup = new THREE.Group();
             const rMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
             
             const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
             handrail.rotation.z = Math.PI / 2;
-            handrail.position.set(0, floorYStart + 1.0, zPos + 0.3);
+            handrail.position.set(-1.0, floorYStart + 1.0, zPos + 0.3);
             railingGroup.add(handrail);
             
             const bottomRail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
             bottomRail.rotation.z = Math.PI / 2;
-            bottomRail.position.set(0, floorYStart + 0.1, zPos + 0.3);
+            bottomRail.position.set(-1.0, floorYStart + 0.1, zPos + 0.3);
             railingGroup.add(bottomRail);
             
             for (let x = -0.55; x <= 0.55; x += 0.11) {
                 const stab = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.9, 8), rMat);
-                stab.position.set(x, floorYStart + 0.55, zPos + 0.3);
+                stab.position.set(-1.0 + x, floorYStart + 0.55, zPos + 0.3);
                 railingGroup.add(stab);
             }
             
@@ -2748,11 +3050,13 @@
 
         function adjustExplosion(val) {
             targetExplosion = parseFloat(val) / 100.0;
+            localStorage.setItem('bosa_explosion', val);
             document.getElementById('val-explosion').innerText = val + "%";
         }
 
         function toggleWallsTransparent(val) {
             wallsTransparent = val;
+            localStorage.setItem('bosa_wallsTransparent', val);
             registeredWalls.forEach(wall => {
                 if (wall.userData.isSide) {
                     wall.material = val ? wall.userData.originalMat.map(() => transparentWallMat) : wall.userData.originalMat;
@@ -2765,6 +3069,7 @@
         // Böden transparent machen
         function toggleFloorsTransparent(val) {
             floorsTransparent = val;
+            localStorage.setItem('bosa_floorsTransparent', val);
             floorMat.transparent = val;
             floorMat.opacity = val ? 0.35 : 1.0;
             floorMat.needsUpdate = true;
@@ -2772,6 +3077,7 @@
 
         function toggleInstallations(val) {
             showInstallations = val;
+            localStorage.setItem('bosa_showInstallations', val);
             installationObjects.forEach(obj => {
                 if (shaftBackObjects.includes(obj)) {
                     obj.visible = val && !shaftOnRight;
@@ -2781,10 +3087,30 @@
                     obj.visible = val;
                 }
             });
+            // Kran ein-/ausblenden (gehört jetzt zu den Installationen)
+            showCrane = val;
+            craneObjects.forEach(obj => {
+                obj.visible = val;
+            });
+            if (labelCrane) {
+                labelCrane.visible = showLabels && val;
+            }
+        }
+
+        function toggleCraneFold(val) {
+            craneFolded = val;
+            localStorage.setItem('bosa_craneFolded', val);
+            if (swivelArmGroup) {
+                craneFoldStartAngle = swivelArmGroup.rotation.y;
+                craneFoldTargetAngle = val ? Math.PI : 0;
+                craneFoldStartTime = performance.now();
+                isCraneFoldAnimating = true;
+            }
         }
 
         function toggleShaftPosition(val) {
             shaftOnRight = val;
+            localStorage.setItem('bosa_shaftOnRight', val);
             if (showInstallations) {
                 shaftBackObjects.forEach(obj => obj.visible = !val);
                 shaftRightObjects.forEach(obj => obj.visible = val);
@@ -2793,18 +3119,25 @@
 
         function toggleLabels(val) {
             showLabels = val;
-            labelObjects.forEach(obj => obj.visible = val);
+            localStorage.setItem('bosa_showLabels', val);
+            labelObjects.forEach(obj => {
+                if (obj === labelCrane) {
+                    obj.visible = val && showCrane;
+                } else {
+                    obj.visible = val;
+                }
+            });
         }
 
         function toggleFurniture(val) {
             showFurniture = val;
+            localStorage.setItem('bosa_showFurniture', val);
             furnitureObjects.forEach(obj => obj.visible = val);
         }
 
-
-
         function focusFloor(floorIdx) {
             activeFocusedFloor = floorIdx;
+            localStorage.setItem('bosa_focusedFloor', floorIdx);
             
             const buttons = document.querySelectorAll('.floor-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
@@ -2853,7 +3186,26 @@
             controls.target.y += (targetCameraY - controls.target.y) * 0.1;
             controls.update();
 
+            // Kran einklappen/ausklappen Animation (Dauer: 1 Sekunde, Cosinus-Easing)
+            if (isCraneFoldAnimating && swivelArmGroup) {
+                const elapsed = performance.now() - craneFoldStartTime;
+                const t = Math.min(elapsed / craneFoldDuration, 1.0);
+                const tEased = (1 - Math.cos(t * Math.PI)) / 2; // Cosinus-Easing (Smooth-Step)
+                swivelArmGroup.rotation.y = craneFoldStartAngle + (craneFoldTargetAngle - craneFoldStartAngle) * tEased;
+                if (t >= 1.0) {
+                    isCraneFoldAnimating = false;
+                }
+            }
 
+            // Stahlseil synchron auf-/abwickeln basierend auf Rotation des Schwenkarms
+            if (swivelArmGroup && craneCable && craneWeight && craneHook) {
+                const ratio = swivelArmGroup.rotation.y / Math.PI; // 0 = ausgeklappt, 1 = eingeklappt
+                const L = 1.6 - 1.55 * ratio; // 1.6m wenn ausgeklappt, 0.05m wenn eingeklappt
+                craneCable.scale.y = L / 1.6;
+                craneCable.position.y = -0.19 - L / 2;
+                craneWeight.position.y = -0.19 - L;
+                craneHook.position.y = -0.19 - L - 0.03;
+            }
 
             renderer.render(scene, camera);
         }
