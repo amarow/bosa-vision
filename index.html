@@ -57,6 +57,38 @@
             flex-direction: column;
             gap: 20px;
             pointer-events: auto;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #control-panel.collapsed {
+            transform: translateX(calc(-100% - 40px));
+        }
+        .open-panel-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            pointer-events: auto;
+        }
+        .open-panel-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            color: white;
+            border-color: var(--accent-blue);
         }
 
         /* Scrollbar styling for panel */
@@ -346,11 +378,14 @@
 <body>
     <div id="canvas-container"></div>
 
+    <button id="btn-open-panel" class="open-panel-btn" onclick="togglePanel(false)" style="display: none;" title="Menü ausklappen">→</button>
+
     <div id="control-panel">
         <div class="lang-selector">
             <button class="lang-btn active" id="btn-lang-de" onclick="setLanguage('de')">DE</button>
             <button class="lang-btn" id="btn-lang-it" onclick="setLanguage('it')">IT</button>
             <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" id="btn-toggle-panel" onclick="togglePanel(true)" title="Menü einklappen">←</button>
         </div>
 
         <div>
@@ -684,6 +719,7 @@
         let showLabels = true;
         let showCrane = true;
         let craneFolded = false;
+        let panelCollapsed = false;
         let craneFoldStartTime = 0;
         let craneFoldStartAngle = 0;
         let craneFoldTargetAngle = 0;
@@ -722,10 +758,10 @@
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
             
-            const floorVal = getVal('bosa_focusedFloor', '0');
             activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
 
             currentLang = getVal('bosa_lang', 'de');
+            panelCollapsed = getBool('bosa_panel_collapsed', false);
         }
 
         // --- 2. INITIALISIERUNG ---
@@ -809,6 +845,15 @@
 
             // Initiale Isolierung laden
             focusFloor(activeFocusedFloor);
+
+            // Panel Einklappzustand initial anwenden
+            if (panelCollapsed) {
+                document.getElementById('control-panel').classList.add('collapsed');
+                document.getElementById('btn-open-panel').style.display = 'flex';
+            } else {
+                document.getElementById('control-panel').classList.remove('collapsed');
+                document.getElementById('btn-open-panel').style.display = 'none';
+            }
 
             // Kamera- und Target-Zustand laden falls vorhanden
             const px = localStorage.getItem('bosa_cam_pos_x');
@@ -3133,6 +3178,22 @@
             showFurniture = val;
             localStorage.setItem('bosa_showFurniture', val);
             furnitureObjects.forEach(obj => obj.visible = val);
+        }
+
+        function togglePanel(isCollapsed) {
+            panelCollapsed = isCollapsed;
+            const panel = document.getElementById('control-panel');
+            const openBtn = document.getElementById('btn-open-panel');
+            
+            if (isCollapsed) {
+                panel.classList.add('collapsed');
+                openBtn.style.display = 'flex';
+                localStorage.setItem('bosa_panel_collapsed', 'true');
+            } else {
+                panel.classList.remove('collapsed');
+                openBtn.style.display = 'none';
+                localStorage.setItem('bosa_panel_collapsed', 'false');
+            }
         }
 
         function focusFloor(floorIdx) {
