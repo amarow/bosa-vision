@@ -648,6 +648,7 @@
                 autoAlt: "Autoclave (Druckausgleich)",
                 elec: "Elektro-Hauptanschluss",
                 elecAlt: "Elektro-Hauptanschluss",
+                elecSub: "Unterverteiler (Strom)",
                 crane: "abnehmbarer Kran"
             },
             en: {
@@ -657,6 +658,7 @@
                 autoAlt: "Autoclave (Pressure Equalizer)",
                 elec: "Main Electrical Panel",
                 elecAlt: "Main Electrical Panel",
+                elecSub: "Sub-Distribution Board",
                 crane: "removable crane"
             },
             it: {
@@ -666,6 +668,7 @@
                 autoAlt: "Autoclave (Compensatore)",
                 elec: "Quadro Elettrico Principale",
                 elecAlt: "Quadro Elettrico Principale",
+                elecSub: "Quadro di Distribuzione",
                 crane: "gru rimovibile"
             }
         };
@@ -2745,6 +2748,33 @@
             installationObjects.push(steelBackGroup);
             shaftBackObjects.push(steelBackGroup);
 
+            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der Rückwand neben dem Schacht
+            const distHeightsA = [4.0, 6.5, 9.0];
+            const distFloorsA = [1, 2, 3];
+            distHeightsA.forEach((h, idx) => {
+                const subBoxGroup = new THREE.Group();
+                const fIdx = distFloorsA[idx];
+
+                // Verteilerkasten (16x20cm, 8cm tief, blau)
+                const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
+                boxMesh.position.set(0.22, h, -2.55);
+                subBoxGroup.add(boxMesh);
+
+                // Verbindungsrohr/Kabelkanal zum Schacht
+                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.02, 0.02), elecBoxMat);
+                pipeMesh.position.set(0.13, h, -2.55);
+                subBoxGroup.add(pipeMesh);
+
+                // Label für den Unterverteiler (wird registriert für Übersetzung)
+                const label = createTextSpriteSmall("elecSub", "#3b82f6");
+                label.position.set(0.22, h + 0.25, -3.4);
+                subBoxGroup.add(label);
+
+                floorGroups[fIdx].add(subBoxGroup);
+                installationObjects.push(subBoxGroup);
+                shaftBackObjects.push(subBoxGroup);
+            });
+
 
             // 2. OPTION B: Schacht rechts in der Mitte (X = 1.6, Z = 0.0, wo Treppe endet)
             segments.forEach(seg => {
@@ -2815,6 +2845,34 @@
             floorGroups[2].add(steelRightGroup);
             installationObjects.push(steelRightGroup);
             shaftRightObjects.push(steelRightGroup);
+
+            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der rechten Wand neben dem Schacht
+            const distHeightsB = [4.0, 6.5, 9.0];
+            const distFloorsB = [1, 2, 3];
+            distHeightsB.forEach((h, idx) => {
+                const subBoxGroup = new THREE.Group();
+                const fIdx = distFloorsB[idx];
+
+                // Verteilerkasten (8cm tief, 20cm hoch, 16cm breit entlang Z)
+                const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.20, 0.16), elecBoxMat);
+                boxMesh.position.set(1.55, h, 0.26);
+                subBoxGroup.add(boxMesh);
+
+                // Verbindungsrohr zum Schacht (entlang Z)
+                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.12), elecBoxMat);
+                pipeMesh.position.set(1.55, h, 0.15);
+                subBoxGroup.add(pipeMesh);
+
+                // Label für den Unterverteiler an der rechten Wand
+                const label = createTextSpriteSmall("elecSub", "#3b82f6");
+                label.position.set(2.6, h + 0.25, 0.26);
+                subBoxGroup.add(label);
+
+                subBoxGroup.visible = false; // Standardmäßig Option A aktiv
+                floorGroups[fIdx].add(subBoxGroup);
+                installationObjects.push(subBoxGroup);
+                shaftRightObjects.push(subBoxGroup);
+            });
 
 
 
