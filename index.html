@@ -1983,7 +1983,7 @@
 
             // --- Roter Kühlschrank (Retro-Look) nahe der Wendeltreppe ---
             const fridgeGroup = new THREE.Group();
-            fridgeGroup.position.set(1.2, floorTop, -0.8);
+            fridgeGroup.position.set(1.2, floorTop, -1.1);
 
             const fridgeRedMat = new THREE.MeshStandardMaterial({ 
                 color: 0xc62828, // schickes Retro-Rot
@@ -2041,7 +2041,7 @@
 
             // Label "Kühlschrank" (wird registriert für Übersetzung)
             const labelFridge = createTextSpriteSmall("fridge", "#ff5555");
-            labelFridge.position.set(1.2, 2.0, -0.8);
+            labelFridge.position.set(0, 2.0, 0);
             fridgeGroup.add(labelFridge);
 
             fridgeGroup.visible = showFurniture;
