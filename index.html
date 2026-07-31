@@ -509,7 +509,7 @@
                 </li>
                 <li class="legend-item">
                     <span class="legend-color" style="background:#bbbbbb; border: 1px solid #888888;"></span>
-                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr, doppelt per V-Profil an der linken Wand mit Gerüstankern in Ringschrauben verankert und mittels Gerüstverbinder (Kupplungen) montiert; schwenkbare elektrische Winde.</span>
+                    <span data-i18n="legCrane"><b>Terrassenkran:</b> Standrohr auf verstellbarer Gerüstspindel (Gewindefußplatte), doppelt per V-Profil mit Gerüstankern in Ringschrauben an der linken Wand verankert; schwenkbare elektrische Winde.</span>
                 </li>
 
             </ul>
@@ -566,7 +566,7 @@
                 legOldStairs: "<b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).",
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
                 legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
-                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr, doppelt per V-Profil an der linken Wand mit Gerüstankern in Ringschrauben verankert und mittels Gerüstverbinder (Kupplungen) montiert; schwenkbare elektrische Winde.",
+                legCrane: "<b>Terrassenkran:</b> Standrohr auf verstellbarer Gerüstspindel (Gewindefußplatte), doppelt per V-Profil mit Gerüstankern in Ringschrauben an der linken Wand verankert; schwenkbare elektrische Winde.",
                 numTitle: "Innenwand-Nummerierung",
                 instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
             },
@@ -600,7 +600,7 @@
                 legOldStairs: "<b>Old Staircase:</b> Previous wooden stairs on the right side (0.9m x 2.5m).",
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
                 legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
-                legCrane: "<b>Terrace Crane:</b> 2.5m high mast, double-braced (V-profile) to the left wall using scaffold anchors in eyebolts and secured with couplers; swiveling electric winch.",
+                legCrane: "<b>Terrace Crane:</b> Vertical mast on adjustable scaffold screw jack base, double-braced (V-profile) to the left wall using anchors in eyebolts; swiveling electric winch.",
                 numTitle: "Internal Wall Numbering",
                 instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
             },
@@ -634,7 +634,7 @@
                 legOldStairs: "<b>Vecchia Scala:</b> Precedente scala in legno sul lato destro (0,9m x 2,5m).",
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
                 legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
-                legCrane: "<b>Gru a terrazza:</b> Montante da 2,5m, con doppio rinforzo (profilo a V) sulla parete sinistra tramite tasselli ad occhiello e giunti per ponteggio; verricello elettrico girevole.",
+                legCrane: "<b>Gru a terrazza:</b> Montante su basetta regolabile a vite (spina filettata), con doppio rinforzo (profilo a V) sulla parete sinistra tramite tasselli ad occhiello; verricello elettrico girevole.",
                 numTitle: "Numerazione Muri Interni",
                 instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
             }
@@ -2487,13 +2487,53 @@
             createCoupler(-1.25, 13.20, 2.45, 0.4636); // Für Diagonalstrebe
 
             // Vertikales Standrohr mittig über den Fenstern (X = -1.25, Z = 2.45), geht bis auf den Boden (Y_deck = 10.75), Höhe 2.5m
-            const vertMasterTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.5, 16);
+            // Vertikales Standrohr mittig über den Fenstern (X = -1.25, Z = 2.45)
+            // Es steht auf einer verstellbaren Gewindefußplatte (Gerüstspindel).
+            // Die Spindel steht auf dem Deck (Y = 10.75). Die Stellmutter liegt bei Y = 10.83, wo das Standrohr beginnt.
+            // Das Rohr geht bis Y = 13.25 (Höhe = 2.42m).
+            const vertMasterTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.42, 16);
             const vertMasterTubeMat = craneSilverMat;
             const vertMasterTube = new THREE.Mesh(vertMasterTubeGeo, vertMasterTubeMat);
-            vertMasterTube.position.set(-1.25, 12.0, 2.45); // Y-Mitte bei (10.75 + 13.25)/2 = 12.0
+            vertMasterTube.position.set(-1.25, 12.04, 2.45); // Y-Mitte bei (10.83 + 13.25)/2 = 12.04
             vertMasterTube.visible = showCrane;
             grp.add(vertMasterTube);
             craneObjects.push(vertMasterTube);
+
+            // --- Gerüstspindel / Gewindefußplatte unten am Standfuß ---
+            // Fußplatte (15x15cm, 8mm dick) direkt auf den Dielen (Y = 10.75)
+            const spindleBase = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.008, 0.15), clampMat);
+            spindleBase.position.set(-1.25, 10.75 + 0.004, 2.45);
+            spindleBase.visible = showCrane;
+            grp.add(spindleBase);
+            craneObjects.push(spindleBase);
+
+            // Gewindestange (Spindelrohr, geht in das Rohr hinein)
+            const spindleRod = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.15, 12), clampMat);
+            spindleRod.position.set(-1.25, 10.75 + 0.075, 2.45);
+            spindleRod.visible = showCrane;
+            grp.add(spindleRod);
+            craneObjects.push(spindleRod);
+
+            // Stellmutter / Flügelmutter (Stellring bei Y = 10.83)
+            const spindleNut = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.015, 12), clampMat);
+            spindleNut.position.set(-1.25, 10.825, 2.45);
+            spindleNut.visible = showCrane;
+            grp.add(spindleNut);
+            craneObjects.push(spindleNut);
+
+            // Flügel 1 der Stellmutter
+            const spindleWing1 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.008, 0.01), clampMat);
+            spindleWing1.position.set(-1.25 + 0.02, 10.825, 2.45);
+            spindleWing1.visible = showCrane;
+            grp.add(spindleWing1);
+            craneObjects.push(spindleWing1);
+
+            // Flügel 2 der Stellmutter
+            const spindleWing2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.008, 0.01), clampMat);
+            spindleWing2.position.set(-1.25 - 0.02, 10.825, 2.45);
+            spindleWing2.visible = showCrane;
+            grp.add(spindleWing2);
+            craneObjects.push(spindleWing2);
 
             // Befestigung an der Wand unten als V-Profil (genauso wie die obere Befestigung, bei Y = 11.25)
             // Horizontaler Querriegel unten vom Standrohr zur Wand (Länge 0.25m, zentriert bei X = -1.375)
