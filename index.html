@@ -509,7 +509,7 @@
                 </li>
                 <li class="legend-item">
                     <span class="legend-color" style="background:#bbbbbb; border: 1px solid #888888;"></span>
-                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit doppelter Dreiecksabstützung (V-Profil) zur linken Wand und schwenkbarer elektrischer Winde.</span>
+                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr, doppelt per V-Profil an der linken Wand mit Gerüstankern in Ringschrauben verankert und mittels Gerüstverbinder (Kupplungen) montiert; schwenkbare elektrische Winde.</span>
                 </li>
 
             </ul>
@@ -566,7 +566,7 @@
                 legOldStairs: "<b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).",
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
                 legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
-                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit doppelter Dreiecksabstützung (V-Profil) zur linken Wand und schwenkbarer elektrischer Winde.",
+                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr, doppelt per V-Profil an der linken Wand mit Gerüstankern in Ringschrauben verankert und mittels Gerüstverbinder (Kupplungen) montiert; schwenkbare elektrische Winde.",
                 numTitle: "Innenwand-Nummerierung",
                 instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
             },
@@ -600,7 +600,7 @@
                 legOldStairs: "<b>Old Staircase:</b> Previous wooden stairs on the right side (0.9m x 2.5m).",
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
                 legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
-                legCrane: "<b>Terrace Crane:</b> 2.5m high vertical mast on front parapet, double braced (V-profile) to the left wall, with a swiveling electric winch.",
+                legCrane: "<b>Terrace Crane:</b> 2.5m high mast, double-braced (V-profile) to the left wall using scaffold anchors in eyebolts and secured with couplers; swiveling electric winch.",
                 numTitle: "Internal Wall Numbering",
                 instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
             },
@@ -634,7 +634,7 @@
                 legOldStairs: "<b>Vecchia Scala:</b> Precedente scala in legno sul lato destro (0,9m x 2,5m).",
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
                 legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
-                legCrane: "<b>Gru a terrazza:</b> Montante verticale da 2,5m sul parapetto anteriore, con doppio rinforzo triangolare (profilo a V) sulla parete sinistra, con verricello elettrico girevole.",
+                legCrane: "<b>Gru a terrazza:</b> Montante da 2,5m, con doppio rinforzo (profilo a V) sulla parete sinistra tramite tasselli ad occhiello e giunti per ponteggio; verricello elettrico girevole.",
                 numTitle: "Numerazione Muri Interni",
                 instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
             }
@@ -2396,6 +2396,66 @@
                 color: 0x111111
             });
 
+            // --- Hilfsfunktionen für Gerüstkupplungen und Wandanker mit Ringschraube ---
+            function createCoupler(x, y, z, rotY = 0) {
+                const couplerGroup = new THREE.Group();
+                couplerGroup.position.set(x, y, z);
+                couplerGroup.rotation.y = rotY;
+
+                // Zentralkörper der Kupplung (Normalkupplung)
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.05), clampMat);
+                couplerGroup.add(body);
+
+                // Halbschelle um das vertikale Rohr
+                const ringVert = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.007, 8, 16), clampMat);
+                ringVert.rotation.x = Math.PI / 2;
+                couplerGroup.add(ringVert);
+
+                // Halbschelle um das Anschlussrohr
+                const ringHoriz = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.007, 8, 16), clampMat);
+                ringHoriz.rotation.y = Math.PI / 2;
+                couplerGroup.add(ringHoriz);
+
+                couplerGroup.visible = showCrane;
+                grp.add(couplerGroup);
+                craneObjects.push(couplerGroup);
+            }
+
+            function createWallAnchor(x, y, z, rotY = 0) {
+                const anchorGroup = new THREE.Group();
+                anchorGroup.position.set(x, y, z);
+                anchorGroup.rotation.y = rotY;
+
+                // 1. Ringschraube (Gerüstöse) im Mauerwerk
+                // Gewindeschaft in die Wand (nach links, also negative X-Richtung)
+                const shank = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.06, 8), clampMat);
+                shank.rotation.z = Math.PI / 2;
+                shank.position.set(-0.03, 0, 0); // ragt in die Wand hinein
+                anchorGroup.add(shank);
+
+                // Ösen-Ring (Torus, aufrecht in YZ-Ebene)
+                const eye = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.004, 8, 16), clampMat);
+                eye.position.set(0.005, 0, 0); // knapp vor der Wand
+                anchorGroup.add(eye);
+
+                // 2. Gerüstanker-Haken am Rohrelement (greift in die Öse)
+                const hook = new THREE.Mesh(new THREE.TorusGeometry(0.013, 0.003, 8, 16, Math.PI * 1.5), clampMat);
+                hook.position.set(0.005, 0, 0); // Greift genau in das Auge
+                hook.rotation.x = Math.PI / 2; // orthogonal zum Ring der Öse
+                hook.rotation.y = Math.PI / 2;
+                anchorGroup.add(hook);
+
+                // Kleine Hülse/Manschette am Übergang zum Gerüstrohr
+                const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.02, 12), clampMat);
+                sleeve.rotation.z = Math.PI / 2;
+                sleeve.position.set(0.02, 0, 0);
+                anchorGroup.add(sleeve);
+
+                anchorGroup.visible = showCrane;
+                grp.add(anchorGroup);
+                craneObjects.push(anchorGroup);
+            }
+
             // Stabilisierung an der linken 4m Wand mit einem waagerechten Dreieck am oberen Ende der senkrechten Stange (Y = 13.25)
             // Horizontaler Querriegel vom Standrohr zur Wand (Länge 0.25m, zentriert bei X = -1.375)
             const topHorizTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.25, 16);
@@ -2406,12 +2466,8 @@
             grp.add(topHorizTube);
             craneObjects.push(topHorizTube);
 
-            // Wandbefestigung für den Querriegel
-            const topWallClampL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
-            topWallClampL.position.set(-1.52, 13.25, 2.45);
-            topWallClampL.visible = showCrane;
-            grp.add(topWallClampL);
-            craneObjects.push(topWallClampL);
+            // Gerüstanker mit Ringschraube für den oberen Querriegel
+            createWallAnchor(-1.5, 13.25, 2.45, 0);
 
             // Diagonalstrebe Horizontal - schließt das Dreieck an der Wand (verbindet Z=1.95 und Z=2.45 bei X=-1.25 auf Höhe Y=13.25, Länge ~0.56m)
             const diagTubeGeo2 = new THREE.CylinderGeometry(0.024, 0.024, 0.559, 16);
@@ -2423,19 +2479,12 @@
             grp.add(diagTube2);
             craneObjects.push(diagTube2);
 
-            // Wandbefestigung für die Diagonalstrebe
-            const wallClampL3 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
-            wallClampL3.position.set(-1.52, 13.25, 1.95);
-            wallClampL3.visible = showCrane;
-            grp.add(wallClampL3);
-            craneObjects.push(wallClampL3);
+            // Gerüstanker mit Ringschraube für die obere Diagonalstrebe
+            createWallAnchor(-1.5, 13.25, 1.95, 0.4636);
 
-            // Schelle am oberen Ende des Standrohrs für die Dreiecksverbindung (bei X = -1.25)
-            const topConnectionClamp = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.01, 8, 16), clampMat);
-            topConnectionClamp.position.set(-1.25, 13.25, 2.45);
-            topConnectionClamp.visible = showCrane;
-            grp.add(topConnectionClamp);
-            craneObjects.push(topConnectionClamp);
+            // Gerüstverbinder (Kupplungen) am oberen Ende des Standrohrs
+            createCoupler(-1.25, 13.25, 2.45, 0); // Für Querriegel
+            createCoupler(-1.25, 13.20, 2.45, 0.4636); // Für Diagonalstrebe
 
             // Vertikales Standrohr mittig über den Fenstern (X = -1.25, Z = 2.45), geht bis auf den Boden (Y_deck = 10.75), Höhe 2.5m
             const vertMasterTubeGeo = new THREE.CylinderGeometry(0.024, 0.024, 2.5, 16);
@@ -2454,12 +2503,8 @@
             grp.add(bottomHorizTube);
             craneObjects.push(bottomHorizTube);
 
-            // Wandbefestigung unten für den Querriegel
-            const bottomWallClampL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
-            bottomWallClampL.position.set(-1.52, 11.25, 2.45);
-            bottomWallClampL.visible = showCrane;
-            grp.add(bottomWallClampL);
-            craneObjects.push(bottomWallClampL);
+            // Gerüstanker mit Ringschraube für den unteren Querriegel
+            createWallAnchor(-1.5, 11.25, 2.45, 0);
 
             // Diagonalstrebe Horizontal unten - schließt das Dreieck an der Wand (verbindet Z=1.95 und Z=2.45 bei X=-1.25 auf Höhe Y=11.25, Länge ~0.56m)
             const bottomDiagTube = new THREE.Mesh(diagTubeGeo2, scaffoldTubeMat);
@@ -2468,19 +2513,12 @@
             grp.add(bottomDiagTube);
             craneObjects.push(bottomDiagTube);
 
-            // Wandbefestigung unten für die Diagonalstrebe
-            const bottomWallClampLDiag = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
-            bottomWallClampLDiag.position.set(-1.52, 11.25, 1.95);
-            bottomWallClampLDiag.visible = showCrane;
-            grp.add(bottomWallClampLDiag);
-            craneObjects.push(bottomWallClampLDiag);
+            // Gerüstanker mit Ringschraube für die untere Diagonalstrebe
+            createWallAnchor(-1.5, 11.25, 1.95, 0.4636);
 
-            // Schelle unten am Standrohr für die Dreiecksverbindung (bei X = -1.25, Y = 11.25)
-            const bottomConnectionClamp = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.01, 8, 16), clampMat);
-            bottomConnectionClamp.position.set(-1.25, 11.25, 2.45);
-            bottomConnectionClamp.visible = showCrane;
-            grp.add(bottomConnectionClamp);
-            craneObjects.push(bottomConnectionClamp);
+            // Gerüstverbinder (Kupplungen) am unteren Ende des Standrohrs
+            createCoupler(-1.25, 11.25, 2.45, 0); // Für Querriegel
+            createCoupler(-1.25, 11.20, 2.45, 0.4636); // Für Diagonalstrebe
 
             // Schwenkarm (Schwenkbar an dem vertikalen Rohr montiert, so hoch wie möglich, bei X = -1.25)
             swivelArmGroup = new THREE.Group();
