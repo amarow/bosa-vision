@@ -1437,9 +1437,9 @@
             stubRedBack.position.set(-0.6, 0.8, -2.4);
             equipGrpBack.add(stubRedBack);
 
-            const connRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.46, 8), pipeRedMat);
+            const connRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.64, 8), pipeRedMat);
             connRedBack.rotation.z = Math.PI / 2;
-            connRedBack.position.set(-0.37, 0.8, -2.55); // in der Rückwand bei Z=-2.55
+            connRedBack.position.set(-0.28, 0.8, -2.55); // in der Rückwand bei Z=-2.55
             equipGrpBack.add(connRedBack);
 
             // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr, in der Rückwand hinter dem Tank verlegt)
@@ -1448,9 +1448,9 @@
             stubCyanBack.position.set(-1.05, 0.3, -2.4);
             equipGrpBack.add(stubCyanBack);
 
-            const connCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.855, 8), pipeCyanMat);
+            const connCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.145, 8), pipeCyanMat);
             connCyanBack.rotation.z = Math.PI / 2;
-            connCyanBack.position.set(-0.6225, 0.3, -2.55); // in der Rückwand bei Z=-2.55 hinter dem Tank
+            connCyanBack.position.set(-0.4775, 0.3, -2.55); // in der Rückwand bei Z=-2.55 hinter dem Tank
             equipGrpBack.add(connCyanBack);
 
             const labelWpTankBack = createTextSpriteSmall("wpTank", "#ef4444");
@@ -1487,9 +1487,9 @@
             stubRedRight.position.set(1.375, 0.8, 0.6);
             equipGrpRight.add(stubRedRight);
 
-            const connRedRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 8), pipeRedMat);
+            const connRedRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.56, 8), pipeRedMat);
             connRedRight.rotation.x = Math.PI / 2;
-            connRedRight.position.set(1.55, 0.8, 0.3); // in der rechten Wand bei X=1.55
+            connRedRight.position.set(1.55, 0.8, 0.32); // in der rechten Wand bei X=1.55
             equipGrpRight.add(connRedRight);
 
             const stubCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
@@ -1497,9 +1497,9 @@
             stubCyanRight.position.set(1.375, 0.3, 1.1);
             equipGrpRight.add(stubCyanRight);
 
-            const connCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 8), pipeCyanMat);
+            const connCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.005, 8), pipeCyanMat);
             connCyanRight.rotation.x = Math.PI / 2;
-            connCyanRight.position.set(1.55, 0.3, 0.55); // in der rechten Wand bei X=1.55 hinter dem Tank
+            connCyanRight.position.set(1.55, 0.3, 0.5975); // in der rechten Wand bei X=1.55 hinter dem Tank
             equipGrpRight.add(connCyanRight);
 
             const labelWpTankRight = createTextSpriteSmall("wpTankAlt", "#ef4444");
@@ -2666,10 +2666,10 @@
             const steelMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
 
             const pipes = [
-                { mat: pipeMatElec, isChannel: true, w: 0.1, d: 0.06, x: 0.06 },        // Blue (Kanal 100x60mm)
-                { mat: pipeMatWaste, r: 0.05, x: -0.06 },      // Orange
-                { mat: pipeMatHot, r: 0.025, x: -0.14 },       // Red
-                { mat: pipeMatCold, r: 0.025, x: -0.195 }      // Cyan
+                { mat: pipeMatElec, isChannel: true, w: 0.1, d: 0.06, x: -0.17 },       // Blue (Kanal 100x60mm) - Jetzt links
+                { mat: pipeMatWaste, r: 0.05, x: -0.05 },      // Orange - Leicht nach rechts
+                { mat: pipeMatHot, r: 0.025, x: 0.04 },        // Red - Jetzt rechts
+                { mat: pipeMatCold, r: 0.025, x: 0.095 }       // Cyan - Jetzt rechts außen
             ];
 
             const segments = [
@@ -2704,8 +2704,8 @@
             // Untergrund-Abwasserleitung (Option A: vom Steigrohr unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
             const undergroundWasteBack = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 5.8, 16), pipeMatWaste);
             undergroundWasteBack.rotation.x = Math.PI / 2;
-            undergroundWasteBack.rotation.y = Math.atan2(0.06, 5.8);
-            undergroundWasteBack.position.set(-0.03, -0.15, 0.3); // von Z=-2.6 bis Z=3.2 (Straße, X=0.0)
+            undergroundWasteBack.rotation.y = Math.atan2(0.05, 5.8);
+            undergroundWasteBack.position.set(-0.025, -0.15, 0.3); // von Z=-2.6 bis Z=3.2 (Straße, X=0.0)
             floorGroups[0].add(undergroundWasteBack);
             installationObjects.push(undergroundWasteBack);
             shaftBackObjects.push(undergroundWasteBack);
@@ -2713,16 +2713,16 @@
             const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
             const elecBoxBack = new THREE.Group();
             const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), elecBoxMat);
-            elecBoxBackMesh.position.set(0.35, 1.5, -2.55);
+            elecBoxBackMesh.position.set(-0.35, 1.5, -2.55); // Jetzt links
             elecBoxBack.add(elecBoxBackMesh);
             
             // Verbindungsleitung Kasten -> Steigleitung (Rückwand)
-            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.04), elecBoxMat);
-            connElecBack.position.set(0.2, 1.5, -2.55);
+            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.04), elecBoxMat);
+            connElecBack.position.set(-0.26, 1.5, -2.55); // Jetzt links
             elecBoxBack.add(connElecBack);
 
             const labelElecBack = createTextSpriteSmall("elec", "#3b82f6");
-            labelElecBack.position.set(0.35, 1.85, -3.4);
+            labelElecBack.position.set(-0.35, 1.85, -3.4); // Jetzt links
             elecBoxBack.add(labelElecBack);
             floorGroups[0].add(elecBoxBack);
             installationObjects.push(elecBoxBack);
@@ -2748,26 +2748,26 @@
             installationObjects.push(steelBackGroup);
             shaftBackObjects.push(steelBackGroup);
 
-            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der Rückwand neben dem Schacht
+            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der Rückwand neben dem Schacht (jetzt links)
             const distHeightsA = [4.0, 6.5, 9.0];
             const distFloorsA = [1, 2, 3];
             distHeightsA.forEach((h, idx) => {
                 const subBoxGroup = new THREE.Group();
                 const fIdx = distFloorsA[idx];
 
-                // Verteilerkasten (16x20cm, 8cm tief, blau)
+                // Verteilerkasten (16x20cm, 8cm tief, blau) - Links bei X = -0.25
                 const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
-                boxMesh.position.set(0.22, h, -2.55);
+                boxMesh.position.set(-0.25, h, -2.55);
                 subBoxGroup.add(boxMesh);
 
                 // Verbindungsrohr/Kabelkanal zum Schacht
-                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.02, 0.02), elecBoxMat);
-                pipeMesh.position.set(0.13, h, -2.55);
+                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.02), elecBoxMat);
+                pipeMesh.position.set(-0.21, h, -2.55);
                 subBoxGroup.add(pipeMesh);
 
-                // Label für den Unterverteiler (wird registriert für Übersetzung)
+                // Label für den Unterverteiler
                 const label = createTextSpriteSmall("elecSub", "#3b82f6");
-                label.position.set(0.22, h + 0.25, -3.4);
+                label.position.set(-0.25, h + 0.25, -3.4);
                 subBoxGroup.add(label);
 
                 floorGroups[fIdx].add(subBoxGroup);
@@ -2811,22 +2811,22 @@
 
             const elecBoxRight = new THREE.Group();
             const elecBoxRightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.3), elecBoxMat);
-            elecBoxRightMesh.position.set(1.55, 1.5, 0.4);
+            elecBoxRightMesh.position.set(1.55, 1.5, -0.35); // Jetzt hinten (negatives Z)
             elecBoxRight.add(elecBoxRightMesh);
-
+ 
             // Verbindungsleitung Kasten -> Steigleitung (Rechte Wand)
-            const connElecRight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.4), elecBoxMat);
-            connElecRight.position.set(1.55, 1.5, 0.2);
+            const connElecRight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.18), elecBoxMat);
+            connElecRight.position.set(1.55, 1.5, -0.26); // Jetzt hinten
             elecBoxRight.add(connElecRight);
-
+ 
             const labelElecRight = createTextSpriteSmall("elecAlt", "#3b82f6");
-            labelElecRight.position.set(2.6, 1.85, 0.4);
+            labelElecRight.position.set(2.6, 1.85, -0.35); // Jetzt hinten
             elecBoxRight.add(labelElecRight);
             elecBoxRight.visible = false;
             floorGroups[0].add(elecBoxRight);
             installationObjects.push(elecBoxRight);
             shaftRightObjects.push(elecBoxRight);
-
+ 
             // U-Stahl Verstärkung für den gesamten Durchbruch durch die Bogendecke (Option B: Rechte Wand, 2. OG, Y=7.175m, reicht von Unterkante Bogen bis Oberkante Decke)
             const steelRightGroup = new THREE.Group();
             const sRF = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepthRight, 0.39), steelMat);
@@ -2845,29 +2845,29 @@
             floorGroups[2].add(steelRightGroup);
             installationObjects.push(steelRightGroup);
             shaftRightObjects.push(steelRightGroup);
-
-            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der rechten Wand neben dem Schacht
+ 
+            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) an der rechten Wand neben dem Schacht (jetzt hinten)
             const distHeightsB = [4.0, 6.5, 9.0];
             const distFloorsB = [1, 2, 3];
             distHeightsB.forEach((h, idx) => {
                 const subBoxGroup = new THREE.Group();
                 const fIdx = distFloorsB[idx];
-
-                // Verteilerkasten (8cm tief, 20cm hoch, 16cm breit entlang Z)
+ 
+                // Verteilerkasten (8cm tief, 20cm hoch, 16cm breit entlang Z) - Hinten bei Z = -0.25
                 const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.20, 0.16), elecBoxMat);
-                boxMesh.position.set(1.55, h, 0.26);
+                boxMesh.position.set(1.55, h, -0.25);
                 subBoxGroup.add(boxMesh);
-
+ 
                 // Verbindungsrohr zum Schacht (entlang Z)
-                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.12), elecBoxMat);
-                pipeMesh.position.set(1.55, h, 0.15);
+                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.08), elecBoxMat);
+                pipeMesh.position.set(1.55, h, -0.21);
                 subBoxGroup.add(pipeMesh);
-
+ 
                 // Label für den Unterverteiler an der rechten Wand
                 const label = createTextSpriteSmall("elecSub", "#3b82f6");
-                label.position.set(2.6, h + 0.25, 0.26);
+                label.position.set(2.6, h + 0.25, -0.25);
                 subBoxGroup.add(label);
-
+ 
                 subBoxGroup.visible = false; // Standardmäßig Option A aktiv
                 floorGroups[fIdx].add(subBoxGroup);
                 installationObjects.push(subBoxGroup);
