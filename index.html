@@ -509,7 +509,7 @@
                 </li>
                 <li class="legend-item">
                     <span class="legend-color" style="background:#bbbbbb; border: 1px solid #888888;"></span>
-                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit oberer Dreiecksabstützung zur linken Wand und schwenkbarer elektrischer Winde.</span>
+                    <span data-i18n="legCrane"><b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit doppelter Dreiecksabstützung (V-Profil) zur linken Wand und schwenkbarer elektrischer Winde.</span>
                 </li>
 
             </ul>
@@ -566,7 +566,7 @@
                 legOldStairs: "<b>Altes Treppenhaus:</b> Bisherige Holztreppe auf der rechten Seite (0,9m x 2,5m).",
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
                 legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
-                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit oberer Dreiecksabstützung zur linken Wand und schwenkbarer elektrischer Winde.",
+                legCrane: "<b>Terrassenkran:</b> 2,5m hohes Standrohr an der vorderen Brüstung, mit doppelter Dreiecksabstützung (V-Profil) zur linken Wand und schwenkbarer elektrischer Winde.",
                 numTitle: "Innenwand-Nummerierung",
                 instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
             },
@@ -600,7 +600,7 @@
                 legOldStairs: "<b>Old Staircase:</b> Previous wooden stairs on the right side (0.9m x 2.5m).",
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
                 legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
-                legCrane: "<b>Terrace Crane:</b> 2.5m high vertical mast on front parapet, braced at the top to the left wall, with a swiveling electric winch.",
+                legCrane: "<b>Terrace Crane:</b> 2.5m high vertical mast on front parapet, double braced (V-profile) to the left wall, with a swiveling electric winch.",
                 numTitle: "Internal Wall Numbering",
                 instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
             },
@@ -634,7 +634,7 @@
                 legOldStairs: "<b>Vecchia Scala:</b> Precedente scala in legno sul lato destro (0,9m x 2,5m).",
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
                 legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
-                legCrane: "<b>Gru a terrazza:</b> Montante verticale da 2,5m sul parapetto anteriore, rinforzato in alto sulla parete sinistra, con verricello elettrico girevole.",
+                legCrane: "<b>Gru a terrazza:</b> Montante verticale da 2,5m sul parapetto anteriore, con doppio rinforzo triangolare (profilo a V) sulla parete sinistra, con verricello elettrico girevole.",
                 numTitle: "Numerazione Muri Interni",
                 instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
             }
@@ -2446,28 +2446,41 @@
             grp.add(vertMasterTube);
             craneObjects.push(vertMasterTube);
 
-            // Befestigung direkt an der Brüstungswand (2 Wandschellen bei X = -1.25)
-            const parapetClampPositionsY = [10.8, 11.2];
-            parapetClampPositionsY.forEach(cy => {
-                const clampAnchor = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.06, 0.06, 0.12),
-                    clampMat
-                );
-                clampAnchor.position.set(-1.25, cy, 2.51); // liegt an/in der Brüstungsmauer (Z=2.5) an
-                clampAnchor.visible = showCrane;
-                grp.add(clampAnchor);
-                craneObjects.push(clampAnchor);
+            // Befestigung an der Wand unten als V-Profil (genauso wie die obere Befestigung, bei Y = 11.25)
+            // Horizontaler Querriegel unten vom Standrohr zur Wand (Länge 0.25m, zentriert bei X = -1.375)
+            const bottomHorizTube = new THREE.Mesh(topHorizTubeGeo, scaffoldTubeMat);
+            bottomHorizTube.position.set(-1.375, 11.25, 2.45);
+            bottomHorizTube.visible = showCrane;
+            grp.add(bottomHorizTube);
+            craneObjects.push(bottomHorizTube);
 
-                const ring = new THREE.Mesh(
-                    new THREE.TorusGeometry(0.025, 0.008, 8, 24),
-                    clampMat
-                );
-                ring.rotation.y = Math.PI / 2;
-                ring.position.set(-1.25, cy, 2.45);
-                ring.visible = showCrane;
-                grp.add(ring);
-                craneObjects.push(ring);
-            });
+            // Wandbefestigung unten für den Querriegel
+            const bottomWallClampL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
+            bottomWallClampL.position.set(-1.52, 11.25, 2.45);
+            bottomWallClampL.visible = showCrane;
+            grp.add(bottomWallClampL);
+            craneObjects.push(bottomWallClampL);
+
+            // Diagonalstrebe Horizontal unten - schließt das Dreieck an der Wand (verbindet Z=1.95 und Z=2.45 bei X=-1.25 auf Höhe Y=11.25, Länge ~0.56m)
+            const bottomDiagTube = new THREE.Mesh(diagTubeGeo2, scaffoldTubeMat);
+            bottomDiagTube.position.set(-1.375, 11.25, 2.20);
+            bottomDiagTube.visible = showCrane;
+            grp.add(bottomDiagTube);
+            craneObjects.push(bottomDiagTube);
+
+            // Wandbefestigung unten für die Diagonalstrebe
+            const bottomWallClampLDiag = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), clampMat);
+            bottomWallClampLDiag.position.set(-1.52, 11.25, 1.95);
+            bottomWallClampLDiag.visible = showCrane;
+            grp.add(bottomWallClampLDiag);
+            craneObjects.push(bottomWallClampLDiag);
+
+            // Schelle unten am Standrohr für die Dreiecksverbindung (bei X = -1.25, Y = 11.25)
+            const bottomConnectionClamp = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.01, 8, 16), clampMat);
+            bottomConnectionClamp.position.set(-1.25, 11.25, 2.45);
+            bottomConnectionClamp.visible = showCrane;
+            grp.add(bottomConnectionClamp);
+            craneObjects.push(bottomConnectionClamp);
 
             // Schwenkarm (Schwenkbar an dem vertikalen Rohr montiert, so hoch wie möglich, bei X = -1.25)
             swivelArmGroup = new THREE.Group();
