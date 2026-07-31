@@ -646,6 +646,9 @@
                 elec: "Elektro-Hauptanschluss",
                 elecAlt: "Elektro-Hauptanschluss",
                 elecSub: "Unterverteiler (Strom)",
+                stove: "Herd",
+                sink: "Spüle",
+                fridge: "Kühlschrank",
                 crane: "abnehmbarer Kran"
             },
             en: {
@@ -656,6 +659,9 @@
                 elec: "Main Electrical Panel",
                 elecAlt: "Main Electrical Panel",
                 elecSub: "Sub-Distribution Board",
+                stove: "Stove",
+                sink: "Sink",
+                fridge: "Refrigerator",
                 crane: "removable crane"
             },
             it: {
@@ -666,6 +672,9 @@
                 elec: "Quadro Elettrico Principale",
                 elecAlt: "Quadro Elettrico Principale",
                 elecSub: "Quadro di Distribuzione",
+                stove: "Fornello",
+                sink: "Lavello",
+                fridge: "Frigorifero",
                 crane: "gru rimovibile"
             }
         };
@@ -1879,6 +1888,165 @@
             counter2.visible = showFurniture;
             grp.add(counter2);
             furnitureObjects.push(counter2);
+
+            // --- Herd (Stove) auf dem hinteren Counter ---
+            const stoveGroup = new THREE.Group();
+            stoveGroup.position.set(-0.7, floorTop, -2.2);
+
+            // Ceranfeld (schwarze Glasplatte, 60x50cm, 1cm hoch)
+            const ceranMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.8 });
+            const cooktop = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.01, 0.5), ceranMat);
+            cooktop.position.set(0, 0.8 + 0.005, 0); // liegt auf Arbeitsplatte auf (H=0.8)
+            stoveGroup.add(cooktop);
+
+            // 4 Kochplatten (graue Kreise auf dem Ceranfeld)
+            const plateMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
+            const plateGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.002, 16);
+            
+            const p1 = new THREE.Mesh(plateGeo, plateMat);
+            p1.position.set(-0.15, 0.8 + 0.011, -0.12);
+            stoveGroup.add(p1);
+
+            const p2 = new THREE.Mesh(plateGeo, plateMat);
+            p2.position.set(0.15, 0.8 + 0.011, -0.12);
+            stoveGroup.add(p2);
+
+            const p3 = new THREE.Mesh(plateGeo, plateMat);
+            p3.position.set(-0.15, 0.8 + 0.011, 0.12);
+            stoveGroup.add(p3);
+
+            const p4 = new THREE.Mesh(plateGeo, plateMat);
+            p4.position.set(0.15, 0.8 + 0.011, 0.12);
+            stoveGroup.add(p4);
+
+            // Backofen-Tür an der Vorderseite des Counters (Z = -1.9, so lokal Z = -2.2 + 0.3 = 0.3)
+            const ovenGlassMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.2, metalness: 0.9 });
+            const ovenDoor = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.45, 0.02), ovenGlassMat);
+            ovenDoor.position.set(0, 0.45, 0.301); // knapp vor der Blende
+            stoveGroup.add(ovenDoor);
+
+            // Ofengriff (Edelstahl, dünne Stange)
+            const ovenHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.46, 8), newMetalMat);
+            ovenHandle.rotation.z = Math.PI / 2;
+            ovenHandle.position.set(0, 0.62, 0.32);
+            stoveGroup.add(ovenHandle);
+
+            const ovenHandleHolderL = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 8), newMetalMat);
+            ovenHandleHolderL.rotation.x = Math.PI / 2;
+            ovenHandleHolderL.position.set(-0.21, 0.62, 0.31);
+            stoveGroup.add(ovenHandleHolderL);
+
+            const ovenHandleHolderR = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 8), newMetalMat);
+            ovenHandleHolderR.rotation.x = Math.PI / 2;
+            ovenHandleHolderR.position.set(0.21, 0.62, 0.31);
+            stoveGroup.add(ovenHandleHolderR);
+
+            stoveGroup.visible = showFurniture;
+            grp.add(stoveGroup);
+            furnitureObjects.push(stoveGroup);
+
+
+            // --- Spüle (Sink) auf dem linken Counter ---
+            const sinkGroup = new THREE.Group();
+            sinkGroup.position.set(-1.2, floorTop, -0.8);
+
+            // Edelstahl-Spülenabdeckung (60x50cm, flach)
+            const steelPlateMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.8 });
+            const sinkPlate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.005, 0.65), steelPlateMat);
+            sinkPlate.position.set(0, 0.8 + 0.0025, 0); // liegt auf Arbeitsplatte (H=0.8)
+            sinkGroup.add(sinkPlate);
+
+            // Spülbecken (abgesetzt, dunkler)
+            const basinMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.4, metalness: 0.6 });
+            const basin = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.006, 0.42), basinMat);
+            basin.position.set(0.02, 0.8 + 0.004, 0);
+            sinkGroup.add(basin);
+
+            // Wasserhahn (Mischbatterie, gebogenes Rohr)
+            const tapBase = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), steelPlateMat);
+            tapBase.position.set(-0.18, 0.8 + 0.08, 0);
+            sinkGroup.add(tapBase);
+
+            const tapCurve = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8), steelPlateMat);
+            tapCurve.rotation.z = Math.PI / 2;
+            tapCurve.position.set(-0.13, 0.8 + 0.16, 0);
+            sinkGroup.add(tapCurve);
+
+            const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.04, 8), steelPlateMat);
+            tapSpout.position.set(-0.08, 0.8 + 0.14, 0);
+            sinkGroup.add(tapSpout);
+
+            sinkGroup.visible = showFurniture;
+            grp.add(sinkGroup);
+            furnitureObjects.push(sinkGroup);
+
+
+            // --- Roter Kühlschrank (Retro-Look) nahe der Wendeltreppe ---
+            const fridgeGroup = new THREE.Group();
+            fridgeGroup.position.set(1.2, floorTop, -0.8);
+
+            const fridgeRedMat = new THREE.MeshStandardMaterial({ 
+                color: 0xc62828, // schickes Retro-Rot
+                roughness: 0.15, 
+                metalness: 0.3 
+            });
+
+            // Kühlschrank-Korpus (60x180x60cm)
+            const fridgeBody = new THREE.Mesh(new THREE.BoxGeometry(0.58, 1.8, 0.58), fridgeRedMat);
+            fridgeBody.position.set(0, 0.9, 0);
+            fridgeGroup.add(fridgeBody);
+
+            // Türspalt (horizontaler schwarzer Streifen zur Andeutung von Gefrierfach oben / Kühlteil unten)
+            const gapMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+            const doorGap = new THREE.Mesh(new THREE.BoxGeometry(0.59, 0.005, 0.59), gapMat);
+            doorGap.position.set(0, 1.25, 0.001);
+            fridgeGroup.add(doorGap);
+
+            // Chrome-Griff oben (Gefrierfachtür)
+            const handleColMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.1, metalness: 0.9 });
+            const handleTop = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.15, 8), handleColMat);
+            handleTop.rotation.x = Math.PI / 2; // steht ab
+            handleTop.position.set(-0.24, 1.45, 0.31);
+            fridgeGroup.add(handleTop);
+
+            // Chrome-Griff unten (Kühlschranktür) - vertikal
+            const handleBottom = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.35, 8), handleColMat);
+            handleBottom.position.set(-0.24, 0.75, 0.31);
+            fridgeGroup.add(handleBottom);
+
+            const handleBottomHolderT = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 8), handleColMat);
+            handleBottomHolderT.rotation.x = Math.PI / 2;
+            handleBottomHolderT.position.set(-0.24, 0.925, 0.30);
+            fridgeGroup.add(handleBottomHolderT);
+
+            const handleBottomHolderB = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.02, 8), handleColMat);
+            handleBottomHolderB.rotation.x = Math.PI / 2;
+            handleBottomHolderB.position.set(-0.24, 0.575, 0.30);
+            fridgeGroup.add(handleBottomHolderB);
+
+            // Dezente Füße unten
+            const footGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.04, 8);
+            const footMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            const feetP = [
+                [-0.25, 0.02, -0.25],
+                [0.25, 0.02, -0.25],
+                [-0.25, 0.02, 0.25],
+                [0.25, 0.02, 0.25]
+            ];
+            feetP.forEach(pos => {
+                const foot = new THREE.Mesh(footGeo, footMat);
+                foot.position.set(pos[0], pos[1], pos[2]);
+                fridgeGroup.add(foot);
+            });
+
+            // Label "Kühlschrank" (wird registriert für Übersetzung)
+            const labelFridge = createTextSpriteSmall("fridge", "#ff5555");
+            labelFridge.position.set(1.2, 2.0, -0.8);
+            fridgeGroup.add(labelFridge);
+
+            fridgeGroup.visible = showFurniture;
+            grp.add(fridgeGroup);
+            furnitureObjects.push(fridgeGroup);
 
             // Runder Tisch + vier Stühle vor dem franz. Balkon
             const tableGrp = new THREE.Group();
