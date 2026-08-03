@@ -19,6 +19,14 @@
             --warning: #ef4444;
         }
 
+        .editor-btn {
+            transition: all 0.2s ease;
+        }
+        .editor-btn:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
         body { 
             margin: 0; 
             overflow: hidden; 
@@ -442,12 +450,13 @@
                     </label>
                 </div>
 
-                <div class="switch-container">
-                    <span data-i18n="visShaftPos">Schacht-Option: Rechts</span>
-                    <label class="switch">
-                        <input type="checkbox" id="chk-shaft-pos" onchange="toggleShaftPosition(this.checked)">
-                        <span class="slider"></span>
-                    </label>
+                <div class="shaft-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px; margin-top: 6px;">
+                    <span data-i18n="visShaftTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Schacht-Option</span>
+                    <div class="floor-grid" id="shaft-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <button class="floor-btn" id="s-btn-back" onclick="selectShaftPosition('back')" data-i18n="shaftBack">Hinten Mitte</button>
+                        <button class="floor-btn" id="s-btn-right" onclick="selectShaftPosition('right')" data-i18n="shaftRight">Seite rechts</button>
+                        <button class="floor-btn" id="s-btn-diagonal" onclick="selectShaftPosition('diagonal')" data-i18n="shaftDiag">Hinten rechts</button>
+                    </div>
                 </div>
                 
                 <div class="switch-container">
@@ -501,8 +510,8 @@
                     <span data-i18n="legNewStairs"><b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.</span>
                 </li>
                 <li class="legend-item">
-                    <span class="legend-color" style="background: linear-gradient(to right, #f97316, #3b82f6, #ef4444, #06b6d4);"></span>
-                    <span data-i18n="legPipes"><b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Alle in der Rückwand eingelassen bis 0.8m über Terrasse.</span>
+                    <span class="legend-color" style="background: linear-gradient(to right, #f97316, #222222, #ef4444, #06b6d4);"></span>
+                    <span data-i18n="legPipes"><b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Schwarz), Warmwasser (Rot), Kaltwasser (Cyan). Alle in der Rückwand eingelassen bis 0.8m über Terrasse.</span>
                 </li>
                 <li class="legend-item">
                     <span class="legend-color" style="background:#bbbbbb; border: 1px solid #888888;"></span>
@@ -513,6 +522,76 @@
         </div>
 
         <div class="version-tag">v2.1.1</div>
+    </div>
+    
+    <!-- Editor Panel for Object Movement -->
+    <div id="editor-panel" style="display: none; position: fixed; bottom: 20px; left: 20px; width: 300px; z-index: 1000; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; color: #f8fafc; font-family: 'Outfit', sans-serif; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px; color: #10b981; display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Editor-Modus
+            </span>
+            <button onclick="deselectObject()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; padding: 0 4px;">&times;</button>
+        </div>
+        
+        <div>
+            <div id="edit-obj-name" style="font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #f8fafc;">Objektname</div>
+            <div id="edit-obj-pos" style="font-size: 11px; color: #94a3b8; line-height: 1.4; font-family: monospace;">X: 0.000m | Y: 0.000m | Z: 0.000m</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <!-- X Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
+                <span style="width: 50px; font-weight: 600; color: #38bdf8;">X (L/R)</span>
+                <div style="display: flex; gap: 4px; flex-grow: 1;">
+                    <button class="editor-btn" onclick="moveSelectedObject('x', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('x', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('x', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('x', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
+                </div>
+            </div>
+
+            <!-- Y Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
+                <span style="width: 50px; font-weight: 600; color: #10b981;">Y (Höhe)</span>
+                <div style="display: flex; gap: 4px; flex-grow: 1;">
+                    <button class="editor-btn" onclick="moveSelectedObject('y', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('y', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('y', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('y', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
+                </div>
+            </div>
+
+            <!-- Z Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
+                <span style="width: 50px; font-weight: 600; color: #fbbf24;">Z (V/H)</span>
+                <div style="display: flex; gap: 4px; flex-grow: 1;">
+                    <button class="editor-btn" onclick="moveSelectedObject('z', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('z', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('z', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('z', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
+                </div>
+            </div>
+
+            <!-- Rotation Controls -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; margin-top: 2px;">
+                <span style="width: 50px; font-weight: 600; color: #ec4899;">Drehung</span>
+                <div style="display: flex; gap: 4px; flex-grow: 1;">
+                    <button class="editor-btn" onclick="moveSelectedObject('rot', -Math.PI/2)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-90° (Y)</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('rot', -Math.PI/12)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-15° (Y)</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('rot', Math.PI/12)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+15° (Y)</button>
+                    <button class="editor-btn" onclick="moveSelectedObject('rot', Math.PI/2)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+90° (Y)</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 4px;">
+            <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">Code-Snippet (Kopieren für Andreas):</span>
+            <div style="display: flex; gap: 4px;">
+                <input id="edit-obj-code" readonly type="text" value="position.set(0, 0, 0)" style="flex-grow: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px; font-size: 10px; color: #10b981; font-family: monospace; text-align: center;" onclick="this.select()">
+                <button onclick="document.getElementById('edit-obj-code').select(); document.execCommand('copy');" style="padding: 4px 8px; background: #10b981; border: none; border-radius: 4px; color: #fff; font-size: 10px; font-weight: 600; cursor: pointer;">Copy</button>
+            </div>
+        </div>
     </div>
     
     <div id="instructions" data-i18n="instructions">
@@ -547,7 +626,10 @@
                 visFloors: "Böden transparent",
                 visInstall: "Installationen zeigen",
                 visCraneFold: "Kran einklappen",
-                visShaftPos: "Schacht-Option: Rechts",
+                visShaftTitle: "Schacht-Option",
+                shaftBack: "Hinten Mitte",
+                shaftRight: "Seite rechts",
+                shaftDiag: "Hinten rechts",
                 visFurniture: "Möbel einblenden",
                 visLabels: "Labels einblenden",
                 floorTitle: "Etagen-Fokus",
@@ -562,7 +644,7 @@
                 legFloor: "<b>Böden / Decken:</b> Massive Zwischendecken. Im 2. OG historische Bogendecke.",
 
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
-                legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Blau), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts).",
+                legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Schwarz), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts vs. diagonal).",
                 legCrane: "<b>Terrassenkran:</b> Standrohr auf verstellbarer Gerüstspindel (Gewindefußplatte), doppelt per V-Profil mit Gerüstankern in Ringschrauben an der linken Wand verankert; schwenkbare elektrische Winde.",
                 numTitle: "Innenwand-Nummerierung",
                 instructions: "<b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen"
@@ -581,7 +663,10 @@
                 visFloors: "Transparent Floors",
                 visInstall: "Show Installations",
                 visCraneFold: "Fold Crane",
-                visShaftPos: "Shaft Option: Right",
+                visShaftTitle: "Shaft Option",
+                shaftBack: "Back Center",
+                shaftRight: "Right Side",
+                shaftDiag: "Back Right",
                 visFurniture: "Show Furniture",
                 visLabels: "Show Labels",
                 floorTitle: "Floor Focus",
@@ -596,7 +681,7 @@
                 legFloor: "<b>Floors / Ceilings:</b> Solid ceilings. Historic vault ceiling on 2nd floor.",
 
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
-                legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Blue), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right).",
+                legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Black), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right vs. diagonal).",
                 legCrane: "<b>Terrace Crane:</b> Vertical mast on adjustable scaffold screw jack base, double-braced (V-profile) to the left wall using anchors in eyebolts; swiveling electric winch.",
                 numTitle: "Internal Wall Numbering",
                 instructions: "<b>Controls:</b> Left Click + Drag = Rotate | Right Click + Drag = Pan | Scroll = Zoom"
@@ -615,7 +700,10 @@
                 visFloors: "Pavimenti Trasparenti",
                 visInstall: "Mostra Impianti",
                 visCraneFold: "Ripiegare la gru",
-                visShaftPos: "Opzione Vano: Destra",
+                visShaftTitle: "Opzione Vano",
+                shaftBack: "Posteriore centro",
+                shaftRight: "Lato destro",
+                shaftDiag: "Posteriore destro",
                 visFurniture: "Mostra Mobili",
                 visLabels: "Mostra Etichette",
                 floorTitle: "Focus Piano",
@@ -630,7 +718,7 @@
                 legFloor: "<b>Pavimenti / Soffitti:</b> Solai massicci. Soffitto a volta storico al 2° piano.",
 
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
-                legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Blu), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra).",
+                legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Nero), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra vs. diagonale).",
                 legCrane: "<b>Gru a terrazza:</b> Montante su basetta regolabile a vite (spina filettata), con doppio rinforzo (profilo a V) sulla parete sinistra tramite tasselli ad occhiello; verricello elettrico girevole.",
                 numTitle: "Numerazione Muri Interni",
                 instructions: "<b>Comandi:</b> Clic Sinistro + Trascina = Ruota | Clic Destro + Trascina = Sposta | Rotellina = Zoom"
@@ -709,12 +797,14 @@
         let installationObjects = [];
         let shaftBackObjects = [];
         let shaftRightObjects = [];
+        let shaftDiagObjects = [];
         let labelObjects = [];
         let furnitureObjects = [];
         let craneObjects = [];
         let swivelArmGroup; // Global für Position und Rotation
         let labelCrane;     // Global für das Kran-Label
         let craneCable, craneWeight, craneHook; // Global für Seilanimation
+        let steelBackGroup, steelRightGroup; // Global für Deckenverstärkungen
 
         // Parameter
         let currentProjectState = 'after'; // 'before' oder 'after'
@@ -724,6 +814,7 @@
         let floorsTransparent = false;
         let showInstallations = true;
         let shaftOnRight = false;
+        let shaftPosition = 'back'; // 'back', 'right', 'diagonal'
         let showFurniture = true;
         let showLabels = true;
         let showCrane = true;
@@ -764,6 +855,11 @@
             showCrane = showInstallations;
             craneFolded = getBool('bosa_craneFolded', false);
             shaftOnRight = getBool('bosa_shaftOnRight', false);
+            if (shaftOnRight) {
+                shaftPosition = 'right';
+            } else {
+                shaftPosition = getVal('bosa_shaftPosition', 'back');
+            }
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
             const floorVal = getVal('bosa_focusedFloor', '0');
@@ -845,7 +941,15 @@
             document.getElementById('chk-floors').checked = floorsTransparent;
             document.getElementById('chk-installations').checked = showInstallations;
             document.getElementById('chk-crane-fold').checked = craneFolded;
-            document.getElementById('chk-shaft-pos').checked = shaftOnRight;
+            // Shaft position UI initialization
+            document.querySelectorAll('#shaft-grid .floor-btn').forEach(btn => btn.classList.remove('active'));
+            if (shaftPosition === 'back') {
+                document.getElementById('s-btn-back').classList.add('active');
+            } else if (shaftPosition === 'right') {
+                document.getElementById('s-btn-right').classList.add('active');
+            } else if (shaftPosition === 'diagonal') {
+                document.getElementById('s-btn-diagonal').classList.add('active');
+            }
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
             
@@ -883,6 +987,19 @@
 
             // Event Listener
             window.addEventListener('resize', onWindowResize);
+
+            // Selection events
+            window.addEventListener('pointerdown', (e) => {
+                pointerDownX = e.clientX;
+                pointerDownY = e.clientY;
+            });
+            window.addEventListener('pointerup', (e) => {
+                const diffX = Math.abs(e.clientX - pointerDownX);
+                const diffY = Math.abs(e.clientY - pointerDownY);
+                if (diffX < 3 && diffY < 3) {
+                    onCanvasClick(e);
+                }
+            });
 
             // Animation starten
             animate();
@@ -1415,59 +1532,75 @@
 
             bathNew.add(egBathFurniture);
 
-            // 1. OPTION A: Wärmepumpe & Warmwassertank & Autoclave (kompakt neben Steigleitung an der Rückwand)
+            // 1. OPTION A: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpBack = new THREE.Group();
             
             const tankMat = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // rot = warm wasser
             const tankBack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
-            tankBack.position.set(-0.6, 0.5, -2.25);
+            tankBack.position.set(1.2, 0.5, 0.6);
+            tankBack.userData.isSelectable = true;
+            tankBack.userData.name = "Warmwassertank (Option A)";
             equipGrpBack.add(tankBack);
             
             const wpMat = new THREE.MeshLambertMaterial({ color: 0xc62828 });
             const wpBack = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), wpMat);
-            wpBack.position.set(-0.6, 1.175, -2.25);
+            wpBack.position.set(1.2, 1.175, 0.6);
+            wpBack.userData.isSelectable = true;
+            wpBack.userData.name = "Wärmepumpe (Option A)";
             equipGrpBack.add(wpBack);
             
             const autoMat = new THREE.MeshLambertMaterial({ color: 0x00ffff }); // cyan = kalt wasser
             const autoBack = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16), autoMat);
-            autoBack.position.set(-1.05, 0.25, -2.25);
+            autoBack.position.set(1.2, 0.25, 1.1);
+            autoBack.userData.isSelectable = true;
+            autoBack.userData.name = "Autoklav (Option A)";
             equipGrpBack.add(autoBack);
 
-            // Verbindungsleitungen in der Wand von Aggregaten zur Steigleitung (Option A: Rückwand)
+            // Verbindungsleitungen von Aggregaten zur Steigleitung (in der Rück- und Seitenwand verlegt)
             const pipeRedMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
             const pipeCyanMat = new THREE.MeshLambertMaterial({ color: 0x06b6d4 });
 
-            // Rote Warmwasser-Verbindungsleitung (Tank/WP -> Steigrohr, in der Rückwand verlegt)
-            const stubRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8), pipeRedMat);
-            stubRedBack.rotation.x = Math.PI / 2;
-            stubRedBack.position.set(-0.6, 0.8, -2.4);
+            // Rote Warmwasser-Verbindungsleitung (Tank/WP -> Steigrohr)
+            const stubRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeRedMat);
+            stubRedBack.rotation.z = Math.PI / 2;
+            stubRedBack.position.set(1.375, 0.8, 0.6);
             equipGrpBack.add(stubRedBack);
 
-            const connRedBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.64, 8), pipeRedMat);
-            connRedBack.rotation.z = Math.PI / 2;
-            connRedBack.position.set(-0.28, 0.8, -2.55); // in der Rückwand bei Z=-2.55
-            equipGrpBack.add(connRedBack);
+            const connRedBack1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.15, 8), pipeRedMat);
+            connRedBack1.rotation.x = Math.PI / 2;
+            connRedBack1.position.set(1.55, 0.8, -0.975);
+            equipGrpBack.add(connRedBack1);
 
-            // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr, in der Rückwand hinter dem Tank verlegt)
-            const stubCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8), pipeCyanMat);
-            stubCyanBack.rotation.x = Math.PI / 2;
-            stubCyanBack.position.set(-1.05, 0.3, -2.4);
+            const connRedBack2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.51, 8), pipeRedMat);
+            connRedBack2.rotation.z = Math.PI / 2;
+            connRedBack2.position.set(0.795, 0.8, -2.55);
+            equipGrpBack.add(connRedBack2);
+
+            // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr)
+            const stubCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
+            stubCyanBack.rotation.z = Math.PI / 2;
+            stubCyanBack.position.set(1.375, 0.3, 1.1);
             equipGrpBack.add(stubCyanBack);
 
-            const connCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.145, 8), pipeCyanMat);
-            connCyanBack.rotation.z = Math.PI / 2;
-            connCyanBack.position.set(-0.4775, 0.3, -2.55); // in der Rückwand bei Z=-2.55 hinter dem Tank
-            equipGrpBack.add(connCyanBack);
+            const connCyanBack1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.65, 8), pipeCyanMat);
+            connCyanBack1.rotation.x = Math.PI / 2;
+            connCyanBack1.position.set(1.55, 0.3, -0.725);
+            equipGrpBack.add(connCyanBack1);
+
+            const connCyanBack2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.455, 8), pipeCyanMat);
+            connCyanBack2.rotation.z = Math.PI / 2;
+            connCyanBack2.position.set(0.8225, 0.3, -2.55);
+            equipGrpBack.add(connCyanBack2);
 
             const labelWpTankBack = createTextSpriteSmall("wpTank", "#ef4444");
-            labelWpTankBack.position.set(-0.6, 1.6, -3.4);
+            labelWpTankBack.position.set(2.6, 1.6, 0.6);
             equipGrpBack.add(labelWpTankBack);
 
             const labelAutoBack = createTextSpriteSmall("auto", "#06b6d4");
-            labelAutoBack.position.set(-1.05, 0.6, -3.4);
+            labelAutoBack.position.set(2.6, 0.6, 1.1);
             equipGrpBack.add(labelAutoBack);
 
-            equipGrpBack.visible = showInstallations && !shaftOnRight;
+            equipGrpBack.visible = showInstallations && (shaftPosition === 'back');
             grp.add(equipGrpBack);
             installationObjects.push(equipGrpBack);
             shaftBackObjects.push(equipGrpBack);
@@ -1477,14 +1610,20 @@
             
             const tankRight = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankRight.position.set(1.2, 0.5, 0.6);
+            tankRight.userData.isSelectable = true;
+            tankRight.userData.name = "Warmwassertank (Option B)";
             equipGrpRight.add(tankRight);
             
             const wpRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), wpMat);
             wpRight.position.set(1.2, 1.175, 0.6);
+            wpRight.userData.isSelectable = true;
+            wpRight.userData.name = "Wärmepumpe (Option B)";
             equipGrpRight.add(wpRight);
             
             const autoRight = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16), autoMat);
             autoRight.position.set(1.2, 0.25, 1.1);
+            autoRight.userData.isSelectable = true;
+            autoRight.userData.name = "Autoklav (Option B)";
             equipGrpRight.add(autoRight);
 
             // Verbindungsleitungen an der rechten Wand (Option B: Rechte Wand, in der Wand verlegt)
@@ -1516,10 +1655,97 @@
             labelAutoRight.position.set(2.6, 0.6, 1.1);
             equipGrpRight.add(labelAutoRight);
 
-            equipGrpRight.visible = showInstallations && shaftOnRight;
+            equipGrpRight.visible = showInstallations && (shaftPosition === 'right');
             grp.add(equipGrpRight);
             installationObjects.push(equipGrpRight);
             shaftRightObjects.push(equipGrpRight);
+
+            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
+
+            // 3. OPTION C: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
+            const equipGrpDiag = new THREE.Group();
+
+            const tankDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
+            tankDiag.position.set(1.2, 0.5, 0.6);
+            tankDiag.userData.isSelectable = true;
+            tankDiag.userData.name = "Warmwassertank (Option C)";
+            equipGrpDiag.add(tankDiag);
+
+            const wpDiag = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 0.4), wpMat);
+            wpDiag.position.set(1.2, 1.175, 0.6);
+            wpDiag.userData.isSelectable = true;
+            wpDiag.userData.name = "Wärmepumpe (Option C)";
+            equipGrpDiag.add(wpDiag);
+
+            const autoDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16), autoMat);
+            autoDiag.position.set(1.2, 0.25, 1.1);
+            autoDiag.userData.isSelectable = true;
+            autoDiag.userData.name = "Autoklav (Option C)";
+            equipGrpDiag.add(autoDiag);
+
+            // Elektrischer Hauptanschlusskasten (links neben dem Steigerohr bei X=1.325)
+            const elecBoxDiag = new THREE.Group();
+            elecBoxDiag.userData.isSelectable = true;
+            elecBoxDiag.userData.name = "Hauptverteilung (Option C)";
+            const elecBoxDiagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), elecBoxMat);
+            elecBoxDiagMesh.position.set(0.85, 1.5, -2.55); // links vom Schacht (da rechts die Wand ist)
+            elecBoxDiag.add(elecBoxDiagMesh);
+
+            // Verbindungsleitung Kasten -> Steigleitung (Rückwand)
+            const connElecDiag = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.04, 0.04), elecBoxMat);
+            connElecDiag.position.set(1.1025, 1.5, -2.55);
+            elecBoxDiag.add(connElecDiag);
+
+            const labelElecDiag = createTextSpriteSmall("elec", "#3b82f6");
+            labelElecDiag.position.set(0.85, 1.85, -3.4);
+            elecBoxDiag.add(labelElecDiag);
+            equipGrpDiag.add(elecBoxDiag);
+
+            // Verbindungsleitungen von Aggregaten zur Steigleitung (in der Rück- und Seitenwand verlegt)
+            // Rote Warmwasser-Verbindungsleitung (Tank/WP -> Steigrohr)
+            const stubRedDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeRedMat);
+            stubRedDiag.rotation.z = Math.PI / 2;
+            stubRedDiag.position.set(1.375, 0.8, 0.6);
+            equipGrpDiag.add(stubRedDiag);
+
+            const connRedDiag1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.15, 8), pipeRedMat);
+            connRedDiag1.rotation.x = Math.PI / 2;
+            connRedDiag1.position.set(1.55, 0.8, -0.975);
+            equipGrpDiag.add(connRedDiag1);
+
+            const connRedDiag2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.135, 8), pipeRedMat);
+            connRedDiag2.rotation.z = Math.PI / 2;
+            connRedDiag2.position.set(1.4825, 0.8, -2.55);
+            equipGrpDiag.add(connRedDiag2);
+
+            // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr)
+            const stubCyanDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
+            stubCyanDiag.rotation.z = Math.PI / 2;
+            stubCyanDiag.position.set(1.375, 0.3, 1.1);
+            equipGrpDiag.add(stubCyanDiag);
+
+            const connCyanDiag1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.65, 8), pipeCyanMat);
+            connCyanDiag1.rotation.x = Math.PI / 2;
+            connCyanDiag1.position.set(1.55, 0.3, -0.725);
+            equipGrpDiag.add(connCyanDiag1);
+
+            const connCyanDiag2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.08, 8), pipeCyanMat);
+            connCyanDiag2.rotation.z = Math.PI / 2;
+            connCyanDiag2.position.set(1.51, 0.3, -2.55);
+            equipGrpDiag.add(connCyanDiag2);
+
+            const labelWpTankDiag = createTextSpriteSmall("wpTank", "#ef4444");
+            labelWpTankDiag.position.set(2.6, 1.6, 0.6);
+            equipGrpDiag.add(labelWpTankDiag);
+
+            const labelAutoDiag = createTextSpriteSmall("auto", "#06b6d4");
+            labelAutoDiag.position.set(2.6, 0.6, 1.1);
+            equipGrpDiag.add(labelAutoDiag);
+
+            equipGrpDiag.visible = showInstallations && (shaftPosition === 'diagonal');
+            grp.add(equipGrpDiag);
+            installationObjects.push(equipGrpDiag);
+            shaftDiagObjects.push(equipGrpDiag);
 
             grp.add(bathNew);
             
@@ -1880,18 +2106,25 @@
             const counter1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 0.6), woodFurnitureMat);
             counter1.position.set(-0.25, floorTop + 0.4, -2.2); 
             counter1.visible = showFurniture;
+            counter1.userData.isSelectable = true;
+            counter1.userData.name = "Arbeitsplatte hinten (Küche)";
             grp.add(counter1);
             furnitureObjects.push(counter1);
 
             const counter2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 1.9), woodFurnitureMat);
             counter2.position.set(-1.2, floorTop + 0.4, -0.95);
             counter2.visible = showFurniture;
+            counter2.userData.isSelectable = true;
+            counter2.userData.name = "Arbeitsplatte links (Küche)";
             grp.add(counter2);
             furnitureObjects.push(counter2);
 
-            // --- Herd (Stove) auf dem hinteren Counter ---
+            // --- Herd (Stove) auf dem linken Counter ---
             const stoveGroup = new THREE.Group();
-            stoveGroup.position.set(-0.7, floorTop, -2.2);
+            stoveGroup.userData.isSelectable = true;
+            stoveGroup.userData.name = "Herd / Backofen (Küche)";
+            stoveGroup.position.set(-1.2, floorTop, -0.8);
+            stoveGroup.rotation.y = Math.PI / 2; // Facing +X into the room
 
             // Ceranfeld (schwarze Glasplatte, 60x50cm, 1cm hoch)
             const ceranMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.8 });
@@ -1946,9 +2179,10 @@
             furnitureObjects.push(stoveGroup);
 
 
-            // --- Spüle (Sink) auf dem linken Counter ---
+            // --- Spüle (Sink) auf dem hinteren Counter ---
             const sinkGroup = new THREE.Group();
-            sinkGroup.position.set(-1.2, floorTop, -0.8);
+            sinkGroup.position.set(-0.7, floorTop, -2.2);
+            sinkGroup.rotation.y = -Math.PI / 2; // Facing +Z into the room, tap at the back
 
             // Edelstahl-Spülenabdeckung (60x50cm, flach)
             const steelPlateMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.8 });
@@ -1977,13 +2211,17 @@
             sinkGroup.add(tapSpout);
 
             sinkGroup.visible = showFurniture;
+            sinkGroup.userData.isSelectable = true;
+            sinkGroup.userData.name = "Spüle (Küche)";
             grp.add(sinkGroup);
             furnitureObjects.push(sinkGroup);
 
 
             // --- Roter Kühlschrank (Retro-Look) nahe der Wendeltreppe ---
             const fridgeGroup = new THREE.Group();
-            fridgeGroup.position.set(1.2, floorTop, -1.05);
+            fridgeGroup.userData.isSelectable = true;
+            fridgeGroup.userData.name = "Roter Kühlschrank (Küche)";
+            fridgeGroup.position.set(1.150, 7.500, 2.050);
             fridgeGroup.rotation.y = -Math.PI / 2; // Um 90 Grad gedreht, sodass die Tür zum Raum zeigt
 
             const fridgeRedMat = new THREE.MeshStandardMaterial({ 
@@ -2051,7 +2289,9 @@
 
             // Runder Tisch + vier Stühle vor dem franz. Balkon
             const tableGrp = new THREE.Group();
-            tableGrp.position.set(-0.6, floorTop, 1.2); 
+            tableGrp.userData.isSelectable = true;
+            tableGrp.userData.name = "Esstisch & Stühle (Küche)";
+            tableGrp.position.set(-0.500, 7.500, 1.250); 
             
             const tableTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.05, 32), woodFurnitureMat);
             tableTop.position.set(0, 0.75, 0);
@@ -2208,30 +2448,36 @@
             const aWallL = new THREE.Mesh(new THREE.BoxGeometry(0.05, H_wall, 1.2), wallMat);
             aWallL.position.set(0.3, Y_start + 0.2 + H_wall/2, -1.9);
             austrittsHaus.add(aWallL);
+            registerWall(aWallL);
 
             // Rechte Wand des Hauses (X = 1.5, Z = -2.5 bis -1.3)
             const aWallR = new THREE.Mesh(new THREE.BoxGeometry(0.05, H_wall, 1.2), wallMat);
             aWallR.position.set(1.5, Y_start + 0.2 + H_wall/2, -1.9);
             austrittsHaus.add(aWallR);
+            registerWall(aWallR);
 
             // Rückwand des Hauses (Z = -2.5, X = 0.3 bis 1.5)
             const aWallB = new THREE.Mesh(new THREE.BoxGeometry(1.2, H_wall, 0.05), wallMat);
             aWallB.position.set(0.9, Y_start + 0.2 + H_wall/2, -2.5);
             austrittsHaus.add(aWallB);
+            registerWall(aWallB);
 
             // Vorderwand des Hauses mit Türöffnung (Z = -1.3, X = 0.3 bis 1.5)
             // Türöffnung von X = 0.5 bis 1.2 (0.7m breit), Höhe 1.9m
             const aWallFR = new THREE.Mesh(new THREE.BoxGeometry(0.2, H_wall, 0.05), wallMat);
             aWallFR.position.set(0.4, Y_start + 0.2 + H_wall/2, -1.3); // Linker Pfosten
             austrittsHaus.add(aWallFR);
+            registerWall(aWallFR);
 
             const aWallFL = new THREE.Mesh(new THREE.BoxGeometry(0.3, H_wall, 0.05), wallMat);
             aWallFL.position.set(1.35, Y_start + 0.2 + H_wall/2, -1.3); // Rechter Pfosten
             austrittsHaus.add(aWallFL);
+            registerWall(aWallFL);
 
             const aWallFT = new THREE.Mesh(new THREE.BoxGeometry(0.7, H_wall - 1.9, 0.05), wallMat);
             aWallFT.position.set(0.85, Y_start + 0.2 + 1.9 + (H_wall - 1.9)/2, -1.3); // Überleger
             austrittsHaus.add(aWallFT);
+            registerWall(aWallFT);
 
             // Tür für Austrittshaus (nach außen geöffnet, 5cm Schwelle wegen Holzbeplankung)
             const aDoorHinge = new THREE.Group();
@@ -2822,17 +3068,78 @@
             grp.add(labelCrane);
         }
 
-        // --- GLOBAL: VERTIKALE INSTALLATIONEN (STEIGLEITUNG & DURCHBRUCH) ---
         function buildVerticalInstallations() {
-            const pipeMatElec = new THREE.MeshLambertMaterial({ color: 0x3b82f6 }); // Blau
+            const pipeMatElec = new THREE.MeshLambertMaterial({ color: 0x222222 }); // Schwarz
             const pipeMatWaste = new THREE.MeshLambertMaterial({ color: 0xf97316 }); // Orange
             const pipeMatHot = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // Rot (weniger grell)
             const pipeMatCold = new THREE.MeshLambertMaterial({ color: 0x06b6d4 }); // Cyan
             const shaftMat = new THREE.MeshLambertMaterial({ color: 0x999999, transparent: true, opacity: 0.3 });
             const steelMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
 
+            function createSocket(x, y, z, rotY) {
+                const group = new THREE.Group();
+                const frameMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.5 });
+                const insertMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.015), frameMat);
+                group.add(frame);
+                const insert = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.005), insertMat);
+                insert.position.z = 0.006;
+                group.add(insert);
+                group.position.set(x, y, z);
+                group.rotation.y = rotY;
+                return group;
+            }
+
+            function createConduit(x1, y1, z1, x2, y2, z2) {
+                const pStart = new THREE.Vector3(x1, y1, z1);
+                const pEnd = new THREE.Vector3(x2, y2, z2);
+                const dir = new THREE.Vector3().subVectors(pEnd, pStart);
+                const len = dir.length();
+                if (len < 0.001) return new THREE.Group();
+                const mid = new THREE.Vector3().addVectors(pStart, pEnd).multiplyScalar(0.5);
+                const conduitMat = new THREE.MeshLambertMaterial({ color: 0x111111 }); // Wellrohr Schwarz
+                const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, len, 8), conduitMat);
+                mesh.position.copy(mid);
+                const up = new THREE.Vector3(0, 1, 0);
+                mesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
+                return mesh;
+            }
+
+            function createNumberBadge(num) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 64;
+                canvas.height = 64;
+                
+                // Draw circle background (Green)
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(32, 32, 28, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw border
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                // Draw text
+                ctx.font = 'bold 36px "Outfit", sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(num.toString(), 32, 32);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(0.18, 0.18, 1.0);
+                sprite.visible = showLabels;
+                labelObjects.push(sprite);
+                return sprite;
+            }
+
             const pipes = [
-                { mat: pipeMatElec, isChannel: true, w: 0.1, d: 0.06, x: -0.17 },       // Blue (Kanal 100x60mm) - Jetzt links
+                { mat: pipeMatElec, r: 0.03, x: -0.17 },       // Blue (Spiralschlauch/Wellenrohr, 60mm Durchmesser) - Jetzt links
                 { mat: pipeMatWaste, r: 0.05, x: -0.05 },      // Orange - Leicht nach rechts
                 { mat: pipeMatHot, r: 0.025, x: 0.04 },        // Red - Jetzt rechts
                 { mat: pipeMatCold, r: 0.025, x: 0.095 }       // Cyan - Jetzt rechts außen
@@ -2850,6 +3157,7 @@
             segments.forEach(seg => {
                 const sMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, seg.l, 0.2), shaftMat);
                 sMesh.position.set(-0.05, seg.y, -2.6);
+                sMesh.visible = (shaftPosition === 'back') && showInstallations;
                 floorGroups[seg.idx].add(sMesh);
                 installationObjects.push(sMesh);
                 shaftBackObjects.push(sMesh);
@@ -2861,6 +3169,7 @@
                         ? new THREE.Mesh(new THREE.BoxGeometry(p.w, seg.l, p.d), p.mat)
                         : new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, seg.l, 16), p.mat);
                     mesh.position.set(p.x, seg.y, -2.6);
+                    mesh.visible = (shaftPosition === 'back') && showInstallations;
                     floorGroups[seg.idx].add(mesh);
                     installationObjects.push(mesh);
                     shaftBackObjects.push(mesh);
@@ -2872,12 +3181,15 @@
             undergroundWasteBack.rotation.x = Math.PI / 2;
             undergroundWasteBack.rotation.y = Math.atan2(0.05, 5.8);
             undergroundWasteBack.position.set(-0.025, -0.15, 0.3); // von Z=-2.6 bis Z=3.2 (Straße, X=0.0)
+            undergroundWasteBack.visible = (shaftPosition === 'back') && showInstallations;
             floorGroups[0].add(undergroundWasteBack);
             installationObjects.push(undergroundWasteBack);
             shaftBackObjects.push(undergroundWasteBack);
 
             const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
             const elecBoxBack = new THREE.Group();
+            elecBoxBack.userData.isSelectable = true;
+            elecBoxBack.userData.name = "Hauptverteilung (Option A)";
             const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), elecBoxMat);
             elecBoxBackMesh.position.set(-0.35, 1.5, -2.55); // Jetzt links
             elecBoxBack.add(elecBoxBackMesh);
@@ -2890,6 +3202,7 @@
             const labelElecBack = createTextSpriteSmall("elec", "#3b82f6");
             labelElecBack.position.set(-0.35, 1.85, -3.4); // Jetzt links
             elecBoxBack.add(labelElecBack);
+            elecBoxBack.visible = (shaftPosition === 'back') && showInstallations;
             floorGroups[0].add(elecBoxBack);
             installationObjects.push(elecBoxBack);
             shaftBackObjects.push(elecBoxBack);
@@ -2897,7 +3210,7 @@
             // U-Stahl Verstärkung für den gesamten Durchbruch durch die Bogendecke (2. OG, Y=7.44m, bündig mit Küchenboden)
             const steelThick = 0.04, steelDepth = 0.12, frameYBack = 7.44;
             const steelDepthRight = 0.65, frameYRight = 7.175; // Option B: Reicht von Y=6.85 (Unterkante Bogen) bis Y=7.50 (Oberkante Decke)
-            const steelBackGroup = new THREE.Group();
+            steelBackGroup = new THREE.Group();
             const steelF = new THREE.Mesh(new THREE.BoxGeometry(0.39, steelDepth, steelThick), steelMat);
             steelF.position.set(-0.05, frameYBack, -2.48);
             steelBackGroup.add(steelF);
@@ -2910,6 +3223,7 @@
             const steelR = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepth, 0.24), steelMat);
             steelR.position.set(0.145, frameYBack, -2.6);
             steelBackGroup.add(steelR);
+            steelBackGroup.visible = (shaftPosition === 'back' || shaftPosition === 'diagonal') && showInstallations;
             floorGroups[2].add(steelBackGroup);
             installationObjects.push(steelBackGroup);
             shaftBackObjects.push(steelBackGroup);
@@ -2918,8 +3232,12 @@
             const distHeightsA = [4.0, 6.5, 9.0];
             const distFloorsA = [1, 2, 3];
             distHeightsA.forEach((h, idx) => {
-                const subBoxGroup = new THREE.Group();
                 const fIdx = distFloorsA[idx];
+                const subBoxGroup = new THREE.Group();
+                subBoxGroup.userData.isSelectable = true;
+                subBoxGroup.userData.name = `Unterverteiler ${fIdx === 3 ? "Küche" : fIdx + ". OG"} (Option A)`;
+                const Y_floor = floorHeights[fIdx] + 0.2;
+                const Y_conduit = floorHeights[fIdx];
 
                 // Verteilerkasten (16x20cm, 8cm tief, blau) - Links bei X = -0.25
                 const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
@@ -2936,6 +3254,13 @@
                 label.position.set(-0.25, h + 0.25, -3.4);
                 subBoxGroup.add(label);
 
+                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
+                const dropHose = createConduit(-0.25, h - 0.1, -2.54, -0.25, Y_conduit, -2.54);
+                const leftBackHose = createConduit(-0.25, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                const rightBackHose = createConduit(-0.25, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
+                subBoxGroup.add(dropHose, leftBackHose, rightBackHose);
+
+                subBoxGroup.visible = (shaftPosition === 'back') && showInstallations;
                 floorGroups[fIdx].add(subBoxGroup);
                 installationObjects.push(subBoxGroup);
                 shaftBackObjects.push(subBoxGroup);
@@ -2946,7 +3271,7 @@
             segments.forEach(seg => {
                 const sMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, seg.l, 0.35), shaftMat);
                 sMesh.position.set(1.6, seg.y, 0.0);
-                sMesh.visible = false;
+                sMesh.visible = (shaftPosition === 'right') && showInstallations;
                 floorGroups[seg.idx].add(sMesh);
                 installationObjects.push(sMesh);
                 shaftRightObjects.push(sMesh);
@@ -2958,7 +3283,7 @@
                         ? new THREE.Mesh(new THREE.BoxGeometry(p.d, seg.l, p.w), p.mat)
                         : new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, seg.l, 16), p.mat);
                     mesh.position.set(1.6, seg.y, p.x);
-                    mesh.visible = false;
+                    mesh.visible = (shaftPosition === 'right') && showInstallations;
                     floorGroups[seg.idx].add(mesh);
                     installationObjects.push(mesh);
                     shaftRightObjects.push(mesh);
@@ -2970,12 +3295,14 @@
             undergroundWasteRight.rotation.x = Math.PI / 2;
             undergroundWasteRight.rotation.y = Math.atan2(-1.55, 3.2);
             undergroundWasteRight.position.set(0.775, -0.15, 1.6); // von Z=0.0 (rechts) bis Z=3.2 (Straße, mittig X=0.0)
-            undergroundWasteRight.visible = false;
+            undergroundWasteRight.visible = (shaftPosition === 'right') && showInstallations;
             floorGroups[0].add(undergroundWasteRight);
             installationObjects.push(undergroundWasteRight);
             shaftRightObjects.push(undergroundWasteRight);
 
             const elecBoxRight = new THREE.Group();
+            elecBoxRight.userData.isSelectable = true;
+            elecBoxRight.userData.name = "Hauptverteilung (Option B)";
             const elecBoxRightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.3), elecBoxMat);
             elecBoxRightMesh.position.set(1.55, 1.5, -0.35); // Jetzt hinten (negatives Z)
             elecBoxRight.add(elecBoxRightMesh);
@@ -2988,13 +3315,13 @@
             const labelElecRight = createTextSpriteSmall("elecAlt", "#3b82f6");
             labelElecRight.position.set(2.6, 1.85, -0.35); // Jetzt hinten
             elecBoxRight.add(labelElecRight);
-            elecBoxRight.visible = false;
+            elecBoxRight.visible = (shaftPosition === 'right') && showInstallations;
             floorGroups[0].add(elecBoxRight);
             installationObjects.push(elecBoxRight);
             shaftRightObjects.push(elecBoxRight);
  
             // U-Stahl Verstärkung für den gesamten Durchbruch durch die Bogendecke (Option B: Rechte Wand, 2. OG, Y=7.175m, reicht von Unterkante Bogen bis Oberkante Decke)
-            const steelRightGroup = new THREE.Group();
+            steelRightGroup = new THREE.Group();
             const sRF = new THREE.Mesh(new THREE.BoxGeometry(steelThick, steelDepthRight, 0.39), steelMat);
             sRF.position.set(1.48, frameYRight, 0.0);
             steelRightGroup.add(sRF);
@@ -3007,7 +3334,7 @@
             const sRR = new THREE.Mesh(new THREE.BoxGeometry(0.24, steelDepthRight, steelThick), steelMat);
             sRR.position.set(1.6, frameYRight, 0.195);
             steelRightGroup.add(sRR);
-            steelRightGroup.visible = false;
+            steelRightGroup.visible = (shaftPosition === 'right') && showInstallations;
             floorGroups[2].add(steelRightGroup);
             installationObjects.push(steelRightGroup);
             shaftRightObjects.push(steelRightGroup);
@@ -3016,8 +3343,12 @@
             const distHeightsB = [4.0, 6.5, 9.0];
             const distFloorsB = [1, 2, 3];
             distHeightsB.forEach((h, idx) => {
-                const subBoxGroup = new THREE.Group();
                 const fIdx = distFloorsB[idx];
+                const subBoxGroup = new THREE.Group();
+                subBoxGroup.userData.isSelectable = true;
+                subBoxGroup.userData.name = `Unterverteiler ${fIdx === 3 ? "Küche" : fIdx + ". OG"} (Option B)`;
+                const Y_floor = floorHeights[fIdx] + 0.2;
+                const Y_conduit = floorHeights[fIdx];
  
                 // Verteilerkasten (8cm tief, 20cm hoch, 16cm breit entlang Z) - Hinten bei Z = -0.25
                 const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.20, 0.16), elecBoxMat);
@@ -3033,11 +3364,382 @@
                 const label = createTextSpriteSmall("elecSub", "#3b82f6");
                 label.position.set(2.6, h + 0.25, -0.25);
                 subBoxGroup.add(label);
+
+                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
+                const dropHose = createConduit(1.54, h - 0.1, -0.25, 1.54, Y_conduit, -0.25);
+                const rightWallHose = createConduit(1.54, Y_conduit, -0.25, 1.54, Y_conduit, -2.54);
+                const backWallHose = createConduit(1.54, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                subBoxGroup.add(dropHose, rightWallHose, backWallHose);
  
-                subBoxGroup.visible = false; // Standardmäßig Option A aktiv
+                subBoxGroup.visible = (shaftPosition === 'right') && showInstallations;
                 floorGroups[fIdx].add(subBoxGroup);
                 installationObjects.push(subBoxGroup);
                 shaftRightObjects.push(subBoxGroup);
+            });
+
+            // 3. OPTION C: Schacht diagonal (EG/1.OG in hinterer rechter Ecke, 2.OG diagonal zur Mitte, 3.OG/Terrasse mittig)
+            const diagSegments = [
+                { idx: 0, xStart: 1.325, xEnd: 1.325, yStart: 0.0, yEnd: 2.5 },
+                { idx: 1, xStart: 1.325, xEnd: 1.325, yStart: 2.5, yEnd: 5.0 },
+                { idx: 2, xStart: 1.325, xEnd: -0.05,  yStart: 5.0, yEnd: 7.5 },
+                { idx: 3, xStart: -0.05,  xEnd: -0.05,  yStart: 7.5, yEnd: 10.7 },
+                { idx: 4, xStart: -0.05,  xEnd: -0.05,  yStart: 10.7, yEnd: 11.5 }
+            ];
+
+            diagSegments.forEach(seg => {
+                const pStart = new THREE.Vector3(seg.xStart, seg.yStart, -2.6);
+                const pEnd = new THREE.Vector3(seg.xEnd, seg.yEnd, -2.6);
+                const dir = new THREE.Vector3().subVectors(pEnd, pStart);
+                const len = dir.length();
+                const mid = new THREE.Vector3().addVectors(pStart, pEnd).multiplyScalar(0.5);
+
+                const sMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, len, 0.2), shaftMat);
+                sMesh.position.copy(mid);
+                const up = new THREE.Vector3(0, 1, 0);
+                sMesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
+                sMesh.visible = (shaftPosition === 'diagonal') && showInstallations;
+                floorGroups[seg.idx].add(sMesh);
+                installationObjects.push(sMesh);
+                shaftDiagObjects.push(sMesh);
+            });
+
+            pipes.forEach((p) => {
+                let offset = 0;
+                if (p.mat === pipeMatElec) offset = -0.12;
+                else if (p.r === 0.05) offset = 0.0;
+                else if (p.mat === pipeMatHot) offset = 0.09;
+                else if (p.mat === pipeMatCold) offset = 0.145;
+
+                diagSegments.forEach(seg => {
+                    const pStart = new THREE.Vector3(seg.xStart + offset, seg.yStart, -2.6);
+                    const pEnd = new THREE.Vector3(seg.xEnd + offset, seg.yEnd, -2.6);
+                    const dir = new THREE.Vector3().subVectors(pEnd, pStart);
+                    const len = dir.length();
+                    const mid = new THREE.Vector3().addVectors(pStart, pEnd).multiplyScalar(0.5);
+
+                    let mesh = p.isChannel
+                        ? new THREE.Mesh(new THREE.BoxGeometry(p.w, len, p.d), p.mat)
+                        : new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, len, 16), p.mat);
+
+                    mesh.position.copy(mid);
+                    const up = new THREE.Vector3(0, 1, 0);
+                    mesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
+
+                    mesh.visible = (shaftPosition === 'diagonal') && showInstallations;
+                    floorGroups[seg.idx].add(mesh);
+                    installationObjects.push(mesh);
+                    shaftDiagObjects.push(mesh);
+                });
+            });
+
+            // Untergrund-Abwasserleitung (Option C: von der rechten Steigleitung unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
+            const pStartWaste = new THREE.Vector3(1.325, -0.15, -2.6);
+            const pEndWaste = new THREE.Vector3(0.0, -0.15, 3.2);
+            const dirWaste = new THREE.Vector3().subVectors(pEndWaste, pStartWaste);
+            const lenWaste = dirWaste.length();
+            const midWaste = new THREE.Vector3().addVectors(pStartWaste, pEndWaste).multiplyScalar(0.5);
+
+            const undergroundWasteDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, lenWaste, 16), pipeMatWaste);
+            undergroundWasteDiag.position.copy(midWaste);
+            const upVector = new THREE.Vector3(0, 1, 0);
+            undergroundWasteDiag.quaternion.setFromUnitVectors(upVector, dirWaste.clone().normalize());
+            undergroundWasteDiag.visible = (shaftPosition === 'diagonal') && showInstallations;
+            floorGroups[0].add(undergroundWasteDiag);
+            installationObjects.push(undergroundWasteDiag);
+            shaftDiagObjects.push(undergroundWasteDiag);
+
+            // Unterverteiler (kleine blaue Kisten) pro Etage (1. OG, 2. OG, 3. OG) für Option C (Diagonal)
+            const distHeightsC = [4.0, 6.5, 9.0];
+            const distFloorsC = [1, 2, 3];
+            distHeightsC.forEach((h, idx) => {
+                const fIdx = distFloorsC[idx];
+                const subBoxGroup = new THREE.Group();
+                subBoxGroup.userData.isSelectable = true;
+                subBoxGroup.userData.name = `Unterverteiler ${fIdx === 3 ? "Küche" : fIdx + ". OG"} (Option C)`;
+                const Y_floor = floorHeights[fIdx] + 0.2;
+                const Y_conduit = floorHeights[fIdx];
+
+                let boxX = -0.25;
+                let pipeX = -0.21;
+                let pipeW = 0.08;
+
+                if (fIdx === 1) {
+                    boxX = 0.85;
+                    pipeW = 0.275;
+                    pipeX = 1.0675;
+                } else if (fIdx === 2) {
+                    boxX = 0.1;
+                    pipeW = 0.2;
+                    pipeX = 0.28;
+                } else if (fIdx === 3) {
+                    boxX = -0.25;
+                    pipeW = 0.08;
+                    pipeX = -0.21;
+                }
+
+                // Verteilerkasten (16x20cm, 8cm tief, blau)
+                const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
+                boxMesh.position.set(boxX, h, -2.55);
+                subBoxGroup.add(boxMesh);
+
+                // Verbindungsrohr/Kabelkanal zum Schacht
+                const pipeMesh = new THREE.Mesh(new THREE.BoxGeometry(pipeW, 0.02, 0.02), elecBoxMat);
+                pipeMesh.position.set(pipeX, h, -2.55);
+                subBoxGroup.add(pipeMesh);
+
+                // Label für den Unterverteiler
+                const label = createTextSpriteSmall("elecSub", "#3b82f6");
+                label.position.set(boxX, h + 0.25, -3.4);
+                subBoxGroup.add(label);
+
+                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
+                const dropHose = createConduit(boxX, h - 0.1, -2.54, boxX, Y_conduit, -2.54);
+                const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
+                subBoxGroup.add(dropHose, leftBackHose, rightBackHose);
+
+                subBoxGroup.visible = (shaftPosition === 'diagonal') && showInstallations;
+                floorGroups[fIdx].add(subBoxGroup);
+                installationObjects.push(subBoxGroup);
+                shaftDiagObjects.push(subBoxGroup);
+            });
+
+
+
+            // Sockets and static room conduits for 1. OG, 2. OG, 3. OG
+            // Sockets and static room conduits for EG, 1. OG, 2. OG, 3. OG
+            const distFloors = [0, 1, 2, 3, 4];
+            distFloors.forEach((fIdx) => {
+                const Y_floor = floorHeights[fIdx] + 0.2;
+                const Y_conduit = floorHeights[fIdx];
+                const Y_socket = Y_floor + 0.3;
+                
+                const roomGroup = new THREE.Group();
+                
+                let socketNum = 1;
+                function addSocketWithNumber(x, y, z, rotY, badgeX, badgeY, badgeZ) {
+                    const socket = createSocket(x, y, z, rotY);
+                    socket.userData.isSelectable = true;
+                    socket.userData.name = `Steckdose ${socketNum} (${fIdx === 4 ? "Terrasse" : fIdx === 3 ? "Küche" : fIdx === 0 ? "EG" : fIdx + ". OG"})`;
+                    roomGroup.add(socket);
+                    
+                    const badge = createNumberBadge(socketNum++);
+                    badge.position.set(badgeX, badgeY, badgeZ);
+                    roomGroup.add(badge);
+                }
+
+                // Connections from main electrical box in EG (fIdx === 0)
+                if (fIdx === 0) {
+                    if (shaftPosition === 'back') {
+                        const boxX = -0.35;
+                        const dropHose = createConduit(boxX, 1.4, -2.54, boxX, Y_conduit, -2.54);
+                        const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                        const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
+                        roomGroup.add(dropHose, leftBackHose, rightBackHose);
+                    } else if (shaftPosition === 'right') {
+                        const dropHose = createConduit(1.54, 1.4, -0.25, 1.54, Y_conduit, -0.25);
+                        const rightWallHose = createConduit(1.54, Y_conduit, -0.25, 1.54, Y_conduit, -2.54);
+                        const backWallHose = createConduit(1.54, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                        roomGroup.add(dropHose, rightWallHose, backWallHose);
+                    } else if (shaftPosition === 'diagonal') {
+                        const boxX = 0.85;
+                        const dropHose = createConduit(boxX, 1.4, -2.54, boxX, Y_conduit, -2.54);
+                        const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
+                        const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
+                        roomGroup.add(dropHose, leftBackHose, rightBackHose);
+                    }
+                }
+
+                // Front wall hose segment (Check if Kitchen for balcony door vs window, or EG)
+                if (fIdx === 3) {
+                    // Kitchen: Left wall floor conduit runs all the way to Z = 2.48 (in-wall X = -1.54)
+                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.54);
+                    roomGroup.add(leftConduit);
+
+                    // Kitchen: Front wall floor conduit runs from left corner to right corner (in-wall Z = 2.54)
+                    const frontConduit = createConduit(-1.54, Y_conduit, 2.54, 1.54, Y_conduit, 2.54);
+                    roomGroup.add(frontConduit);
+
+                    // Front socket on right wall at Z = 2.4 (in-wall X = 1.54)
+                    addSocketWithNumber(1.48, Y_socket, 2.4, -Math.PI / 2, 1.42, Y_socket + 0.15, 2.4);
+                    const frontVertRight = createConduit(1.54, Y_conduit, 2.4, 1.54, Y_socket, 2.4);
+                    roomGroup.add(frontVertRight);
+
+                    // New socket right of the French balcony (front wall, X = -0.1, Y = 7.8) (in-wall Z = 2.54)
+                    addSocketWithNumber(-0.1, 7.8, 2.48, Math.PI, -0.1, 7.8 + 0.15, 2.42);
+                    const balconyRightVert = createConduit(-0.1, Y_conduit, 2.54, -0.1, 7.8, 2.54);
+                    roomGroup.add(balconyRightVert);
+                    
+                    // Kitchen countertop sockets (above countertop Y_floor + 1.0)
+                    // 1. Back Wall Corner socket (in-wall Z = -2.54)
+                    addSocketWithNumber(-1.2, Y_floor + 1.0, -2.48, 0, -1.2, Y_floor + 1.15, -2.42);
+                    const cornerVert = createConduit(-1.2, Y_conduit, -2.54, -1.2, Y_floor + 1.0, -2.54);
+                    roomGroup.add(cornerVert);
+
+                    // 2. Back Wall Socket near the stairs (right end of back counter) (in-wall Z = -2.54)
+                    addSocketWithNumber(0.8, Y_floor + 1.0, -2.48, 0, 0.8, Y_floor + 1.15, -2.42);
+                    const stairVert = createConduit(0.8, Y_conduit, -2.54, 0.8, Y_floor + 1.0, -2.54);
+                    roomGroup.add(stairVert);
+
+                    // 3. Left Wall countertop socket (above left counter, shifted forward to Z = -0.4, next to the sink) (in-wall X = -1.54)
+                    addSocketWithNumber(-1.48, Y_floor + 1.0, -0.4, Math.PI / 2, -1.42, Y_floor + 1.15, -0.4);
+                    const counterLeftVert = createConduit(-1.54, Y_conduit, -0.4, -1.54, Y_floor + 1.0, -0.4);
+                    roomGroup.add(counterLeftVert);
+
+                    // Fridge socket (right wall, near Z = -0.93, Y = 7.8) (in-wall X = 1.54)
+                    addSocketWithNumber(1.5, 7.8, -0.93, -Math.PI / 2, 1.44, 7.8 + 0.15, -0.93);
+                    const fridgeVert = createConduit(1.54, Y_conduit, -0.93, 1.54, 7.8, -0.93);
+                    roomGroup.add(fridgeVert);
+                } else if (fIdx === 0) {
+                    // EG: Left wall floor conduit runs up to the front-left socket at Z = 2.1 (in-wall X = -1.54)
+                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.1);
+                    roomGroup.add(leftConduit);
+
+                    // EG: Front wall floor conduit is removed completely to keep the entrance doorway clear
+
+                    // Socket for autoclave and heat pump (right wall, Z = 0.85, Y = Y_socket)
+                    addSocketWithNumber(1.5, Y_socket, 0.85, -Math.PI / 2, 1.44, Y_socket + 0.15, 0.85);
+                    const wpAutoVert = createConduit(1.54, Y_conduit, 0.85, 1.54, Y_socket, 0.85);
+                    roomGroup.add(wpAutoVert);
+
+                    // EG: Right wall floor conduit runs up to the aggregates socket at Z = 0.85 (in-wall X = 1.54)
+                    const rightWallConduit = createConduit(1.54, Y_conduit, -2.54, 1.54, Y_conduit, 0.85);
+                    roomGroup.add(rightWallConduit);
+                } else if (fIdx === 1 || fIdx === 2) {
+                    // Other floors (1. & 2. OG): standard left wall segment all the way to the front (in-wall X = -1.54)
+                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.54);
+                    roomGroup.add(leftConduit);
+
+                    // Other floors: standard window socket at X = -1.0 (unless 2. OG or 1. OG user moved it)
+                    let sX = -1.0;
+                    let sY = Y_socket;
+                    
+                    if (fIdx === 2) {
+                        sX = -0.250;
+                        sY = 5.300;
+                    } else if (fIdx === 1) {
+                        sX = -0.350;
+                        sY = 2.800;
+                    }
+                    
+                    const frontConduit = createConduit(-1.54, Y_conduit, 2.54, sX, Y_conduit, 2.54);
+                    roomGroup.add(frontConduit);
+
+                    addSocketWithNumber(sX, sY, 2.48, Math.PI, sX, sY + 0.15, 2.42);
+                    const frontVert = createConduit(sX, Y_conduit, 2.54, sX, sY, 2.54);
+                    roomGroup.add(frontVert);
+                } else if (fIdx === 4) {
+                    // Terrace: installations
+                    // Sub-distribution board (Unterverteiler Terrasse) inside the exit shed (back wall: X=0.9, Y=11.8, Z=-2.475)
+                    const subBoxGroup = new THREE.Group();
+                    subBoxGroup.userData.isSelectable = true;
+                    subBoxGroup.userData.name = "Unterverteiler Terrasse";
+
+                    // Verteilerkasten (16x20cm, 8cm tief, blau)
+                    const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
+                    boxMesh.position.set(0.9, 11.8, -2.475);
+                    subBoxGroup.add(boxMesh);
+
+                    // Badge/Label
+                    const labelSprite = createTextSpriteSmall("elecSub", "#3b82f6");
+                    labelSprite.position.set(0.9, 12.05, -2.475);
+                    subBoxGroup.add(labelSprite);
+                    roomGroup.add(subBoxGroup);
+
+                    // Conduits from sub-distribution board:
+                    // Drop hose (from box down to raw floor 10.5)
+                    const dropHose = createConduit(0.9, 11.7, -2.5, 0.9, 10.5, -2.5);
+                    roomGroup.add(dropHose);
+
+                    // Floor conduits inside the walls (at raw floor Y = 10.5)
+                    // Back wall floor conduit running all the way from exit box to left corner
+                    const backFloorHose = createConduit(0.9, 10.5, -2.5, -1.54, 10.5, -2.5);
+                    roomGroup.add(backFloorHose);
+
+                    // Left wall floor conduit running from back corner to front corner
+                    const leftFloorHose = createConduit(-1.54, 10.5, -2.5, -1.54, 10.5, 2.5);
+                    roomGroup.add(leftFloorHose);
+
+                    // Three sockets on the left wall at floor level (Y_socket = 11.0)
+                    const leftZCoords = [-1.8, 0.0, 1.8];
+                    leftZCoords.forEach(lz => {
+                        addSocketWithNumber(-1.48, Y_socket, lz, Math.PI / 2, -1.42, Y_socket + 0.15, lz);
+                        const leftVert = createConduit(-1.54, 10.5, lz, -1.54, Y_socket, lz);
+                        roomGroup.add(leftVert);
+                    });
+
+                    // Two sockets on the back wall outside the exit shed at 90cm height (Y = Y_floor + 0.9 = 11.6)
+                    const backSockets = [
+                        { x: -1.0, y: Y_floor + 0.9 },
+                        { x: -0.2, y: Y_floor + 0.9 }
+                    ];
+                    backSockets.forEach(bs => {
+                        addSocketWithNumber(bs.x, bs.y, -2.48, 0, bs.x, bs.y + 0.15, -2.42);
+                        const backVert = createConduit(bs.x, 10.5, -2.54, bs.x, bs.y, -2.54);
+                        roomGroup.add(backVert);
+                    });
+                }
+                
+                // Sockets on the left wall (with floor-specific configurations)
+                let leftSockets = [];
+                if (fIdx === 1) {
+                    leftSockets = [
+                        { z: -2.4, y: 2.8 },
+                        { z: -0.2, y: Y_socket },
+                        { z: 0.5, y: Y_socket },
+                        { z: 1.8, y: Y_socket }
+                    ];
+                } else if (fIdx === 2) {
+                    leftSockets = [
+                        { z: -2.35, y: 5.3 },
+                        { z: -0.2, y: Y_socket },
+                        { z: 0.5, y: Y_socket },
+                        { z: 1.8, y: Y_socket }
+                    ];
+                } else if (fIdx === 0) {
+                    // EG (Bathroom) left wall sockets: two flanking the vanity sink at Y=1.2, one in front area
+                    leftSockets = [
+                        { z: 0.15, y: 0.550 }, // Left of vanity (user moved to Y=0.550)
+                        { z: 0.85, y: 0.550 }, // Right of vanity (user moved to Y=0.550)
+                        { z: 2.1, y: Y_socket }        // Front left
+                    ];
+                } else if (fIdx === 3) {
+                    // Kitchen (3. OG) standard left wall sockets
+                    leftSockets = [
+                        { z: -1.0, y: Y_socket },
+                        { z: 0.5, y: Y_socket },
+                        { z: 1.8, y: Y_socket }
+                    ];
+                }
+
+                leftSockets.forEach(s => {
+                    addSocketWithNumber(-1.48, s.y, s.z, Math.PI / 2, -1.42, s.y + 0.15, s.z);
+                    
+                    // In-wall conduit X = -1.54
+                    const vert = createConduit(-1.54, Y_conduit, s.z, -1.54, s.y, s.z);
+                    roomGroup.add(vert);
+                });
+                
+                if (fIdx !== 4) {
+                    // Socket in the back-right corner (in-wall Z = -2.54)
+                    addSocketWithNumber(1.35, Y_socket, -2.48, 0, 1.35, Y_socket + 0.15, -2.42);
+                    const backRightVert = createConduit(1.35, Y_conduit, -2.54, 1.35, Y_socket, -2.54);
+                    roomGroup.add(backRightVert);
+                }
+
+                if (fIdx === 0) {
+                    // Three more sockets on the back wall in EG (X = -1.35, X = -0.5, X = 0.4)
+                    const extraBackX = [-1.35, -0.5, 0.4];
+                    extraBackX.forEach(bx => {
+                        addSocketWithNumber(bx, Y_socket, -2.48, 0, bx, Y_socket + 0.15, -2.42);
+                        const extraVert = createConduit(bx, Y_conduit, -2.54, bx, Y_socket, -2.54);
+                        roomGroup.add(extraVert);
+                    });
+                }
+                
+                roomGroup.visible = showInstallations;
+                floorGroups[fIdx].add(roomGroup);
+                installationObjects.push(roomGroup);
             });
 
 
@@ -3405,6 +4107,191 @@
 
 
 
+        let pointerDownX = 0;
+        let pointerDownY = 0;
+        let selectedObject = null;
+        let selectedBoxHelper = null;
+        let selectionCorners = null;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onCanvasClick(event) {
+            if (event.target.tagName !== 'CANVAS') return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            if (intersects.length > 0) {
+                let selected = null;
+                for (let i = 0; i < intersects.length; i++) {
+                    let obj = intersects[i].object;
+                    while (obj) {
+                        if (obj.userData && obj.userData.isSelectable) {
+                            selected = obj;
+                            break;
+                        }
+                        obj = obj.parent;
+                    }
+                    if (selected) break;
+                }
+                if (selected) {
+                    selectObject(selected);
+                    return;
+                }
+            }
+            deselectObject();
+        }
+
+        function selectObject(obj) {
+            deselectObject();
+            selectedObject = obj;
+            
+            // Red wireframe selection box
+            selectedBoxHelper = new THREE.BoxHelper(selectedObject, 0xff0000);
+            scene.add(selectedBoxHelper);
+            
+            // 8 bright red corner boxes
+            selectionCorners = new THREE.Group();
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000, toneMapped: false });
+            const geom = new THREE.BoxGeometry(0.04, 0.04, 0.04);
+            for (let i = 0; i < 8; i++) {
+                const cornerMesh = new THREE.Mesh(geom, mat);
+                selectionCorners.add(cornerMesh);
+            }
+            scene.add(selectionCorners);
+            
+            updateSelectionHelper();
+            updateEditorUI();
+        }
+
+        function deselectObject() {
+            if (selectedBoxHelper) {
+                scene.remove(selectedBoxHelper);
+                selectedBoxHelper.geometry.dispose();
+                selectedBoxHelper.material.dispose();
+                selectedBoxHelper = null;
+            }
+            if (selectionCorners) {
+                scene.remove(selectionCorners);
+                selectionCorners.children.forEach(c => {
+                    c.geometry.dispose();
+                    c.material.dispose();
+                });
+                selectionCorners = null;
+            }
+            selectedObject = null;
+            const panel = document.getElementById('editor-panel');
+            if (panel) panel.style.display = 'none';
+        }
+
+        function updateSelectionHelper() {
+            if (!selectedObject || !selectionCorners) return;
+            
+            // Recalculate bounding box in world space
+            const box = new THREE.Box3().setFromObject(selectedObject);
+            const corners = [
+                new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+                new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+                new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+                new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+                new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+                new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+                new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+                new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+            ];
+            
+            for (let i = 0; i < 8; i++) {
+                selectionCorners.children[i].position.copy(corners[i]);
+            }
+            
+            if (selectedBoxHelper) {
+                selectedBoxHelper.update();
+            }
+        }
+
+        function updateEditorUI() {
+            const panel = document.getElementById('editor-panel');
+            if (!panel || !selectedObject) return;
+            panel.style.display = 'flex';
+            const nameEl = document.getElementById('edit-obj-name');
+            const posEl = document.getElementById('edit-obj-pos');
+            const codeEl = document.getElementById('edit-obj-code');
+            if (nameEl) nameEl.innerText = selectedObject.userData.name || 'Unbekanntes Objekt';
+            const pos = selectedObject.position;
+            const rotY = selectedObject.rotation.y;
+            if (posEl) {
+                posEl.innerHTML = `<b>X:</b> ${pos.x.toFixed(3)}m | <b>Y:</b> ${pos.y.toFixed(3)}m | <b>Z:</b> ${pos.z.toFixed(3)}m<br><b>Rot Y:</b> ${(rotY * 180 / Math.PI).toFixed(0)}°`;
+            }
+            if (codeEl) {
+                codeEl.value = `position.set(${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
+            }
+        }
+
+        function moveSelectedObject(axis, val) {
+            if (!selectedObject) return;
+            if (axis === 'x') selectedObject.position.x += val;
+            if (axis === 'y') selectedObject.position.y += val;
+            if (axis === 'z') selectedObject.position.z += val;
+            if (axis === 'rot') selectedObject.rotation.y += val;
+            updateSelectionHelper();
+            updateEditorUI();
+        }
+
+        // Keyboard Controls for Movement
+        window.addEventListener('keydown', (e) => {
+            if (!selectedObject) return;
+            
+            // Ignore when typing in inputs
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            const step = e.shiftKey ? 0.01 : 0.05; // 1cm with Shift, 5cm normally
+            let moved = false;
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                    selectedObject.position.z -= step; // Move backward (towards back wall)
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    selectedObject.position.z += step; // Move forward (towards front wall)
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    selectedObject.position.x -= step; // Move left
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    selectedObject.position.x += step; // Move right
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'PageUp':
+                    selectedObject.position.y += step; // Move up (Height)
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'PageDown':
+                    selectedObject.position.y -= step; // Move down (Height)
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'Escape':
+                    deselectObject();
+                    e.preventDefault();
+                    break;
+            }
+            
+            if (moved) {
+                updateSelectionHelper();
+                updateEditorUI();
+            }
+        });
+
         // --- 6. ANIMATION & STATE-LOGIK ---
         
 
@@ -3439,10 +4326,16 @@
             showInstallations = val;
             localStorage.setItem('bosa_showInstallations', val);
             installationObjects.forEach(obj => {
-                if (shaftBackObjects.includes(obj)) {
-                    obj.visible = val && !shaftOnRight;
+                if (obj === steelBackGroup) {
+                    obj.visible = val && (shaftPosition === 'back' || shaftPosition === 'diagonal');
+                } else if (obj === steelRightGroup) {
+                    obj.visible = val && (shaftPosition === 'right');
+                } else if (shaftBackObjects.includes(obj)) {
+                    obj.visible = val && (shaftPosition === 'back');
                 } else if (shaftRightObjects.includes(obj)) {
-                    obj.visible = val && shaftOnRight;
+                    obj.visible = val && (shaftPosition === 'right');
+                } else if (shaftDiagObjects.includes(obj)) {
+                    obj.visible = val && (shaftPosition === 'diagonal');
                 } else {
                     obj.visible = val;
                 }
@@ -3468,13 +4361,40 @@
             }
         }
 
-        function toggleShaftPosition(val) {
-            shaftOnRight = val;
-            localStorage.setItem('bosa_shaftOnRight', val);
-            if (showInstallations) {
-                shaftBackObjects.forEach(obj => obj.visible = !val);
-                shaftRightObjects.forEach(obj => obj.visible = val);
+        function selectShaftPosition(pos) {
+            shaftPosition = pos;
+            localStorage.setItem('bosa_shaftPosition', pos);
+            localStorage.setItem('bosa_shaftOnRight', pos === 'right' ? 'true' : 'false');
+            
+            // Update UI buttons active class
+            document.querySelectorAll('#shaft-grid .floor-btn').forEach(btn => btn.classList.remove('active'));
+            if (pos === 'back') {
+                document.getElementById('s-btn-back').classList.add('active');
+            } else if (pos === 'right') {
+                document.getElementById('s-btn-right').classList.add('active');
+            } else if (pos === 'diagonal') {
+                document.getElementById('s-btn-diagonal').classList.add('active');
             }
+
+            if (showInstallations) {
+                installationObjects.forEach(obj => {
+                    if (obj === steelBackGroup) {
+                        obj.visible = pos === 'back' || pos === 'diagonal';
+                    } else if (obj === steelRightGroup) {
+                        obj.visible = pos === 'right';
+                    } else if (shaftBackObjects.includes(obj)) {
+                        obj.visible = pos === 'back';
+                    } else if (shaftRightObjects.includes(obj)) {
+                        obj.visible = pos === 'right';
+                    } else if (shaftDiagObjects.includes(obj)) {
+                        obj.visible = pos === 'diagonal';
+                    }
+                });
+            }
+        }
+
+        function toggleShaftPosition(val) {
+            selectShaftPosition(val ? 'right' : 'back');
         }
 
         function toggleLabels(val) {
