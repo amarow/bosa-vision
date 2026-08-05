@@ -4101,24 +4101,20 @@
                 group.visible = showInstallations;
                 
                 const paths = [
-                    // Start at exit box, run down, run left along back wall to s5, s4, then left wall to s1, s2
+                    // Start at exit box, run down, run left along back wall to s5, s4, then left wall to s1, s2, s3
                     [V(0.9 - 0.02, 11.7, -2.5), V(0.9 - 0.02, Y_conduit, -2.5), V(-0.2 + 0.02, Y_conduit, -2.5), V(-0.2 + 0.02, 11.6, -2.54)],
                     [V(-0.2 - 0.02, 11.6, -2.54), V(-0.2 - 0.02, Y_conduit, -2.54), V(-1.0 + 0.02, Y_conduit, -2.54), V(-1.0 + 0.02, 11.6, -2.54)],
                     [V(-1.0 - 0.02, 11.6, -2.54), V(-1.0 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, -1.8 - 0.02), V(-1.54, Y_socket, -1.8 - 0.02)],
                     [V(-1.54, Y_socket, -1.8 + 0.02), V(-1.54, Y_conduit, -1.8 + 0.02), V(-1.54, Y_conduit, 0.0 - 0.02), V(-1.54, Y_socket, 0.0 - 0.02)],
-                    
-                    // Standard socket conduits from s2 to lamp point and from lamp point to s3
-                    [V(-1.54, Y_socket, 0.0 + 0.02), V(-1.54, Y_conduit, 0.0 + 0.02), V(-1.54, Y_conduit, 0.9 - 0.02)],
-                    [V(-1.54, Y_conduit, 0.9 + 0.02), V(-1.54, Y_conduit, 1.8 - 0.02), V(-1.54, Y_socket, 1.8 - 0.02)]
+                    [V(-1.54, Y_socket, 0.0 + 0.02), V(-1.54, Y_conduit, 0.0 + 0.02), V(-1.54, Y_conduit, 1.8 - 0.02), V(-1.54, Y_socket, 1.8 - 0.02)]
                 ];
                 
                 const lightPaths = [
                     // Green riser connection to the topmost lamp on the terrace
                     [V(1.49, Y_conduit, 0.3), V(1.49, 10.9, 0.3)],
                     
-                    // Green vertical feeds to the terrace wall lamp on left wall
-                    [V(-1.54, Y_conduit, 0.9 - 0.02), V(-1.54, 10.8, 0.9 - 0.02)],
-                    [V(-1.54, 10.8, 0.9 + 0.02), V(-1.54, Y_conduit, 0.9 + 0.02)]
+                    // Green conduit connecting the Steigeleitung to the terrace wall lamp
+                    [V(1.49, 10.9, 0.3), V(1.49, 10.9, -2.5), V(-1.54, 10.9, -2.5), V(-1.54, 10.9, 0.9), V(-1.54, 10.8, 0.9)]
                 ];
                 
                 // Terrace wall lamp on the left wall, close to the floor (height Y=10.8)
