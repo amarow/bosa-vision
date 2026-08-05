@@ -476,6 +476,14 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                
+                <div class="switch-container">
+                    <span data-i18n="visDimensions">Bemaßung einblenden</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-dimensions" checked onchange="toggleDimensions(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -521,7 +529,7 @@
             </ul>
         </div>
 
-        <div class="version-tag">v3.0.0</div>
+        <div class="version-tag">v3.3.0</div>
     </div>
     
     <!-- Editor Panel for Object Movement -->
@@ -632,6 +640,7 @@
                 shaftDiag: "Hinten rechts",
                 visFurniture: "Möbel einblenden",
                 visLabels: "Labels einblenden",
+                visDimensions: "Bemaßung einblenden",
                 floorTitle: "Etagen-Fokus",
                 btnAll: "Alle",
                 btnTerrace: "Terrasse",
@@ -669,6 +678,7 @@
                 shaftDiag: "Back Right",
                 visFurniture: "Show Furniture",
                 visLabels: "Show Labels",
+                visDimensions: "Show Dimensions",
                 floorTitle: "Floor Focus",
                 btnAll: "All",
                 btnTerrace: "Terrace",
@@ -706,6 +716,7 @@
                 shaftDiag: "Posteriore destro",
                 visFurniture: "Mostra Mobili",
                 visLabels: "Mostra Etichette",
+                visDimensions: "Mostra Quote",
                 floorTitle: "Focus Piano",
                 btnAll: "Tutti",
                 btnTerrace: "Terrazza",
@@ -790,6 +801,7 @@
         }
 
         // --- 1. GLOBALE VARIABLEN & EINSTELLUNGEN ---
+        const V = (x, y, z) => new THREE.Vector3(x, y, z);
         let scene, camera, renderer, controls;
         let floorGroups = [];
         let beforeObjects = [];
@@ -817,6 +829,8 @@
         let shaftPosition = 'back'; // 'back', 'right', 'diagonal'
         let showFurniture = true;
         let showLabels = true;
+        let showDimensions = true;
+        const dimensionObjects = [];
         let showCrane = true;
         let craneFolded = false;
         let panelCollapsed = false;
@@ -862,6 +876,7 @@
             }
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
+            showDimensions = getBool('bosa_showDimensions', true);
             const floorVal = getVal('bosa_focusedFloor', '0');
             activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
 
@@ -895,7 +910,7 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.maxPolarAngle = Math.PI / 2 + 0.1; // Kamera nicht unter den Boden wandern lassen
+            controls.maxPolarAngle = Math.PI / 2 + 0.45; // Allow tilting the model backward more to look underneath
             controls.minDistance = 3;
             controls.maxDistance = 40;
             
@@ -916,6 +931,12 @@
                         localStorage.setItem('bosa_cam_target_z', controls.target.z);
                     }
                 }, 300);
+            });
+            
+            // Abort smooth camera transitions if the user starts dragging/interacting manually
+            controls.addEventListener('start', () => {
+                isTransitioningCamera = false;
+                isResettingCamera = false;
             });
 
             // Licht aufbauen
@@ -952,6 +973,7 @@
             }
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
+            document.getElementById('chk-dimensions').checked = showDimensions;
             
             // Sprache initial anwenden
             setLanguage(currentLang);
@@ -987,6 +1009,7 @@
 
             // Event Listener
             window.addEventListener('resize', onWindowResize);
+            window.addEventListener('dblclick', onCanvasDblClick);
 
             // Selection events
             window.addEventListener('pointerdown', (e) => {
@@ -1234,6 +1257,43 @@
         function buildFloor0_EG() {
             const grp = floorGroups[0];
             const H = 2.3;
+
+            function createWashingMachine(name) {
+                const group = new THREE.Group();
+                const wmMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }); // white body
+                const wmPanelMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); // dark panel
+                const wmGlassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, transparent: true, opacity: 0.6 });
+                
+                // Main body (0.6m x 0.85m x 0.6m)
+                const wmBody = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.85, 0.58), wmMat);
+                wmBody.position.y = 0.425;
+                group.add(wmBody);
+                
+                // Control panel at the top (facing -X)
+                const wmPanel = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.1, 0.54), wmPanelMat);
+                wmPanel.position.set(-0.291, 0.78, 0);
+                group.add(wmPanel);
+                
+                // Round door (bullauge) facing -X
+                const doorGroup = new THREE.Group();
+                doorGroup.position.set(-0.291, 0.45, 0);
+                doorGroup.rotation.z = Math.PI / 2; // face normal along X
+                
+                const doorFrame = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 24), newMetalMat);
+                doorGroup.add(doorFrame);
+                
+                const doorGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.022, 24), wmGlassMat);
+                doorGroup.add(doorGlass);
+                
+                group.add(doorGroup);
+                
+                // Placed next to the tank/wp at Z=0.6, so at Z=0.0
+                group.position.set(1.2, 0.0, 0.0);
+                group.userData.isSelectable = true;
+                group.userData.name = name;
+                
+                return group;
+            }
 
             // Bodenplatte (nur Innenbereich: 3.0m x 5.0m)
             const floorGeo = new THREE.BoxGeometry(3.0, 0.2, 5.0);
@@ -1535,6 +1595,10 @@
             // 1. OPTION A: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpBack = new THREE.Group();
             
+            // Washing machine next to the tank & WP
+            const wmBack = createWashingMachine("Waschmaschine (Option A)");
+            equipGrpBack.add(wmBack);
+            
             const tankMat = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // rot = warm wasser
             const tankBack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankBack.position.set(1.2, 0.5, 0.6);
@@ -1608,6 +1672,10 @@
             // 2. OPTION B: Wärmepumpe & Warmwassertank & Autoclave (kompakt neben Steigleitung an der rechten Wand)
             const equipGrpRight = new THREE.Group();
             
+            // Washing machine next to the tank & WP
+            const wmRight = createWashingMachine("Waschmaschine (Option B)");
+            equipGrpRight.add(wmRight);
+            
             const tankRight = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankRight.position.set(1.2, 0.5, 0.6);
             tankRight.userData.isSelectable = true;
@@ -1664,6 +1732,10 @@
 
             // 3. OPTION C: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpDiag = new THREE.Group();
+            
+            // Washing machine next to the tank & WP
+            const wmDiag = createWashingMachine("Waschmaschine (Option C)");
+            equipGrpDiag.add(wmDiag);
 
             const tankDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankDiag.position.set(1.2, 0.5, 0.6);
@@ -1746,6 +1818,44 @@
             grp.add(equipGrpDiag);
             installationObjects.push(equipGrpDiag);
             shaftDiagObjects.push(equipGrpDiag);
+
+            // Dimensions Floor 0 (EG)
+            // Flurbreite is an internal clearance, so it stays inside
+            const dimFlur = createDimensionLine(V(-0.275, 0.5, 0.5), V(0.35, 0.5, 0.5), "62,5 cm", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimFlur);
+            
+            // Outer width dimension at the back (Z = -3.2)
+            const dimWidth = createDimensionLine(V(-1.5, 0.05, -3.2), V(1.5, 0.05, -3.2), "3,00 m", 0xc2410c, V(0, 0, -1), 0.15);
+            grp.add(dimWidth);
+            
+            // Outer depth dimension on the left side (X = -2.2)
+            const dimDepth = createDimensionLine(V(-2.2, 0.05, -2.5), V(-2.2, 0.05, 2.5), "5,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimDepth);
+            
+            // Vertical height dimension chain on the left-back corner (X = -2.2, Z = -2.6)
+            const dimHeight = createDimensionLine(V(-2.2, 0.0, -2.6), V(-2.2, 2.3, -2.6), "2,30 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimHeight);
+
+            // Badezimmer-Maße (EG)
+            const dimBathWidth = createDimensionLine(V(-1.5, 0.05, -0.9), V(-0.3, 0.05, -0.9), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimBathWidth);
+            
+            const dimBathDepth = createDimensionLine(V(-1.4, 0.05, -1.0), V(-1.4, 0.05, 1.8), "2,80 m", 0xc2410c, V(1, 0, 0), 0.15);
+            grp.add(dimBathDepth);
+            
+            // Treppenhaus-Maße (EG) - Raised to Y=1.2 to avoid being hidden inside the steps/appliances
+            const dimStairWidth = createDimensionLine(V(0.6, 1.2, 2.4), V(1.5, 1.2, 2.4), "90 cm", 0xc2410c, V(0, 0, -1), 0.15);
+            grp.add(dimStairWidth);
+            
+            const dimStairDepth = createDimensionLine(V(0.55, 1.2, 0.0), V(0.55, 1.2, 2.5), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimStairDepth);
+            
+            // Außentür-Maße (EG Eingangstür) - Placed outside the front wall at Z=3.2
+            const dimDoorEG = createDimensionLine(V(-1.5, 0.05, 3.2), V(-0.5, 0.05, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimDoorEG);
+            
+            const dimDoorEGHeight = createDimensionLine(V(-1.65, 0.0, 3.2), V(-1.65, 2.0, 3.2), "2,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimDoorEGHeight);
 
             grp.add(bathNew);
             
@@ -1855,6 +1965,24 @@
             woodBeam.position.set(startX + dx/2, Y_start + H + 0.2 - 0.075, startZ + dz/2); 
             woodBeam.rotation.y = Math.atan2(-dz, dx);
             grp.add(woodBeam);
+
+            // Dimensions Floor 1 (1. OG) - vertical chain (X = -2.2, Z = -2.6)
+            const dimHeight1 = createDimensionLine(V(-2.2, 2.3, -2.6), V(-2.2, 4.8, -2.6), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimHeight1);
+
+            // Treppenhaus-Maße (1. OG) - Raised to Y_start+1.2 to avoid being hidden inside steps
+            const dimStairWidth1 = createDimensionLine(V(0.6, Y_start + 1.2, 2.4), V(1.5, Y_start + 1.2, 2.4), "90 cm", 0xc2410c, V(0, 0, -1), 0.15);
+            grp.add(dimStairWidth1);
+            
+            const dimStairDepth1 = createDimensionLine(V(0.55, Y_start + 1.2, 0.0), V(0.55, Y_start + 1.2, 2.5), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimStairDepth1);
+            
+            // Außenfenster-Maße (1. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.5, height is 1.10m)
+            const dimWindow1 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.5, Y_start + 0.9, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimWindow1);
+            
+            const dimWindow1Height = createDimensionLine(V(-1.65, Y_start + 0.9, 3.2), V(-1.65, Y_start + 2.0, 3.2), "1,10 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimWindow1Height);
 
             // Arbeitsplatz vorne links (Tisch + Stuhl)
             buildBedroomWorkplace(grp, Y_start);
@@ -1980,6 +2108,31 @@
             bed2.visible = showFurniture;
             grp.add(bed2);
             furnitureObjects.push(bed2);
+
+            // Dimensions Floor 2 (2. OG) - vertical chain (X = -2.2, Z = -2.6)
+            const dimHeight2 = createDimensionLine(V(-2.2, 4.8, -2.6), V(-2.2, 7.3, -2.6), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimHeight2);
+
+            // Treppenhaus-Maße (2. OG) - Raised to Y_start+1.2 to avoid being hidden inside steps
+            const dimStairWidth2 = createDimensionLine(V(0.6, Y_start + 1.2, 2.4), V(1.5, Y_start + 1.2, 2.4), "90 cm", 0xc2410c, V(0, 0, -1), 0.15);
+            grp.add(dimStairWidth2);
+            
+            const dimStairDepth2 = createDimensionLine(V(0.55, Y_start + 1.2, 0.0), V(0.55, Y_start + 1.2, 2.5), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimStairDepth2);
+            
+            // WC-Maße (2. OG)
+            const dimWcWidth = createDimensionLine(V(0.5, Y_start + 0.2 + 0.05, -1.35), V(1.5, Y_start + 0.2 + 0.05, -1.35), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimWcWidth);
+            
+            const dimWcDepth = createDimensionLine(V(0.4, Y_start + 0.2 + 0.05, -2.5), V(0.4, Y_start + 0.2 + 0.05, -1.5), "1,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimWcDepth);
+            
+            // Außenfenster-Maße (2. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.5, height is 1.10m)
+            const dimWindow2 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.5, Y_start + 0.9, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimWindow2);
+            
+            const dimWindow2Height = createDimensionLine(V(-1.65, Y_start + 0.9, 3.2), V(-1.65, Y_start + 2.0, 3.2), "1,10 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimWindow2Height);
 
             // Arbeitsplatz vorne links (Tisch + Stuhl)
             buildBedroomWorkplace(grp, Y_start);
@@ -2339,6 +2492,23 @@
 
             
             
+            // Dimensions Floor 3 (3. OG) - vertical chain (X = -2.2, Z = -2.6)
+            const dimHeight3 = createDimensionLine(V(-2.2, 7.3, -2.6), V(-2.2, 10.5, -2.6), "3,20 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimHeight3);
+
+            // Wendeltreppen-Maße (3. OG)
+            const dimSpiralWidth = createDimensionLine(V(0.3, Y_start + 0.2 + 0.05, -1.25), V(1.5, Y_start + 0.2 + 0.05, -1.25), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimSpiralWidth);
+            
+            const dimSpiralDepth = createDimensionLine(V(0.25, Y_start + 0.2 + 0.05, -2.5), V(0.25, Y_start + 0.2 + 0.05, -1.3), "1,20 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimSpiralDepth);
+            
+            // Außenbalkontür-Maße (3. OG französisch) - Placed outside the front wall at Z=3.2 (runs X=-1.5 to -0.5, height is 2.20m)
+            const dimBalcony3 = createDimensionLine(V(-1.5, Y_start + 0.25, 3.2), V(-0.5, Y_start + 0.25, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            grp.add(dimBalcony3);
+            
+            const dimBalcony3Height = createDimensionLine(V(-1.65, Y_start + 0.2, 3.2), V(-1.65, Y_start + 2.4, 3.2), "2,20 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            grp.add(dimBalcony3Height);
         }
 
         // --- ETAGE 4: DACHTERRASSE ---
@@ -3066,6 +3236,10 @@
             labelCrane.position.set(-0.4, 13.0, 2.45); // Rechts neben dem Kran, damit es nicht in der linken Wand verschwindet
             labelCrane.visible = showLabels && showCrane;
             grp.add(labelCrane);
+
+            // Dimensions Floor 4 (Terrasse) - parapet height placed outside right wall (X = 1.78)
+            const dimParapet = createDimensionLine(V(1.78, 10.5, 1.5), V(1.78, 11.3, 1.5), "80 cm", 0xc2410c, V(1, 0, 0), 0.15);
+            grp.add(dimParapet);
         }
 
         function buildVerticalInstallations() {
@@ -3595,12 +3769,8 @@
                 function addSocketWithNumber(x, y, z, rotY, badgeX, badgeY, badgeZ) {
                     const socket = createSocket(x, y, z, rotY);
                     socket.userData.isSelectable = true;
-                    socket.userData.name = `Steckdose ${socketNum} (${fIdx === 4 ? "Terrasse" : fIdx === 3 ? "Küche" : fIdx === 0 ? "EG" : fIdx + ". OG"})`;
+                    socket.userData.name = `Steckdose ${socketNum++} (${fIdx === 4 ? "Terrasse" : fIdx === 3 ? "Küche" : fIdx === 0 ? "EG" : fIdx + ". OG"})`;
                     roomGroup.add(socket);
-                    
-                    const badge = createNumberBadge(socketNum++);
-                    badge.position.set(badgeX, badgeY, badgeZ);
-                    roomGroup.add(badge);
                 }
 
                 if (fIdx === 3) {
@@ -3623,8 +3793,10 @@
                     // Fridge socket (right wall, near Z = -0.93, Y = 7.7) (in-wall X = 1.5)
                     addSocketWithNumber(1.5, 7.7, -0.93, -Math.PI / 2, 1.44, 7.7 + 0.15, -0.93);
                 } else if (fIdx === 0) {
-                    // Socket for autoclave and heat pump (right wall, Z = 0.85, Y = Y_socket)
-                    addSocketWithNumber(1.5, Y_socket, 0.85, -Math.PI / 2, 1.44, Y_socket + 0.15, 0.85);
+                    // Sockets for washing machine (Z = 0.0), heat pump (Z = 0.6) and autoclave (Z = 1.2) on the right wall
+                    addSocketWithNumber(1.5, Y_socket, 0.0, -Math.PI / 2, 1.44, Y_socket + 0.15, 0.0);
+                    addSocketWithNumber(1.5, 1.2, 0.6, -Math.PI / 2, 1.44, 1.2 + 0.15, 0.6);
+                    addSocketWithNumber(1.5, Y_socket, 1.2, -Math.PI / 2, 1.44, Y_socket + 0.15, 1.2);
                 } else if (fIdx === 1 || fIdx === 2) {
                     // Other floors: standard window socket at X = -1.0 (unless 2. OG or 1. OG user moved it)
                     let sX = -1.0;
@@ -3790,7 +3962,7 @@
                 return mesh;
             }
 
-            const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
 
             // Build the curved conduits for each floor and each shaft option
             const options = ['back', 'right', 'diagonal'];
@@ -3820,12 +3992,17 @@
                             [V(boxX + 0.02, 1.4, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_socket, -2.54)],
                             [V(-0.5 + 0.02, Y_socket, -2.54), V(-0.5 + 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_socket, -2.54)],
                             [V(0.4 + 0.02, Y_socket, -2.54), V(0.4 + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
-                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)]
+                            
+                            // Right wall daisy chain: back-right socket to washing machine, to heat pump, to autoclave
+                            [V(1.54, Y_socket, 0.0 + 0.02), V(1.54, Y_conduit, 0.0 + 0.02), V(1.54, Y_conduit, 0.6 - 0.02), V(1.54, 1.2, 0.6 - 0.02)],
+                            [V(1.54, 1.2, 0.6 + 0.02), V(1.54, Y_conduit, 0.6 + 0.02), V(1.54, Y_conduit, 1.2 - 0.02), V(1.54, Y_socket, 1.2 - 0.02)]
                         ];
                     } else if (opt === 'right') {
                         paths = [
-                            // Front-right socket
-                            [V(1.54, 1.4, -0.35 + 0.02), V(1.54, Y_conduit, -0.35 + 0.02), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)],
+                            // Front-right socket feed to washing machine, to heat pump, to autoclave
+                            [V(1.54, 1.4, -0.35 + 0.02), V(1.54, Y_conduit, -0.35 + 0.02), V(1.54, Y_conduit, 0.0 - 0.02), V(1.54, Y_socket, 0.0 - 0.02)],
+                            [V(1.54, Y_socket, 0.0 + 0.02), V(1.54, Y_conduit, 0.0 + 0.02), V(1.54, Y_conduit, 0.6 - 0.02), V(1.54, 1.2, 0.6 - 0.02)],
+                            [V(1.54, 1.2, 0.6 + 0.02), V(1.54, Y_conduit, 0.6 + 0.02), V(1.54, Y_conduit, 1.2 - 0.02), V(1.54, Y_socket, 1.2 - 0.02)],
                             
                             // Back-left daisy-chain starting from right box and running along right wall to back wall
                             [V(1.54, 1.4, -0.35 - 0.02), V(1.54, Y_conduit, -0.35 - 0.02), V(1.54, Y_conduit, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.35 + 0.02, Y_socket, -2.54)],
@@ -3849,52 +4026,49 @@
                             
                             // Right-side daisy-chain
                             [V(boxX + 0.02, 1.4, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
-                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)]
+                            
+                            // Right wall daisy chain: back-right socket to washing machine, to heat pump, to autoclave
+                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, 0.0 - 0.02), V(1.54, Y_socket, 0.0 - 0.02)],
+                            [V(1.54, Y_socket, 0.0 + 0.02), V(1.54, Y_conduit, 0.0 + 0.02), V(1.54, Y_conduit, 0.6 - 0.02), V(1.54, 1.2, 0.6 - 0.02)],
+                            [V(1.54, 1.2, 0.6 + 0.02), V(1.54, Y_conduit, 0.6 + 0.02), V(1.54, Y_conduit, 1.2 - 0.02), V(1.54, Y_socket, 1.2 - 0.02)]
                         ];
                     }
                     
                     // Riser & buttons (Floor 0)
                     let lightPaths = [];
                     
-                    // Verteilerdose (Junction Box) on the right wall at Z=0.3, Y=1.5
-                    const jb = createJunctionBox(1.48, 1.5, 0.3, -Math.PI / 2);
+                    // Verteilerdose (Junction Box) on the right wall at Z=-0.1, Y=1.5
+                    const jb = createJunctionBox(1.48, 1.5, -0.1, -Math.PI / 2);
                     jb.userData.isSelectable = true;
                     jb.userData.name = "Verteilerdose Treppenhaus EG";
                     group.add(jb);
                     
                     // Riser & buttons (Floor 0)
                     // Riser starts from Verteilerdose (Y=1.5) up to ceiling (Y=2.3)
-                    lightPaths.push([V(1.49, 1.5, 0.3), V(1.49, 2.3, 0.3)]);
-                    // EG Switch conduit runs to Z=0.3, then vertically up to Verteilerdose
-                    lightPaths.push([V(1.49, 1.1, 2.2), V(1.49, 1.1, 0.3), V(1.49, 1.5, 0.3)]);
+                    lightPaths.push([V(1.49, 1.5, -0.1), V(1.49, 2.3, -0.1)]);
+                    // EG Switch conduit runs to Z=2.48, around corner, then along right wall to riser
+                    lightPaths.push([V(0.85, 1.1, 2.48), V(1.49, 1.1, 2.48), V(1.49, 1.1, -0.1), V(1.49, 1.5, -0.1)]);
                     
                     if (opt === 'back') {
-                        lightPaths.push([V(-0.35, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, 0.3)]);
+                        lightPaths.push([V(-0.35, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, -0.1)]);
                     } else if (opt === 'right') {
-                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.49, 1.5, -0.35), V(1.49, 1.5, 0.3)]);
+                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.49, 1.5, -0.35), V(1.49, 1.5, -0.1)]);
                     } else if (opt === 'diagonal') {
-                        lightPaths.push([V(0.85, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, 0.3)]);
+                        lightPaths.push([V(0.85, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, -0.1)]);
                     }
-                    const sw = createStairwellSwitch(1.48, 1.1, 2.2, -Math.PI / 2);
+                    const sw = createStairwellSwitch(0.85, 1.1, 2.48, Math.PI);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster EG";
                     group.add(sw);
                     
                     // Lamps & their connection conduits (Floor 0)
                     // (Treppenhauslampe EG is moved to Floor 1 group at Y=4.02 to avoid collision and match 1.8m height above stairs)
+                    const lampEG = createLamp(0.0, 2.15, -0.2, false);
+                    lampEG.userData.isSelectable = true;
+                    lampEG.userData.name = "Flurlampe EG (Decke)";
+                    group.add(lampEG);
                     
-                    const lampBath = createLamp(-0.9, 2.15, 0.5, false);
-                    lampBath.userData.isSelectable = true;
-                    lampBath.userData.name = "Badezimmerlampe (Decke)";
-                    group.add(lampBath);
-                    
-                    if (opt === 'back') {
-                        lightPaths.push([V(-0.35, 1.5, -2.54), V(-0.35, 2.2, -2.54), V(-0.9, 2.2, -2.54), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
-                    } else if (opt === 'right') {
-                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.54, 2.2, -0.35), V(-0.9, 2.2, -0.35), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
-                    } else if (opt === 'diagonal') {
-                        lightPaths.push([V(0.85, 1.5, -2.54), V(0.85, 2.2, -2.54), V(-0.9, 2.2, -2.54), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
-                    }
+                    lightPaths.push([V(1.49, 2.3, -0.1), V(1.49, 2.3, -0.2), V(0.0, 2.3, -0.2), V(0.0, 2.15, -0.2)]);
                     
                     paths.forEach(p => {
                         group.add(createCurvedConduit(p, 0.01, 0.07, false));
@@ -3963,39 +4137,27 @@
                     
                     // Riser & buttons (Floors 1 & 2)
                     let lightPaths = [];
-                    lightPaths.push([V(1.49, Y_conduit, 0.3), V(1.49, Y_conduit + 2.5, 0.3)]);
-                    lightPaths.push([V(1.49, Y_conduit + 1.1, 2.2), V(1.49, Y_conduit + 1.1, 0.3)]);
+                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, Y_conduit + 2.5, -0.1)]);
+                    lightPaths.push([V(0.85, Y_conduit + 1.1, 2.48), V(1.49, Y_conduit + 1.1, 2.48), V(1.49, Y_conduit + 1.1, -0.1)]);
                     // Connection to distribution board removed (fed from EG main board)
-                    const swTop = createStairwellSwitch(1.48, Y_conduit + 1.1, 0.3, -Math.PI / 2);
+                    const swTop = createStairwellSwitch(1.48, Y_conduit + 1.1, -0.1, -Math.PI / 2);
                     swTop.userData.isSelectable = true;
                     swTop.userData.name = `Treppenhaustaster ${fIdx}. OG (oben)`;
                     group.add(swTop);
                     
-                    const swBot = createStairwellSwitch(1.48, Y_conduit + 1.1, 2.2, -Math.PI / 2);
+                    const swBot = createStairwellSwitch(0.85, Y_conduit + 1.1, 2.48, Math.PI);
                     swBot.userData.isSelectable = true;
                     swBot.userData.name = `Treppenhaustaster ${fIdx}. OG (unten)`;
                     group.add(swBot);
                     
                     // Lamps & their connection conduits (Floors 1 & 2)
                     const Y_stair_lamp = fIdx === 1 ? 4.02 : 6.50;
-                    const stairLamp = createLamp(1.48, Y_stair_lamp, 0.3, true, -Math.PI / 2);
+                    const stairLamp = createLamp(1.48, Y_stair_lamp, -0.1, true, -Math.PI / 2);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = fIdx === 1 ? "Treppenhauslampe EG" : "Treppenhauslampe 1. OG";
                     group.add(stairLamp);
                     
-                    const lampRoom = createLamp(-0.5, Y_conduit + 2.35, 0.0, false);
-                    lampRoom.userData.isSelectable = true;
-                    lampRoom.userData.name = fIdx === 1 ? "Schlafzimmerlampe (Decke)" : "Wohnzimmerlampe (Decke)";
-                    group.add(lampRoom);
-                    
-                    if (opt === 'back') {
-                        lightPaths.push([V(-0.25, h, -2.54), V(-0.25, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
-                    } else if (opt === 'right') {
-                        lightPaths.push([V(1.54, h, -0.25), V(1.54, Y_conduit + 2.4, -0.25), V(-0.5, Y_conduit + 2.4, -0.25), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
-                    } else if (opt === 'diagonal') {
-                        const boxX = fIdx === 1 ? 0.85 : 0.1;
-                        lightPaths.push([V(boxX, h, -2.54), V(boxX, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
-                    }
+                    // (Ceiling lamps removed)
                     
                     paths.forEach(p => {
                         group.add(createCurvedConduit(p, 0.01, 0.07, false));
@@ -4055,29 +4217,20 @@
                     
                     // Riser & button (Floor 3)
                     let lightPaths = [];
-                    lightPaths.push([V(1.49, Y_conduit, 0.3), V(1.49, Y_conduit + 2.5, 0.3)]);
+                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, Y_conduit + 3.2, -0.1)]);
                     // Connection to distribution board removed (fed from EG main board)
-                    const sw = createStairwellSwitch(1.48, 8.4, 0.3, -Math.PI / 2);
+                    const sw = createStairwellSwitch(1.48, 8.4, -0.1, -Math.PI / 2);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster 3. OG";
                     group.add(sw);
                     
                     // Lamps & their connection conduits (Floor 3)
-                    const stairLamp = createLamp(1.48, 9.00, 0.3, true, -Math.PI / 2);
+                    const stairLamp = createLamp(1.48, 9.50, -0.1, true, -Math.PI / 2);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = "Treppenhauslampe 2. OG";
                     group.add(stairLamp);
                     
-                    const lampRoom = createLamp(0.0, Y_conduit + 3.1, -0.5, false);
-                    lampRoom.userData.isSelectable = true;
-                    lampRoom.userData.name = "Küchenlampe (Decke)";
-                    group.add(lampRoom);
-                    
-                    if (opt === 'back' || opt === 'diagonal') {
-                        lightPaths.push([V(-0.25, h, -2.54), V(-0.25, Y_conduit + 3.15, -2.54), V(0.0, Y_conduit + 3.15, -2.54), V(0.0, Y_conduit + 3.15, -0.5), V(0.0, Y_conduit + 3.1, -0.5)]);
-                    } else if (opt === 'right') {
-                        lightPaths.push([V(1.54, h, -0.25), V(1.54, Y_conduit + 3.15, -0.25), V(0.0, Y_conduit + 3.15, -0.25), V(0.0, Y_conduit + 3.15, -0.5), V(0.0, Y_conduit + 3.1, -0.5)]);
-                    }
+                    // (Ceiling lamps removed)
                     
                     paths.forEach(p => {
                         group.add(createCurvedConduit(p, 0.01, 0.07, false));
@@ -4111,14 +4264,23 @@
                 
                 const lightPaths = [
                     // Green riser connection to the topmost lamp on the terrace
-                    [V(1.49, Y_conduit, 0.3), V(1.49, 10.9, 0.3)]
+                    [V(1.49, 10.5, -0.1), V(1.49, 11.0, -0.1)],
+                    
+                    // Connection from lamp to switch above it
+                    [V(1.49, 11.0, -0.1), V(1.49, 11.2, -0.1)]
                 ];
                 
-                // Stairwell lamp for 3. OG (spiral stairs) at Y=10.9 (mounted on the right parapet wall)
-                const stairLamp = createLamp(1.48, 10.9, 0.3, true, -Math.PI / 2);
+                // Stairwell lamp for 3. OG (spiral stairs) at Y=11.0 (mounted on the right parapet wall)
+                const stairLamp = createLamp(1.48, 11.0, -0.1, true, -Math.PI / 2);
                 stairLamp.userData.isSelectable = true;
                 stairLamp.userData.name = "Treppenhauslampe 3. OG";
                 group.add(stairLamp);
+                
+                // Eltako Switch (Taster) above the lamp
+                const sw = createStairwellSwitch(1.48, 11.2, -0.1, -Math.PI / 2);
+                sw.userData.isSelectable = true;
+                sw.userData.name = "Treppenhaustaster Terrasse";
+                group.add(sw);
                 
                 paths.forEach(p => {
                     group.add(createCurvedConduit(p, 0.01, 0.07, false));
@@ -4438,6 +4600,85 @@
 
 
 
+        function createDimensionSprite(text) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+            
+            // NO background fill
+            // NO border stroke
+            
+            // Clean Outfit text in bold dark orange
+            ctx.font = 'bold 26px "Outfit", sans-serif';
+            ctx.fillStyle = '#c2410c';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 128, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(0.6, 0.15, 1.0);
+            return sprite;
+        }
+
+        function createDimensionLine(p1, p2, text, color = 0xc2410c, offsetDir = null, offsetVal = 0.1) {
+            const group = new THREE.Group();
+            const lineMat = new THREE.LineBasicMaterial({ color: color, depthWrite: false });
+            
+            const dir = new THREE.Vector3().subVectors(p2, p1);
+            const len = dir.length();
+            dir.normalize();
+            
+            // Split the line to create a gap in the middle for the text
+            const halfGap = Math.min(0.18, len * 0.25);
+            const p1Cut = p1.clone().add(dir.clone().multiplyScalar(len / 2 - halfGap));
+            const p2Cut = p2.clone().sub(dir.clone().multiplyScalar(len / 2 - halfGap));
+            
+            // Segment 1
+            const geom1 = new THREE.BufferGeometry().setFromPoints([p1, p1Cut]);
+            const line1 = new THREE.Line(geom1, lineMat);
+            group.add(line1);
+            
+            // Segment 2
+            const geom2 = new THREE.BufferGeometry().setFromPoints([p2Cut, p2]);
+            const line2 = new THREE.Line(geom2, lineMat);
+            group.add(line2);
+            
+            // End Ticks
+            let perp = offsetDir ? offsetDir.clone().normalize() : new THREE.Vector3(0, 1, 0);
+            if (Math.abs(perp.dot(dir)) > 0.99) {
+                perp.set(1, 0, 0);
+            }
+            perp.crossVectors(dir, perp).normalize().multiplyScalar(0.06);
+            
+            const tick1Geom = new THREE.BufferGeometry().setFromPoints([
+                p1.clone().add(perp),
+                p1.clone().sub(perp)
+            ]);
+            const tick1 = new THREE.Line(tick1Geom, lineMat);
+            group.add(tick1);
+            
+            const tick2Geom = new THREE.BufferGeometry().setFromPoints([
+                p2.clone().add(perp),
+                p2.clone().sub(perp)
+            ]);
+            const tick2 = new THREE.Line(tick2Geom, lineMat);
+            group.add(tick2);
+            
+            // The text is placed exactly at the midpoint of the line gap
+            const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+            
+            const label = createDimensionSprite(text);
+            label.position.copy(mid);
+            group.add(label);
+            
+            group.visible = showDimensions;
+            dimensionObjects.push(group);
+            return group;
+        }
+
         function updateEquipLabels(lang) {
             equipLabelSprites.forEach((sprite) => {
                 const key = sprite.userData.translationKey;
@@ -4528,6 +4769,31 @@
                 }
             }
             deselectObject();
+        }
+
+        function onCanvasDblClick(event) {
+            if (event.target.tagName !== 'CANVAS') return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            
+            // Check if we hit any visible part of the scene/building
+            const hitSomething = intersects.some(intersect => {
+                let obj = intersect.object;
+                while (obj) {
+                    if (obj === scene) break;
+                    if (!obj.visible) return false;
+                    obj = obj.parent;
+                }
+                return true;
+            });
+            
+            if (!hitSomething) {
+                // Clicked on empty space (blue background) -> recenter camera
+                focusFloor('all');
+                isResettingCamera = true;
+            }
         }
 
         function selectObject(obj) {
@@ -4797,6 +5063,12 @@
             });
         }
 
+        function toggleDimensions(val) {
+            showDimensions = val;
+            localStorage.setItem('bosa_showDimensions', val);
+            dimensionObjects.forEach(obj => obj.visible = val);
+        }
+
         function toggleFurniture(val) {
             showFurniture = val;
             localStorage.setItem('bosa_showFurniture', val);
@@ -4842,8 +5114,11 @@
         }
 
         let targetCameraY = 5.5;
+        let isTransitioningCamera = false;
+        let isResettingCamera = false;
         function animateCameraTarget(x, y, z) {
             targetCameraY = y;
+            isTransitioningCamera = true;
         }
 
         function onWindowResize() {
@@ -4867,7 +5142,22 @@
                 }
             });
 
-            controls.target.y += (targetCameraY - controls.target.y) * 0.1;
+            if (isResettingCamera) {
+                camera.position.lerp(new THREE.Vector3(12, 8, 14), 0.08);
+                controls.target.lerp(new THREE.Vector3(0, 5.5, 0), 0.08);
+                if (camera.position.distanceTo(new THREE.Vector3(12, 8, 14)) < 0.01 && 
+                    controls.target.distanceTo(new THREE.Vector3(0, 5.5, 0)) < 0.01) {
+                    camera.position.set(12, 8, 14);
+                    controls.target.set(0, 5.5, 0);
+                    isResettingCamera = false;
+                }
+            } else if (isTransitioningCamera) {
+                controls.target.y += (targetCameraY - controls.target.y) * 0.1;
+                if (Math.abs(targetCameraY - controls.target.y) < 0.005) {
+                    controls.target.y = targetCameraY;
+                    isTransitioningCamera = false;
+                }
+            }
             controls.update();
 
             // Kran einklappen/ausklappen Animation (Dauer: 1 Sekunde, Cosinus-Easing)
