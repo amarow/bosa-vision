@@ -1660,7 +1660,7 @@
             installationObjects.push(equipGrpRight);
             shaftRightObjects.push(equipGrpRight);
 
-            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
+            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
 
             // 3. OPTION C: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpDiag = new THREE.Group();
@@ -3080,11 +3080,99 @@
                 const group = new THREE.Group();
                 const frameMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.5 });
                 const insertMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0xff6b09, roughness: 0.6 }); // Kaiser-Orange Unterputzdose
+                
+                // Flush-mount box (Unterputzdose) extending into the wall (6.8cm diameter, 6cm depth)
+                const wallBox = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.06, 16), boxMat);
+                wallBox.rotation.x = Math.PI / 2;
+                wallBox.position.z = -0.03;
+                group.add(wallBox);
+
                 const frame = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.015), frameMat);
                 group.add(frame);
                 const insert = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.005), insertMat);
                 insert.position.z = 0.006;
                 group.add(insert);
+                group.position.set(x, y, z);
+                group.rotation.y = rotY;
+                return group;
+            }
+
+            function createStairwellSwitch(x, y, z, rotY) {
+                const group = new THREE.Group();
+                const frameMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.5 });
+                const buttonMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.4 });
+                const centerMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0xff6b09, roughness: 0.6 }); // Kaiser-Orange Unterputzdose
+                
+                // Flush-mount box (Unterputzdose) extending into the wall
+                const wallBox = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.06, 16), boxMat);
+                wallBox.rotation.x = Math.PI / 2;
+                wallBox.position.z = -0.03;
+                group.add(wallBox);
+
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.015), frameMat);
+                group.add(frame);
+                const button = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.005), buttonMat);
+                button.position.z = 0.006;
+                group.add(button);
+                const dot = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.002), centerMat);
+                dot.position.z = 0.009;
+                group.add(dot);
+                
+                group.position.set(x, y, z);
+                group.rotation.y = rotY;
+                return group;
+            }
+
+            function createLamp(x, y, z, isWall = false, rotY = 0) {
+                const group = new THREE.Group();
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }); // White base
+                const glowMat = new THREE.MeshBasicMaterial({ color: 0xfff3cd }); // Warm white glowing light
+                
+                if (isWall) {
+                    // Round plate/disc shape flat against the wall (doubled size)
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.015, 24), bodyMat);
+                    base.rotation.x = Math.PI / 2; // Axis along local Z
+                    base.position.z = -0.007;
+                    group.add(base);
+                    
+                    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.015, 24), glowMat);
+                    glass.rotation.x = Math.PI / 2;
+                    glass.position.z = 0.007;
+                    group.add(glass);
+                } else {
+                    // Ceiling disc fixture (doubled size)
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.015, 24), bodyMat);
+                    group.add(base);
+                    
+                    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.02, 24), glowMat);
+                    glass.position.y = -0.01;
+                    group.add(glass);
+                }
+                
+                group.position.set(x, y, z);
+                group.rotation.y = rotY;
+                return group;
+            }
+
+            function createJunctionBox(x, y, z, rotY) {
+                const group = new THREE.Group();
+                const coverMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.8 }); // Off-white flat cover
+                const boxMat = new THREE.MeshStandardMaterial({ color: 0xff6b09, roughness: 0.6 }); // Kaiser-Orange Unterputzdose
+                
+                // Flush-mount box (Unterputzdose) extending into the wall
+                const wallBox = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.06, 16), boxMat);
+                wallBox.rotation.x = Math.PI / 2;
+                wallBox.position.z = -0.03;
+                group.add(wallBox);
+
+                // Round cover plate
+                const cover = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.005, 24), coverMat);
+                cover.rotation.x = Math.PI / 2;
+                cover.position.z = 0.002;
+                group.add(cover);
+                
                 group.position.set(x, y, z);
                 group.rotation.y = rotY;
                 return group;
@@ -3186,7 +3274,7 @@
             installationObjects.push(undergroundWasteBack);
             shaftBackObjects.push(undergroundWasteBack);
 
-            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x3b82f6 });
+            const elecBoxMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
             const elecBoxBack = new THREE.Group();
             elecBoxBack.userData.isSelectable = true;
             elecBoxBack.userData.name = "Hauptverteilung (Option A)";
@@ -3254,11 +3342,7 @@
                 label.position.set(-0.25, h + 0.25, -3.4);
                 subBoxGroup.add(label);
 
-                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
-                const dropHose = createConduit(-0.25, h - 0.1, -2.54, -0.25, Y_conduit, -2.54);
-                const leftBackHose = createConduit(-0.25, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                const rightBackHose = createConduit(-0.25, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
-                subBoxGroup.add(dropHose, leftBackHose, rightBackHose);
+                // Schwarze Installationsschläuche werden nun als durchgehende Bögen pro Steckdose verlegt
 
                 subBoxGroup.visible = (shaftPosition === 'back') && showInstallations;
                 floorGroups[fIdx].add(subBoxGroup);
@@ -3365,11 +3449,7 @@
                 label.position.set(2.6, h + 0.25, -0.25);
                 subBoxGroup.add(label);
 
-                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
-                const dropHose = createConduit(1.54, h - 0.1, -0.25, 1.54, Y_conduit, -0.25);
-                const rightWallHose = createConduit(1.54, Y_conduit, -0.25, 1.54, Y_conduit, -2.54);
-                const backWallHose = createConduit(1.54, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                subBoxGroup.add(dropHose, rightWallHose, backWallHose);
+                // Schwarze Installationsschläuche werden nun als durchgehende Bögen pro Steckdose verlegt
  
                 subBoxGroup.visible = (shaftPosition === 'right') && showInstallations;
                 floorGroups[fIdx].add(subBoxGroup);
@@ -3492,11 +3572,7 @@
                 label.position.set(boxX, h + 0.25, -3.4);
                 subBoxGroup.add(label);
 
-                // Schwarze Installationsschläuche von Unterverteilung zum Boden und ringsum (in der Wand verlegt, 4cm tief)
-                const dropHose = createConduit(boxX, h - 0.1, -2.54, boxX, Y_conduit, -2.54);
-                const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
-                subBoxGroup.add(dropHose, leftBackHose, rightBackHose);
+                // Schwarze Installationsschläuche werden nun als durchgehende Bögen pro Steckdose verlegt
 
                 subBoxGroup.visible = (shaftPosition === 'diagonal') && showInstallations;
                 floorGroups[fIdx].add(subBoxGroup);
@@ -3506,13 +3582,12 @@
 
 
 
-            // Sockets and static room conduits for 1. OG, 2. OG, 3. OG
-            // Sockets and static room conduits for EG, 1. OG, 2. OG, 3. OG
+            // Sockets without static straight conduits (conduits are built as curved daisy-chains below)
             const distFloors = [0, 1, 2, 3, 4];
             distFloors.forEach((fIdx) => {
                 const Y_floor = floorHeights[fIdx] + 0.2;
                 const Y_conduit = floorHeights[fIdx];
-                const Y_socket = Y_floor + 0.3;
+                const Y_socket = Y_floor + 0.2; // 20 cm height above finished floor
                 
                 const roomGroup = new THREE.Group();
                 
@@ -3528,106 +3603,42 @@
                     roomGroup.add(badge);
                 }
 
-                // Connections from main electrical box in EG (fIdx === 0)
-                if (fIdx === 0) {
-                    if (shaftPosition === 'back') {
-                        const boxX = -0.35;
-                        const dropHose = createConduit(boxX, 1.4, -2.54, boxX, Y_conduit, -2.54);
-                        const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                        const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
-                        roomGroup.add(dropHose, leftBackHose, rightBackHose);
-                    } else if (shaftPosition === 'right') {
-                        const dropHose = createConduit(1.54, 1.4, -0.25, 1.54, Y_conduit, -0.25);
-                        const rightWallHose = createConduit(1.54, Y_conduit, -0.25, 1.54, Y_conduit, -2.54);
-                        const backWallHose = createConduit(1.54, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                        roomGroup.add(dropHose, rightWallHose, backWallHose);
-                    } else if (shaftPosition === 'diagonal') {
-                        const boxX = 0.85;
-                        const dropHose = createConduit(boxX, 1.4, -2.54, boxX, Y_conduit, -2.54);
-                        const leftBackHose = createConduit(boxX, Y_conduit, -2.54, -1.54, Y_conduit, -2.54);
-                        const rightBackHose = createConduit(boxX, Y_conduit, -2.54, 1.54, Y_conduit, -2.54);
-                        roomGroup.add(dropHose, leftBackHose, rightBackHose);
-                    }
-                }
-
-                // Front wall hose segment (Check if Kitchen for balcony door vs window, or EG)
                 if (fIdx === 3) {
-                    // Kitchen: Left wall floor conduit runs all the way to Z = 2.48 (in-wall X = -1.54)
-                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.54);
-                    roomGroup.add(leftConduit);
-
-                    // Kitchen: Front wall floor conduit runs from left corner to right corner (in-wall Z = 2.54)
-                    const frontConduit = createConduit(-1.54, Y_conduit, 2.54, 1.54, Y_conduit, 2.54);
-                    roomGroup.add(frontConduit);
-
                     // Front socket on right wall at Z = 2.4 (in-wall X = 1.54)
                     addSocketWithNumber(1.48, Y_socket, 2.4, -Math.PI / 2, 1.42, Y_socket + 0.15, 2.4);
-                    const frontVertRight = createConduit(1.54, Y_conduit, 2.4, 1.54, Y_socket, 2.4);
-                    roomGroup.add(frontVertRight);
 
-                    // New socket right of the French balcony (front wall, X = -0.1, Y = 7.8) (in-wall Z = 2.54)
-                    addSocketWithNumber(-0.1, 7.8, 2.48, Math.PI, -0.1, 7.8 + 0.15, 2.42);
-                    const balconyRightVert = createConduit(-0.1, Y_conduit, 2.54, -0.1, 7.8, 2.54);
-                    roomGroup.add(balconyRightVert);
+                    // New socket right of the French balcony (front wall, X = -0.1, Y = 7.7) (in-wall Z = 2.54)
+                    addSocketWithNumber(-0.1, 7.7, 2.48, Math.PI, -0.1, 7.7 + 0.15, 2.42);
                     
                     // Kitchen countertop sockets (above countertop Y_floor + 1.0)
-                    // 1. Back Wall Corner socket (in-wall Z = -2.54)
+                    // 1. Back Wall Corner socket (in-wall Z = -2.48)
                     addSocketWithNumber(-1.2, Y_floor + 1.0, -2.48, 0, -1.2, Y_floor + 1.15, -2.42);
-                    const cornerVert = createConduit(-1.2, Y_conduit, -2.54, -1.2, Y_floor + 1.0, -2.54);
-                    roomGroup.add(cornerVert);
 
-                    // 2. Back Wall Socket near the stairs (right end of back counter) (in-wall Z = -2.54)
+                    // 2. Back Wall Socket near the stairs (right end of back counter) (in-wall Z = -2.48)
                     addSocketWithNumber(0.8, Y_floor + 1.0, -2.48, 0, 0.8, Y_floor + 1.15, -2.42);
-                    const stairVert = createConduit(0.8, Y_conduit, -2.54, 0.8, Y_floor + 1.0, -2.54);
-                    roomGroup.add(stairVert);
 
-                    // 3. Left Wall countertop socket (above left counter, shifted forward to Z = -0.4, next to the sink) (in-wall X = -1.54)
-                    addSocketWithNumber(-1.48, Y_floor + 1.0, -0.4, Math.PI / 2, -1.42, Y_floor + 1.15, -0.4);
-                    const counterLeftVert = createConduit(-1.54, Y_conduit, -0.4, -1.54, Y_floor + 1.0, -0.4);
-                    roomGroup.add(counterLeftVert);
+                    // 3. Left Wall countertop socket (above left counter, shifted to Z = -1.5) (in-wall X = -1.48)
+                    addSocketWithNumber(-1.48, Y_floor + 1.0, -1.5, Math.PI / 2, -1.42, Y_floor + 1.15, -1.5);
 
-                    // Fridge socket (right wall, near Z = -0.93, Y = 7.8) (in-wall X = 1.54)
-                    addSocketWithNumber(1.5, 7.8, -0.93, -Math.PI / 2, 1.44, 7.8 + 0.15, -0.93);
-                    const fridgeVert = createConduit(1.54, Y_conduit, -0.93, 1.54, 7.8, -0.93);
-                    roomGroup.add(fridgeVert);
+                    // Fridge socket (right wall, near Z = -0.93, Y = 7.7) (in-wall X = 1.5)
+                    addSocketWithNumber(1.5, 7.7, -0.93, -Math.PI / 2, 1.44, 7.7 + 0.15, -0.93);
                 } else if (fIdx === 0) {
-                    // EG: Left wall floor conduit runs up to the front-left socket at Z = 2.1 (in-wall X = -1.54)
-                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.1);
-                    roomGroup.add(leftConduit);
-
-                    // EG: Front wall floor conduit is removed completely to keep the entrance doorway clear
-
                     // Socket for autoclave and heat pump (right wall, Z = 0.85, Y = Y_socket)
                     addSocketWithNumber(1.5, Y_socket, 0.85, -Math.PI / 2, 1.44, Y_socket + 0.15, 0.85);
-                    const wpAutoVert = createConduit(1.54, Y_conduit, 0.85, 1.54, Y_socket, 0.85);
-                    roomGroup.add(wpAutoVert);
-
-                    // EG: Right wall floor conduit runs up to the aggregates socket at Z = 0.85 (in-wall X = 1.54)
-                    const rightWallConduit = createConduit(1.54, Y_conduit, -2.54, 1.54, Y_conduit, 0.85);
-                    roomGroup.add(rightWallConduit);
                 } else if (fIdx === 1 || fIdx === 2) {
-                    // Other floors (1. & 2. OG): standard left wall segment all the way to the front (in-wall X = -1.54)
-                    const leftConduit = createConduit(-1.54, Y_conduit, -2.54, -1.54, Y_conduit, 2.54);
-                    roomGroup.add(leftConduit);
-
                     // Other floors: standard window socket at X = -1.0 (unless 2. OG or 1. OG user moved it)
                     let sX = -1.0;
                     let sY = Y_socket;
                     
                     if (fIdx === 2) {
                         sX = -0.250;
-                        sY = 5.300;
+                        sY = 5.200;
                     } else if (fIdx === 1) {
                         sX = -0.350;
-                        sY = 2.800;
+                        sY = 2.700;
                     }
                     
-                    const frontConduit = createConduit(-1.54, Y_conduit, 2.54, sX, Y_conduit, 2.54);
-                    roomGroup.add(frontConduit);
-
                     addSocketWithNumber(sX, sY, 2.48, Math.PI, sX, sY + 0.15, 2.42);
-                    const frontVert = createConduit(sX, Y_conduit, 2.54, sX, sY, 2.54);
-                    roomGroup.add(frontVert);
                 } else if (fIdx === 4) {
                     // Terrace: installations
                     // Sub-distribution board (Unterverteiler Terrasse) inside the exit shed (back wall: X=0.9, Y=11.8, Z=-2.475)
@@ -3646,26 +3657,10 @@
                     subBoxGroup.add(labelSprite);
                     roomGroup.add(subBoxGroup);
 
-                    // Conduits from sub-distribution board:
-                    // Drop hose (from box down to raw floor 10.5)
-                    const dropHose = createConduit(0.9, 11.7, -2.5, 0.9, 10.5, -2.5);
-                    roomGroup.add(dropHose);
-
-                    // Floor conduits inside the walls (at raw floor Y = 10.5)
-                    // Back wall floor conduit running all the way from exit box to left corner
-                    const backFloorHose = createConduit(0.9, 10.5, -2.5, -1.54, 10.5, -2.5);
-                    roomGroup.add(backFloorHose);
-
-                    // Left wall floor conduit running from back corner to front corner
-                    const leftFloorHose = createConduit(-1.54, 10.5, -2.5, -1.54, 10.5, 2.5);
-                    roomGroup.add(leftFloorHose);
-
-                    // Three sockets on the left wall at floor level (Y_socket = 11.0)
+                    // Three sockets on the left wall at floor level (Y_socket = 10.9)
                     const leftZCoords = [-1.8, 0.0, 1.8];
                     leftZCoords.forEach(lz => {
                         addSocketWithNumber(-1.48, Y_socket, lz, Math.PI / 2, -1.42, Y_socket + 0.15, lz);
-                        const leftVert = createConduit(-1.54, 10.5, lz, -1.54, Y_socket, lz);
-                        roomGroup.add(leftVert);
                     });
 
                     // Two sockets on the back wall outside the exit shed at 90cm height (Y = Y_floor + 0.9 = 11.6)
@@ -3675,8 +3670,6 @@
                     ];
                     backSockets.forEach(bs => {
                         addSocketWithNumber(bs.x, bs.y, -2.48, 0, bs.x, bs.y + 0.15, -2.42);
-                        const backVert = createConduit(bs.x, 10.5, -2.54, bs.x, bs.y, -2.54);
-                        roomGroup.add(backVert);
                     });
                 }
                 
@@ -3684,14 +3677,14 @@
                 let leftSockets = [];
                 if (fIdx === 1) {
                     leftSockets = [
-                        { z: -2.4, y: 2.8 },
+                        { z: -2.4, y: 2.700 },
                         { z: -0.2, y: Y_socket },
-                        { z: 0.5, y: Y_socket },
-                        { z: 1.8, y: Y_socket }
+                        { z: 0.850, y: Y_socket },
+                        { z: 2.200, y: Y_socket }
                     ];
                 } else if (fIdx === 2) {
                     leftSockets = [
-                        { z: -2.35, y: 5.3 },
+                        { z: -2.35, y: 5.200 },
                         { z: -0.2, y: Y_socket },
                         { z: 0.5, y: Y_socket },
                         { z: 1.8, y: Y_socket }
@@ -3714,17 +3707,12 @@
 
                 leftSockets.forEach(s => {
                     addSocketWithNumber(-1.48, s.y, s.z, Math.PI / 2, -1.42, s.y + 0.15, s.z);
-                    
-                    // In-wall conduit X = -1.54
-                    const vert = createConduit(-1.54, Y_conduit, s.z, -1.54, s.y, s.z);
-                    roomGroup.add(vert);
                 });
                 
                 if (fIdx !== 4) {
-                    // Socket in the back-right corner (in-wall Z = -2.54)
-                    addSocketWithNumber(1.35, Y_socket, -2.48, 0, 1.35, Y_socket + 0.15, -2.42);
-                    const backRightVert = createConduit(1.35, Y_conduit, -2.54, 1.35, Y_socket, -2.54);
-                    roomGroup.add(backRightVert);
+                    // Socket in the back-right corner (in-wall Z = -2.48)
+                    const bx = (fIdx === 1) ? 0.500 : (fIdx === 2) ? 0.650 : 1.35;
+                    addSocketWithNumber(bx, Y_socket, -2.48, 0, bx, Y_socket + 0.15, -2.42);
                 }
 
                 if (fIdx === 0) {
@@ -3732,8 +3720,6 @@
                     const extraBackX = [-1.35, -0.5, 0.4];
                     extraBackX.forEach(bx => {
                         addSocketWithNumber(bx, Y_socket, -2.48, 0, bx, Y_socket + 0.15, -2.42);
-                        const extraVert = createConduit(bx, Y_conduit, -2.54, bx, Y_socket, -2.54);
-                        roomGroup.add(extraVert);
                     });
                 }
                 
@@ -3741,6 +3727,421 @@
                 floorGroups[fIdx].add(roomGroup);
                 installationObjects.push(roomGroup);
             });
+
+            // Helper function to create curved conduits with rounded bends
+            function createCurvedConduit(points, radius = 0.01, bendRadius = 0.07, isLighting = false) {
+                if (!points || points.length < 2) return new THREE.Group();
+                
+                // Filter out consecutive duplicate points to avoid division by zero
+                const cleanPoints = [points[0]];
+                for (let i = 1; i < points.length; i++) {
+                    if (points[i].distanceTo(cleanPoints[cleanPoints.length - 1]) > 0.001) {
+                        cleanPoints.push(points[i]);
+                    }
+                }
+                
+                if (cleanPoints.length < 2) return new THREE.Group();
+                
+                const curvePath = new THREE.CurvePath();
+                let currentStart = cleanPoints[0].clone();
+                
+                for (let i = 1; i < cleanPoints.length; i++) {
+                    const pCurrent = cleanPoints[i - 1];
+                    const pNext = cleanPoints[i];
+                    
+                    const segmentDir = new THREE.Vector3().subVectors(pNext, pCurrent).normalize();
+                    const segmentLen = pCurrent.distanceTo(pNext);
+                    
+                    let r = bendRadius;
+                    if (i > 1) {
+                        const prevLen = cleanPoints[i - 2].distanceTo(pCurrent);
+                        r = Math.min(r, prevLen * 0.45);
+                    }
+                    r = Math.min(r, segmentLen * 0.45);
+                    
+                    let straightEnd = pNext.clone();
+                    if (i < cleanPoints.length - 1) {
+                        straightEnd.subVectors(pNext, segmentDir.clone().multiplyScalar(r));
+                    }
+                    
+                    if (currentStart.distanceTo(straightEnd) > 0.001) {
+                        curvePath.add(new THREE.LineCurve3(currentStart.clone(), straightEnd.clone()));
+                    }
+                    
+                    if (i < cleanPoints.length - 1) {
+                        const pAfter = cleanPoints[i + 1];
+                        const nextSegmentDir = new THREE.Vector3().subVectors(pAfter, pNext).normalize();
+                        const nextSegmentLen = pNext.distanceTo(pAfter);
+                        
+                        let rNext = Math.min(bendRadius, segmentLen * 0.45, nextSegmentLen * 0.45);
+                        
+                        const bendStart = straightEnd.clone();
+                        const bendEnd = new THREE.Vector3().addVectors(pNext, nextSegmentDir.clone().multiplyScalar(rNext));
+                        
+                        curvePath.add(new THREE.QuadraticBezierCurve3(bendStart, pNext.clone(), bendEnd));
+                        currentStart.copy(bendEnd);
+                    }
+                }
+                
+                const colorVal = isLighting ? 0x22c55e : 0x111111; // Green for lighting, black for sockets
+                const conduitMat = new THREE.MeshLambertMaterial({ color: colorVal }); // Wellrohr
+                const geom = new THREE.TubeGeometry(curvePath, Math.max(20, cleanPoints.length * 10), radius, 8, false);
+                const mesh = new THREE.Mesh(geom, conduitMat);
+                return mesh;
+            }
+
+            const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
+            // Build the curved conduits for each floor and each shaft option
+            const options = ['back', 'right', 'diagonal'];
+            
+            options.forEach(opt => {
+                const targetObjectsList = opt === 'back' ? shaftBackObjects : opt === 'right' ? shaftRightObjects : shaftDiagObjects;
+                
+                // Floor 0 (EG)
+                {
+                    const Y_conduit = floorHeights[0];
+                    const Y_socket = Y_conduit + 0.2 + 0.2; // 0.4
+                    
+                    const group = new THREE.Group();
+                    group.visible = (shaftPosition === opt) && showInstallations;
+                    
+                    let paths = [];
+                    if (opt === 'back') {
+                        const boxX = -0.35;
+                        paths = [
+                            // Left-side daisy-chain
+                            [V(boxX - 0.02, 1.4, -2.54), V(boxX - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_socket, -2.54)],
+                            [V(-1.35 + 0.02, Y_socket, -2.54), V(-1.35 + 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, 0.15 - 0.02), V(-1.54, 0.55, 0.15 - 0.02)],
+                            [V(-1.54, 0.55, 0.15 + 0.02), V(-1.54, Y_conduit, 0.15 + 0.02), V(-1.54, Y_conduit, 0.85 - 0.02), V(-1.54, 0.55, 0.85 - 0.02)],
+                            [V(-1.54, 0.55, 0.85 + 0.02), V(-1.54, Y_conduit, 0.85 + 0.02), V(-1.54, Y_conduit, 2.1 - 0.02), V(-1.54, Y_socket, 2.1 - 0.02)],
+                            
+                            // Right-side daisy-chain
+                            [V(boxX + 0.02, 1.4, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_socket, -2.54)],
+                            [V(-0.5 + 0.02, Y_socket, -2.54), V(-0.5 + 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_socket, -2.54)],
+                            [V(0.4 + 0.02, Y_socket, -2.54), V(0.4 + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
+                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)]
+                        ];
+                    } else if (opt === 'right') {
+                        paths = [
+                            // Front-right socket
+                            [V(1.54, 1.4, -0.35 + 0.02), V(1.54, Y_conduit, -0.35 + 0.02), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)],
+                            
+                            // Back-left daisy-chain starting from right box and running along right wall to back wall
+                            [V(1.54, 1.4, -0.35 - 0.02), V(1.54, Y_conduit, -0.35 - 0.02), V(1.54, Y_conduit, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.35 + 0.02, Y_socket, -2.54)],
+                            [V(1.35 - 0.02, Y_socket, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(0.4 + 0.02, Y_conduit, -2.54), V(0.4 + 0.02, Y_socket, -2.54)],
+                            [V(0.4 - 0.02, Y_socket, -2.54), V(0.4 - 0.02, Y_conduit, -2.54), V(-0.5 + 0.02, Y_conduit, -2.54), V(-0.5 + 0.02, Y_socket, -2.54)],
+                            [V(-0.5 - 0.02, Y_socket, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-1.35 + 0.02, Y_conduit, -2.54), V(-1.35 + 0.02, Y_socket, -2.54)],
+                            [V(-1.35 - 0.02, Y_socket, -2.54), V(-1.35 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, 0.15 - 0.02), V(-1.54, 0.55, 0.15 - 0.02)],
+                            [V(-1.54, 0.55, 0.15 + 0.02), V(-1.54, Y_conduit, 0.15 + 0.02), V(-1.54, Y_conduit, 0.85 - 0.02), V(-1.54, 0.55, 0.85 - 0.02)],
+                            [V(-1.54, 0.55, 0.85 + 0.02), V(-1.54, Y_conduit, 0.85 + 0.02), V(-1.54, Y_conduit, 2.1 - 0.02), V(-1.54, Y_socket, 2.1 - 0.02)]
+                        ];
+                    } else if (opt === 'diagonal') {
+                        const boxX = 0.85;
+                        paths = [
+                            // Left-side daisy-chain
+                            [V(boxX - 0.02, 1.4, -2.54), V(boxX - 0.02, Y_conduit, -2.54), V(0.4 + 0.02, Y_conduit, -2.54), V(0.4 + 0.02, Y_socket, -2.54)],
+                            [V(0.4 - 0.02, Y_socket, -2.54), V(0.4 - 0.02, Y_conduit, -2.54), V(-0.5 + 0.02, Y_conduit, -2.54), V(-0.5 + 0.02, Y_socket, -2.54)],
+                            [V(-0.5 - 0.02, Y_socket, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-1.35 + 0.02, Y_conduit, -2.54), V(-1.35 + 0.02, Y_socket, -2.54)],
+                            [V(-1.35 - 0.02, Y_socket, -2.54), V(-1.35 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, 0.15 - 0.02), V(-1.54, 0.55, 0.15 - 0.02)],
+                            [V(-1.54, 0.55, 0.15 + 0.02), V(-1.54, Y_conduit, 0.15 + 0.02), V(-1.54, Y_conduit, 0.85 - 0.02), V(-1.54, 0.55, 0.85 - 0.02)],
+                            [V(-1.54, 0.55, 0.85 + 0.02), V(-1.54, Y_conduit, 0.85 + 0.02), V(-1.54, Y_conduit, 2.1 - 0.02), V(-1.54, Y_socket, 2.1 - 0.02)],
+                            
+                            // Right-side daisy-chain
+                            [V(boxX + 0.02, 1.4, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
+                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, 0.85 - 0.02), V(1.54, Y_socket, 0.85 - 0.02)]
+                        ];
+                    }
+                    
+                    // Riser & buttons (Floor 0)
+                    let lightPaths = [];
+                    
+                    // Verteilerdose (Junction Box) on the right wall at Z=0.3, Y=1.5
+                    const jb = createJunctionBox(1.48, 1.5, 0.3, -Math.PI / 2);
+                    jb.userData.isSelectable = true;
+                    jb.userData.name = "Verteilerdose Treppenhaus EG";
+                    group.add(jb);
+                    
+                    // Riser & buttons (Floor 0)
+                    // Riser starts from Verteilerdose (Y=1.5) up to ceiling (Y=2.3)
+                    lightPaths.push([V(1.49, 1.5, 0.3), V(1.49, 2.3, 0.3)]);
+                    // EG Switch conduit runs to Z=0.3, then vertically up to Verteilerdose
+                    lightPaths.push([V(1.49, 1.1, 2.2), V(1.49, 1.1, 0.3), V(1.49, 1.5, 0.3)]);
+                    
+                    if (opt === 'back') {
+                        lightPaths.push([V(-0.35, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, 0.3)]);
+                    } else if (opt === 'right') {
+                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.49, 1.5, -0.35), V(1.49, 1.5, 0.3)]);
+                    } else if (opt === 'diagonal') {
+                        lightPaths.push([V(0.85, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, 0.3)]);
+                    }
+                    const sw = createStairwellSwitch(1.48, 1.1, 2.2, -Math.PI / 2);
+                    sw.userData.isSelectable = true;
+                    sw.userData.name = "Treppenhaustaster EG";
+                    group.add(sw);
+                    
+                    // Lamps & their connection conduits (Floor 0)
+                    // (Treppenhauslampe EG is moved to Floor 1 group at Y=4.02 to avoid collision and match 1.8m height above stairs)
+                    
+                    const lampBath = createLamp(-0.9, 2.15, 0.5, false);
+                    lampBath.userData.isSelectable = true;
+                    lampBath.userData.name = "Badezimmerlampe (Decke)";
+                    group.add(lampBath);
+                    
+                    if (opt === 'back') {
+                        lightPaths.push([V(-0.35, 1.5, -2.54), V(-0.35, 2.2, -2.54), V(-0.9, 2.2, -2.54), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
+                    } else if (opt === 'right') {
+                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.54, 2.2, -0.35), V(-0.9, 2.2, -0.35), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
+                    } else if (opt === 'diagonal') {
+                        lightPaths.push([V(0.85, 1.5, -2.54), V(0.85, 2.2, -2.54), V(-0.9, 2.2, -2.54), V(-0.9, 2.2, 0.5), V(-0.9, 2.15, 0.5)]);
+                    }
+                    
+                    paths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, false));
+                    });
+                    lightPaths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, true));
+                    });
+                    floorGroups[0].add(group);
+                    installationObjects.push(group);
+                    targetObjectsList.push(group);
+                }
+                
+                // Floors 1 & 2
+                [1, 2].forEach(fIdx => {
+                    const Y_conduit = floorHeights[fIdx];
+                    const Y_socket = Y_conduit + 0.2 + 0.2; // 20cm above finished floor
+                    const h = fIdx === 1 ? 4.0 : 6.5;
+                    const z_s1 = fIdx === 1 ? -2.4 : -2.35;
+                    const y_s1 = fIdx === 1 ? 2.7 : 5.2; // Sockets at 20cm height (2.3+0.2+0.2=2.7 or 4.8+0.2+0.2=5.2)
+                    const sX = fIdx === 1 ? -0.350 : -0.250;
+                    const sY = fIdx === 1 ? 2.700 : 5.200; // Sockets at 20cm height
+                    const bx = (fIdx === 1) ? 0.500 : (fIdx === 2) ? 0.650 : 1.35;
+                    const z_s3 = (fIdx === 1) ? 0.850 : (fIdx === 2) ? 0.750 : 0.500;
+                    const z_s4 = (fIdx === 1) ? 2.200 : 1.800;
+                    
+                    const group = new THREE.Group();
+                    group.visible = (shaftPosition === opt) && showInstallations;
+                    
+                    let paths = [];
+                    if (opt === 'back') {
+                        paths = [
+                            // Right-side corner socket
+                            [V(-0.25 + 0.02, h - 0.1, -2.54), V(-0.25 + 0.02, Y_conduit, -2.54), V(bx - 0.02, Y_conduit, -2.54), V(bx - 0.02, Y_socket, -2.54)],
+                            
+                            // Left-side daisy-chain
+                            [V(-0.25 - 0.02, h - 0.1, -2.54), V(-0.25 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, z_s1 - 0.02), V(-1.54, y_s1, z_s1 - 0.02)],
+                            [V(-1.54, y_s1, z_s1 + 0.02), V(-1.54, Y_conduit, z_s1 + 0.02), V(-1.54, Y_conduit, -0.2 - 0.02), V(-1.54, Y_socket, -0.2 - 0.02)],
+                            [V(-1.54, Y_socket, -0.2 + 0.02), V(-1.54, Y_conduit, -0.2 + 0.02), V(-1.54, Y_conduit, z_s3 - 0.02), V(-1.54, Y_socket, z_s3 - 0.02)],
+                            [V(-1.54, Y_socket, z_s3 + 0.02), V(-1.54, Y_conduit, z_s3 + 0.02), V(-1.54, Y_conduit, z_s4 - 0.02), V(-1.54, Y_socket, z_s4 - 0.02)],
+                            [V(-1.54, Y_socket, z_s4 + 0.02), V(-1.54, Y_conduit, z_s4 + 0.02), V(-1.54, Y_conduit, 2.54), V(sX - 0.02, Y_conduit, 2.54), V(sX - 0.02, sY, 2.54)]
+                        ];
+                    } else if (opt === 'right') {
+                        paths = [
+                            // Starting from right box, running to back-right corner socket, then back-left corner
+                            [V(1.54, h - 0.1, -0.25 - 0.02), V(1.54, Y_conduit, -0.25 - 0.02), V(1.54, Y_conduit, -2.54), V(bx + 0.02, Y_conduit, -2.54), V(bx + 0.02, Y_socket, -2.54)],
+                            [V(bx - 0.02, Y_socket, -2.54), V(bx - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, z_s1 - 0.02), V(-1.54, y_s1, z_s1 - 0.02)],
+                            [V(-1.54, y_s1, z_s1 + 0.02), V(-1.54, Y_conduit, z_s1 + 0.02), V(-1.54, Y_conduit, -0.2 - 0.02), V(-1.54, Y_socket, -0.2 - 0.02)],
+                            [V(-1.54, Y_socket, -0.2 + 0.02), V(-1.54, Y_conduit, -0.2 + 0.02), V(-1.54, Y_conduit, z_s3 - 0.02), V(-1.54, Y_socket, z_s3 - 0.02)],
+                            [V(-1.54, Y_socket, z_s3 + 0.02), V(-1.54, Y_conduit, z_s3 + 0.02), V(-1.54, Y_conduit, z_s4 - 0.02), V(-1.54, Y_socket, z_s4 - 0.02)],
+                            [V(-1.54, Y_socket, z_s4 + 0.02), V(-1.54, Y_conduit, z_s4 + 0.02), V(-1.54, Y_conduit, 2.54), V(sX - 0.02, Y_conduit, 2.54), V(sX - 0.02, sY, 2.54)]
+                        ];
+                    } else if (opt === 'diagonal') {
+                        const boxX = fIdx === 1 ? 0.85 : 0.1;
+                        paths = [
+                            // Right-side corner socket
+                            [V(boxX + 0.02, h - 0.1, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(bx - 0.02, Y_conduit, -2.54), V(bx - 0.02, Y_socket, -2.54)],
+                            
+                            // Left-side daisy-chain
+                            [V(boxX - 0.02, h - 0.1, -2.54), V(boxX - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, z_s1 - 0.02), V(-1.54, y_s1, z_s1 - 0.02)],
+                            [V(-1.54, y_s1, z_s1 + 0.02), V(-1.54, Y_conduit, z_s1 + 0.02), V(-1.54, Y_conduit, -0.2 - 0.02), V(-1.54, Y_socket, -0.2 - 0.02)],
+                            [V(-1.54, Y_socket, -0.2 + 0.02), V(-1.54, Y_conduit, -0.2 + 0.02), V(-1.54, Y_conduit, z_s3 - 0.02), V(-1.54, Y_socket, z_s3 - 0.02)],
+                            [V(-1.54, Y_socket, z_s3 + 0.02), V(-1.54, Y_conduit, z_s3 + 0.02), V(-1.54, Y_conduit, z_s4 - 0.02), V(-1.54, Y_socket, z_s4 - 0.02)],
+                            [V(-1.54, Y_socket, z_s4 + 0.02), V(-1.54, Y_conduit, z_s4 + 0.02), V(-1.54, Y_conduit, 2.54), V(sX - 0.02, Y_conduit, 2.54), V(sX - 0.02, sY, 2.54)]
+                        ];
+                    }
+                    
+                    // Riser & buttons (Floors 1 & 2)
+                    let lightPaths = [];
+                    lightPaths.push([V(1.49, Y_conduit, 0.3), V(1.49, Y_conduit + 2.5, 0.3)]);
+                    lightPaths.push([V(1.49, Y_conduit + 1.1, 2.2), V(1.49, Y_conduit + 1.1, 0.3)]);
+                    // Connection to distribution board removed (fed from EG main board)
+                    const swTop = createStairwellSwitch(1.48, Y_conduit + 1.1, 0.3, -Math.PI / 2);
+                    swTop.userData.isSelectable = true;
+                    swTop.userData.name = `Treppenhaustaster ${fIdx}. OG (oben)`;
+                    group.add(swTop);
+                    
+                    const swBot = createStairwellSwitch(1.48, Y_conduit + 1.1, 2.2, -Math.PI / 2);
+                    swBot.userData.isSelectable = true;
+                    swBot.userData.name = `Treppenhaustaster ${fIdx}. OG (unten)`;
+                    group.add(swBot);
+                    
+                    // Lamps & their connection conduits (Floors 1 & 2)
+                    const Y_stair_lamp = fIdx === 1 ? 4.02 : 6.50;
+                    const stairLamp = createLamp(1.48, Y_stair_lamp, 0.3, true, -Math.PI / 2);
+                    stairLamp.userData.isSelectable = true;
+                    stairLamp.userData.name = fIdx === 1 ? "Treppenhauslampe EG" : "Treppenhauslampe 1. OG";
+                    group.add(stairLamp);
+                    
+                    const lampRoom = createLamp(-0.5, Y_conduit + 2.35, 0.0, false);
+                    lampRoom.userData.isSelectable = true;
+                    lampRoom.userData.name = fIdx === 1 ? "Schlafzimmerlampe (Decke)" : "Wohnzimmerlampe (Decke)";
+                    group.add(lampRoom);
+                    
+                    if (opt === 'back') {
+                        lightPaths.push([V(-0.25, h, -2.54), V(-0.25, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
+                    } else if (opt === 'right') {
+                        lightPaths.push([V(1.54, h, -0.25), V(1.54, Y_conduit + 2.4, -0.25), V(-0.5, Y_conduit + 2.4, -0.25), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
+                    } else if (opt === 'diagonal') {
+                        const boxX = fIdx === 1 ? 0.85 : 0.1;
+                        lightPaths.push([V(boxX, h, -2.54), V(boxX, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, -2.54), V(-0.5, Y_conduit + 2.4, 0.0), V(-0.5, Y_conduit + 2.35, 0.0)]);
+                    }
+                    
+                    paths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, false));
+                    });
+                    lightPaths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, true));
+                    });
+                    floorGroups[fIdx].add(group);
+                    installationObjects.push(group);
+                    targetObjectsList.push(group);
+                });
+                
+                // Floor 3 (Küche)
+                {
+                    const Y_conduit = floorHeights[3];
+                    const Y_socket = Y_conduit + 0.2 + 0.2; // 7.7 (20cm height above finished floor)
+                    const h = 9.0;
+                    
+                    const group = new THREE.Group();
+                    group.visible = (shaftPosition === opt) && showInstallations;
+                    
+                    let paths = [];
+                    if (opt === 'back' || opt === 'diagonal') {
+                        const boxX = -0.25;
+                        paths = [
+                            // Left-side daisy-chain
+                            [V(boxX - 0.02, 8.9, -2.54), V(boxX - 0.02, Y_conduit, -2.54), V(-1.2 - 0.02, Y_conduit, -2.54), V(-1.2 - 0.02, 8.5, -2.54)],
+                            [V(-1.2 + 0.02, 8.5, -2.54), V(-1.2 + 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, -1.5 - 0.02), V(-1.54, 8.5, -1.5 - 0.02)],
+                            [V(-1.54, 8.5, -1.5 + 0.02), V(-1.54, Y_conduit, -1.5 + 0.02), V(-1.54, Y_conduit, -1.0 - 0.02), V(-1.54, Y_socket, -1.0 - 0.02)],
+                            [V(-1.54, Y_socket, -1.0 + 0.02), V(-1.54, Y_conduit, -1.0 + 0.02), V(-1.54, Y_conduit, 0.5 - 0.02), V(-1.54, Y_socket, 0.5 - 0.02)],
+                            [V(-1.54, Y_socket, 0.5 + 0.02), V(-1.54, Y_conduit, 0.5 + 0.02), V(-1.54, Y_conduit, 1.8 - 0.02), V(-1.54, Y_socket, 1.8 - 0.02)],
+                            [V(-1.54, Y_socket, 1.8 + 0.02), V(-1.54, Y_conduit, 1.8 + 0.02), V(-1.54, Y_conduit, 2.54), V(-0.1 - 0.02, Y_conduit, 2.54), V(-0.1 - 0.02, Y_socket, 2.54)],
+                            
+                            // Right-side daisy-chain
+                            [V(boxX + 0.02, 8.9, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(0.8 - 0.02, Y_conduit, -2.54), V(0.8 - 0.02, 8.5, -2.54)],
+                            [V(0.8 + 0.02, 8.5, -2.54), V(0.8 + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
+                            [V(1.35 + 0.02, Y_socket, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.54, Y_conduit, -2.54), V(1.54, Y_conduit, -0.93 - 0.02), V(1.54, Y_socket, -0.93 - 0.02)],
+                            [V(1.54, Y_socket, -0.93 + 0.02), V(1.54, Y_conduit, -0.93 + 0.02), V(1.54, Y_conduit, 2.4 - 0.02), V(1.54, Y_socket, 2.4 - 0.02)]
+                        ];
+                    } else if (opt === 'right') {
+                        paths = [
+                            // Fridge, back countertop and left wall daisy-chain
+                            [V(1.54, 8.9, -0.25 - 0.02), V(1.54, Y_conduit, -0.25 - 0.02), V(1.54, Y_conduit, -0.93 + 0.02), V(1.54, Y_socket, -0.93 + 0.02)],
+                            [V(1.54, Y_socket, -0.93 - 0.02), V(1.54, Y_conduit, -0.93 - 0.02), V(1.54, Y_conduit, -2.54), V(1.35 + 0.02, Y_conduit, -2.54), V(1.35 + 0.02, Y_socket, -2.54)],
+                            [V(1.35 - 0.02, Y_socket, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(0.8 + 0.02, Y_conduit, -2.54), V(0.8 + 0.02, 8.5, -2.54)],
+                            [V(0.8 - 0.02, 8.5, -2.54), V(0.8 - 0.02, Y_conduit, -2.54), V(-1.2 + 0.02, Y_conduit, -2.54), V(-1.2 + 0.02, 8.5, -2.54)],
+                            [V(-1.2 - 0.02, 8.5, -2.54), V(-1.2 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, -1.5 - 0.02), V(-1.54, 8.5, -1.5 - 0.02)],
+                            [V(-1.54, 8.5, -1.5 + 0.02), V(-1.54, Y_conduit, -1.5 + 0.02), V(-1.54, Y_conduit, -1.0 - 0.02), V(-1.54, Y_socket, -1.0 - 0.02)],
+                            [V(-1.54, Y_socket, -1.0 + 0.02), V(-1.54, Y_conduit, -1.0 + 0.02), V(-1.54, Y_conduit, 0.5 - 0.02), V(-1.54, Y_socket, 0.5 - 0.02)],
+                            [V(-1.54, Y_socket, 0.5 + 0.02), V(-1.54, Y_conduit, 0.5 + 0.02), V(-1.54, Y_conduit, 1.8 - 0.02), V(-1.54, Y_socket, 1.8 - 0.02)],
+                            [V(-1.54, Y_socket, 1.8 + 0.02), V(-1.54, Y_conduit, 1.8 + 0.02), V(-1.54, Y_conduit, 2.54), V(-0.1 - 0.02, Y_conduit, 2.54), V(-0.1 - 0.02, Y_socket, 2.54)],
+                            
+                            // Front-right socket
+                            [V(1.54, 8.9, -0.25 + 0.02), V(1.54, Y_conduit, -0.25 + 0.02), V(1.54, Y_conduit, 2.4 - 0.02), V(1.54, Y_socket, 2.4 - 0.02)]
+                        ];
+                    }
+                    
+                    // Riser & button (Floor 3)
+                    let lightPaths = [];
+                    lightPaths.push([V(1.49, Y_conduit, 0.3), V(1.49, Y_conduit + 2.5, 0.3)]);
+                    // Connection to distribution board removed (fed from EG main board)
+                    const sw = createStairwellSwitch(1.48, 8.4, 0.3, -Math.PI / 2);
+                    sw.userData.isSelectable = true;
+                    sw.userData.name = "Treppenhaustaster 3. OG";
+                    group.add(sw);
+                    
+                    // Lamps & their connection conduits (Floor 3)
+                    const stairLamp = createLamp(1.48, 9.00, 0.3, true, -Math.PI / 2);
+                    stairLamp.userData.isSelectable = true;
+                    stairLamp.userData.name = "Treppenhauslampe 2. OG";
+                    group.add(stairLamp);
+                    
+                    const lampRoom = createLamp(0.0, Y_conduit + 3.1, -0.5, false);
+                    lampRoom.userData.isSelectable = true;
+                    lampRoom.userData.name = "Küchenlampe (Decke)";
+                    group.add(lampRoom);
+                    
+                    if (opt === 'back' || opt === 'diagonal') {
+                        lightPaths.push([V(-0.25, h, -2.54), V(-0.25, Y_conduit + 3.15, -2.54), V(0.0, Y_conduit + 3.15, -2.54), V(0.0, Y_conduit + 3.15, -0.5), V(0.0, Y_conduit + 3.1, -0.5)]);
+                    } else if (opt === 'right') {
+                        lightPaths.push([V(1.54, h, -0.25), V(1.54, Y_conduit + 3.15, -0.25), V(0.0, Y_conduit + 3.15, -0.25), V(0.0, Y_conduit + 3.15, -0.5), V(0.0, Y_conduit + 3.1, -0.5)]);
+                    }
+                    
+                    paths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, false));
+                    });
+                    lightPaths.forEach(p => {
+                        group.add(createCurvedConduit(p, 0.01, 0.07, true));
+                    });
+                    floorGroups[3].add(group);
+                    installationObjects.push(group);
+                    targetObjectsList.push(group);
+                }
+            });
+            
+            // Floor 4 (Terrasse) - always visible (not option-dependent)
+            {
+                const Y_conduit = floorHeights[4];
+                const Y_socket = Y_conduit + 0.2 + 0.2; // 10.9 (20cm height above finished floor)
+                const h = 11.8;
+                
+                const group = new THREE.Group();
+                group.visible = showInstallations;
+                
+                const paths = [
+                    // Start at exit box, run down, run left along back wall to s5, s4, then left wall to s1, s2
+                    [V(0.9 - 0.02, 11.7, -2.5), V(0.9 - 0.02, Y_conduit, -2.5), V(-0.2 + 0.02, Y_conduit, -2.5), V(-0.2 + 0.02, 11.6, -2.54)],
+                    [V(-0.2 - 0.02, 11.6, -2.54), V(-0.2 - 0.02, Y_conduit, -2.54), V(-1.0 + 0.02, Y_conduit, -2.54), V(-1.0 + 0.02, 11.6, -2.54)],
+                    [V(-1.0 - 0.02, 11.6, -2.54), V(-1.0 - 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, -1.8 - 0.02), V(-1.54, Y_socket, -1.8 - 0.02)],
+                    [V(-1.54, Y_socket, -1.8 + 0.02), V(-1.54, Y_conduit, -1.8 + 0.02), V(-1.54, Y_conduit, 0.0 - 0.02), V(-1.54, Y_socket, 0.0 - 0.02)],
+                    
+                    // Standard socket conduits from s2 to lamp point and from lamp point to s3
+                    [V(-1.54, Y_socket, 0.0 + 0.02), V(-1.54, Y_conduit, 0.0 + 0.02), V(-1.54, Y_conduit, 0.9 - 0.02)],
+                    [V(-1.54, Y_conduit, 0.9 + 0.02), V(-1.54, Y_conduit, 1.8 - 0.02), V(-1.54, Y_socket, 1.8 - 0.02)]
+                ];
+                
+                const lightPaths = [
+                    // Green riser connection to the topmost lamp on the terrace
+                    [V(1.49, Y_conduit, 0.3), V(1.49, 11.5, 0.3)],
+                    
+                    // Green vertical feeds to the terrace wall lamp on left wall
+                    [V(-1.54, Y_conduit, 0.9 - 0.02), V(-1.54, 10.3, 0.9 - 0.02)],
+                    [V(-1.54, 10.3, 0.9 + 0.02), V(-1.54, Y_conduit, 0.9 + 0.02)]
+                ];
+                
+                // Terrace wall lamp on the left wall, close to the floor (height Y=10.3)
+                const lampTerrasse = createLamp(-1.48, 10.3, 0.9, true, Math.PI / 2);
+                lampTerrasse.userData.isSelectable = true;
+                lampTerrasse.userData.name = "Terrassenlampe (Wand)";
+                group.add(lampTerrasse);
+                
+                // Stairwell lamp for 3. OG (spiral stairs) at Y=11.5
+                const stairLamp = createLamp(1.48, 11.5, 0.3, true, -Math.PI / 2);
+                stairLamp.userData.isSelectable = true;
+                stairLamp.userData.name = "Treppenhauslampe 3. OG";
+                group.add(stairLamp);
+                
+                paths.forEach(p => {
+                    group.add(createCurvedConduit(p, 0.01, 0.07, false));
+                });
+                lightPaths.forEach(p => {
+                    group.add(createCurvedConduit(p, 0.01, 0.07, true));
+                });
+                floorGroups[4].add(group);
+                installationObjects.push(group);
+            }
 
 
 
