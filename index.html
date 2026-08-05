@@ -4117,12 +4117,12 @@
                     [V(1.49, Y_conduit, 0.3), V(1.49, 10.9, 0.3)],
                     
                     // Green vertical feeds to the terrace wall lamp on left wall
-                    [V(-1.54, Y_conduit, 0.9 - 0.02), V(-1.54, 10.3, 0.9 - 0.02)],
-                    [V(-1.54, 10.3, 0.9 + 0.02), V(-1.54, Y_conduit, 0.9 + 0.02)]
+                    [V(-1.54, Y_conduit, 0.9 - 0.02), V(-1.54, 10.8, 0.9 - 0.02)],
+                    [V(-1.54, 10.8, 0.9 + 0.02), V(-1.54, Y_conduit, 0.9 + 0.02)]
                 ];
                 
-                // Terrace wall lamp on the left wall, close to the floor (height Y=10.3)
-                const lampTerrasse = createLamp(-1.48, 10.3, 0.9, true, Math.PI / 2);
+                // Terrace wall lamp on the left wall, close to the floor (height Y=10.8)
+                const lampTerrasse = createLamp(-1.48, 10.8, 0.9, true, Math.PI / 2);
                 lampTerrasse.userData.isSelectable = true;
                 lampTerrasse.userData.name = "Terrassenlampe (Wand)";
                 group.add(lampTerrasse);
