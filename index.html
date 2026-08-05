@@ -4114,7 +4114,7 @@
                 
                 const lightPaths = [
                     // Green riser connection to the topmost lamp on the terrace
-                    [V(1.49, Y_conduit, 0.3), V(1.49, 11.5, 0.3)],
+                    [V(1.49, Y_conduit, 0.3), V(1.49, 10.9, 0.3)],
                     
                     // Green vertical feeds to the terrace wall lamp on left wall
                     [V(-1.54, Y_conduit, 0.9 - 0.02), V(-1.54, 10.3, 0.9 - 0.02)],
@@ -4127,8 +4127,8 @@
                 lampTerrasse.userData.name = "Terrassenlampe (Wand)";
                 group.add(lampTerrasse);
                 
-                // Stairwell lamp for 3. OG (spiral stairs) at Y=11.5
-                const stairLamp = createLamp(1.48, 11.5, 0.3, true, -Math.PI / 2);
+                // Stairwell lamp for 3. OG (spiral stairs) at Y=10.9 (mounted on the right parapet wall)
+                const stairLamp = createLamp(1.48, 10.9, 0.3, true, -Math.PI / 2);
                 stairLamp.userData.isSelectable = true;
                 stairLamp.userData.name = "Treppenhauslampe 3. OG";
                 group.add(stairLamp);
