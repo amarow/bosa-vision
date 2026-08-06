@@ -443,6 +443,14 @@
                 </div>
 
                 <div class="switch-container">
+                    <span data-i18n="visStairLight">Treppenhauslicht an</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-stair-light" checked onchange="setStairwellLamps(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
                     <span data-i18n="visCraneFold">Kran einklappen</span>
                     <label class="switch">
                         <input type="checkbox" id="chk-crane-fold" onchange="toggleCraneFold(this.checked)">
@@ -529,7 +537,7 @@
             </ul>
         </div>
 
-        <div class="version-tag">v3.4.0</div>
+        <div class="version-tag">v3.7.1</div>
     </div>
     
     <!-- Editor Panel for Object Movement -->
@@ -633,6 +641,7 @@
                 visWalls: "Wände transparent",
                 visFloors: "Böden transparent",
                 visInstall: "Installationen zeigen",
+                visStairLight: "Treppenhauslicht an",
                 visCraneFold: "Kran einklappen",
                 visShaftTitle: "Schacht-Option",
                 shaftBack: "Hinten Mitte",
@@ -671,6 +680,7 @@
                 visWalls: "Transparent Walls",
                 visFloors: "Transparent Floors",
                 visInstall: "Show Installations",
+                visStairLight: "Stairwell Light On",
                 visCraneFold: "Fold Crane",
                 visShaftTitle: "Shaft Option",
                 shaftBack: "Back Center",
@@ -709,6 +719,7 @@
                 visWalls: "Muri Trasparenti",
                 visFloors: "Pavimenti Trasparenti",
                 visInstall: "Mostra Impianti",
+                visStairLight: "Luce scala accesa",
                 visCraneFold: "Ripiegare la gru",
                 visShaftTitle: "Opzione Vano",
                 shaftBack: "Posteriore centro",
@@ -802,6 +813,17 @@
 
         // --- 1. GLOBALE VARIABLEN & EINSTELLUNGEN ---
         const V = (x, y, z) => new THREE.Vector3(x, y, z);
+        function createPipeBetween(p1, p2, radius, material) {
+            const dir = new THREE.Vector3().subVectors(p2, p1);
+            const len = dir.length();
+            const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+            const geom = new THREE.CylinderGeometry(radius, radius, len, 16);
+            const mesh = new THREE.Mesh(geom, material);
+            mesh.position.copy(mid);
+            const up = new THREE.Vector3(0, 1, 0);
+            mesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
+            return mesh;
+        }
         let scene, camera, renderer, controls;
         let floorGroups = [];
         let beforeObjects = [];
@@ -877,6 +899,7 @@
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
             showDimensions = getBool('bosa_showDimensions', true);
+            window.areStairwellLampsOn = getBool('bosa_areStairwellLampsOn', true);
             const floorVal = getVal('bosa_focusedFloor', '0');
             activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
 
@@ -974,6 +997,7 @@
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
             document.getElementById('chk-dimensions').checked = showDimensions;
+            document.getElementById('chk-stair-light').checked = window.areStairwellLampsOn;
             
             // Sprache initial anwenden
             setLanguage(currentLang);
@@ -1320,32 +1344,38 @@
             registerWall(bWall);
 
             // Vorderwand mit zweiflügliger Eingangstür (links)
-            // Rechter Wandteil (X = -0.3 bis 1.5)
-            const fWallR = new THREE.Mesh(new THREE.BoxGeometry(1.8, H_wall, 0.5), frontWallMat);
-            fWallR.position.set(0.6, wallYStart + H_wall/2, 2.75);
+            // Linker Wandteil (X = -1.5 bis -1.35)
+            const fWallL = new THREE.Mesh(new THREE.BoxGeometry(0.15, H_wall, 0.5), frontWallMat);
+            fWallL.position.set(-1.425, wallYStart + H_wall/2, 2.75);
+            grp.add(fWallL);
+            registerWall(fWallL, true);
+
+            // Rechter Wandteil (X = -0.15 bis 1.5)
+            const fWallR = new THREE.Mesh(new THREE.BoxGeometry(1.65, H_wall, 0.5), frontWallMat);
+            fWallR.position.set(0.675, wallYStart + H_wall/2, 2.75);
             grp.add(fWallR);
             registerWall(fWallR, true);
             
-            // Unterer Schwelle (X = -1.5 bis -0.3). Reicht von -0.2 bis 0.0
+            // Unterer Schwelle (X = -1.35 bis -0.15). Reicht von -0.2 bis 0.0
             const fWallB = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.5), frontWallMat);
-            fWallB.position.set(-0.9, -0.1, 2.75);
+            fWallB.position.set(-0.75, -0.1, 2.75);
             grp.add(fWallB);
             registerWall(fWallB, true);
 
-            // Oberer Sturz (X = -1.5 bis -0.3). Reicht von 2.0 bis 2.3
+            // Oberer Sturz (X = -1.35 bis -0.15). Reicht von 2.0 bis 2.3
             const topH = (wallYStart + H_wall) - 2.0; 
             const fWallT = new THREE.Mesh(new THREE.BoxGeometry(1.2, topH, 0.5), frontWallMat);
-            fWallT.position.set(-0.9, 2.0 + topH/2, 2.75);
+            fWallT.position.set(-0.75, 2.0 + topH/2, 2.75);
             grp.add(fWallT);
             registerWall(fWallT, true);
 
-            // Zweiflüglige Eingangstür (Öffnung X = -1.5 bis -0.3)
+            // Zweiflüglige Eingangstür (Öffnung X = -1.35 bis -0.15)
             const doorGroup = new THREE.Group();
             doorGroup.position.set(0, 0, 2.75);
 
-            // Linker Türflügel (Anschlag links bei X = -1.45)
+            // Linker Türflügel (Anschlag links bei X = -1.30)
             const leftHinge = new THREE.Group();
-            leftHinge.position.set(-1.45, 0, 0);
+            leftHinge.position.set(-1.30, 0, 0);
 
             // Unterer geschlossener Holzteil (Höhe 1.0m)
             const leftLower = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.0, 0.04), doorWoodMat);
@@ -1403,9 +1433,9 @@
             leftHinge.rotation.y = Math.PI / 4.5;
             doorGroup.add(leftHinge);
 
-            // Rechter Türflügel (Anschlag rechts bei X = -0.35)
+            // Rechter Türflügel (Anschlag rechts bei X = -0.20)
             const rightHinge = new THREE.Group();
-            rightHinge.position.set(-0.35, 0, 0);
+            rightHinge.position.set(-0.20, 0, 0);
 
             // Unterer geschlossener Holzteil (Höhe 1.0m)
             const rightLower = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.0, 0.04), doorWoodMat);
@@ -1459,15 +1489,15 @@
             // Tuffstein-Rahmen für die Eingangstür (bündig/leicht vorstehend, damit er sichtbar wird)
             const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
             const dFrameL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.0, 0.05), tuffMat);
-            dFrameL.position.set(-1.575, 1.0, 0.25); // bündig/leicht vorstehend bei Z = 3.0 (Wand liegt bei Z = 3.0)
+            dFrameL.position.set(-1.425, 1.0, 0.25); // bündig/leicht vorstehend bei Z = 3.0 (Wand liegt bei Z = 3.0)
             doorGroup.add(dFrameL);
 
             const dFrameR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.0, 0.05), tuffMat);
-            dFrameR.position.set(-0.225, 1.0, 0.25);
+            dFrameR.position.set(-0.075, 1.0, 0.25);
             doorGroup.add(dFrameR);
 
             const dFrameT = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.15, 0.05), tuffMat);
-            dFrameT.position.set(-0.9, 2.075, 0.25);
+            dFrameT.position.set(-0.75, 2.075, 0.25);
             doorGroup.add(dFrameT);
 
             grp.add(doorGroup);
@@ -1851,10 +1881,10 @@
             grp.add(dimStairDepth);
             
             // Außentür-Maße (EG Eingangstür) - Placed outside the front wall at Z=3.2
-            const dimDoorEG = createDimensionLine(V(-1.5, 0.05, 3.2), V(-0.3, 0.05, 3.2), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
+            const dimDoorEG = createDimensionLine(V(-1.35, 0.05, 3.2), V(-0.15, 0.05, 3.2), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
             grp.add(dimDoorEG);
             
-            const dimDoorEGHeight = createDimensionLine(V(-1.65, 0.0, 3.2), V(-1.65, 2.0, 3.2), "2,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
+            const dimDoorEGHeight = createDimensionLine(V(-1.5, 0.0, 3.2), V(-1.5, 2.0, 3.2), "2,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
             grp.add(dimDoorEGHeight);
 
             grp.add(bathNew);
@@ -1977,8 +2007,8 @@
             const dimStairDepth1 = createDimensionLine(V(0.55, Y_start + 1.2, 0.0), V(0.55, Y_start + 1.2, 2.5), "2,50 m", 0xc2410c, V(-1, 0, 0), 0.15);
             grp.add(dimStairDepth1);
             
-            // Außenfenster-Maße (1. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.5, height is 1.10m)
-            const dimWindow1 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.5, Y_start + 0.9, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            // Außenfenster-Maße (1. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.6, height is 1.10m)
+            const dimWindow1 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.6, Y_start + 0.9, 3.2), "90 cm", 0xc2410c, V(0, 0, 1), 0.15);
             grp.add(dimWindow1);
             
             const dimWindow1Height = createDimensionLine(V(-1.65, Y_start + 0.9, 3.2), V(-1.65, Y_start + 2.0, 3.2), "1,10 m", 0xc2410c, V(-1, 0, 0), 0.15);
@@ -2127,8 +2157,8 @@
             const dimWcDepth = createDimensionLine(V(0.4, Y_start + 0.2 + 0.05, -2.5), V(0.4, Y_start + 0.2 + 0.05, -1.5), "1,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
             grp.add(dimWcDepth);
             
-            // Außenfenster-Maße (2. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.5, height is 1.10m)
-            const dimWindow2 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.5, Y_start + 0.9, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            // Außenfenster-Maße (2. OG) - Placed outside the front wall at Z=3.2 (window runs X=-1.5 to -0.6, height is 1.10m)
+            const dimWindow2 = createDimensionLine(V(-1.5, Y_start + 0.9, 3.2), V(-0.6, Y_start + 0.9, 3.2), "90 cm", 0xc2410c, V(0, 0, 1), 0.15);
             grp.add(dimWindow2);
             
             const dimWindow2Height = createDimensionLine(V(-1.65, Y_start + 0.9, 3.2), V(-1.65, Y_start + 2.0, 3.2), "1,10 m", 0xc2410c, V(-1, 0, 0), 0.15);
@@ -2504,7 +2534,7 @@
             grp.add(dimSpiralDepth);
             
             // Außenbalkontür-Maße (3. OG französisch) - Placed outside the front wall at Z=3.2 (runs X=-1.5 to -0.5, height is 2.20m)
-            const dimBalcony3 = createDimensionLine(V(-1.5, Y_start + 0.25, 3.2), V(-0.5, Y_start + 0.25, 3.2), "1,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            const dimBalcony3 = createDimensionLine(V(-1.5, Y_start + 0.25, 3.2), V(-0.6, Y_start + 0.25, 3.2), "90 cm", 0xc2410c, V(0, 0, 1), 0.15);
             grp.add(dimBalcony3);
             
             const dimBalcony3Height = createDimensionLine(V(-1.65, Y_start + 0.2, 3.2), V(-1.65, Y_start + 2.4, 3.2), "2,20 m", 0xc2410c, V(-1, 0, 0), 0.15);
@@ -3299,34 +3329,122 @@
                 return group;
             }
 
-            function createLamp(x, y, z, isWall = false, rotY = 0) {
+            function createLamp(x, y, z, isWall = false, rotY = 0, distUp = 1.5, distDown = 1.5) {
+                if (!window.stairwellLamps) window.stairwellLamps = [];
+                
                 const group = new THREE.Group();
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }); // White base
-                const glowMat = new THREE.MeshBasicMaterial({ color: 0xfff3cd }); // Warm white glowing light
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, metalness: 0.8, roughness: 0.3 }); // Dark graphite body
+                const accentMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 }); // Gold/brass accents
+                
+                // We use distinct material instances for each lamp's glass so they can be turned on/off independently
+                const glowMat = new THREE.MeshBasicMaterial({ color: (window.areStairwellLampsOn !== false) ? 0xffea9f : 0x555555 });
+                
+                const beamMat = new THREE.MeshBasicMaterial({
+                    color: 0xffea9f,
+                    transparent: true,
+                    opacity: 0.12,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending,
+                    side: THREE.DoubleSide
+                });
+                
+                const lampData = {
+                    glasses: [],
+                    lights: [],
+                    beams: []
+                };
                 
                 if (isWall) {
-                    // Round plate/disc shape flat against the wall (doubled size)
-                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.015, 24), bodyMat);
-                    base.rotation.x = Math.PI / 2; // Axis along local Z
-                    base.position.z = -0.007;
-                    group.add(base);
+                    // Modern Down-Only Cylindrical Sconce
+                    // Mounting bracket
+                    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.03), bodyMat);
+                    bracket.position.z = 0.015;
+                    group.add(bracket);
                     
-                    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.015, 24), glowMat);
-                    glass.rotation.x = Math.PI / 2;
-                    glass.position.z = 0.007;
-                    group.add(glass);
+                    // Main cylinder body (diameter 8cm, height 16cm)
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.16, 16), bodyMat);
+                    body.position.set(0, 0.01, 0.055);
+                    group.add(body);
+                    
+                    // Brass accent ring at the bottom
+                    const botRing = new THREE.Mesh(new THREE.CylinderGeometry(0.041, 0.041, 0.008, 16), accentMat);
+                    botRing.position.set(0, -0.07, 0.055);
+                    group.add(botRing);
+                    
+                    // Glass glowing cap at the bottom
+                    const botGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.012, 16), glowMat);
+                    botGlass.position.set(0, -0.09, 0.055);
+                    group.add(botGlass);
+                    lampData.glasses.push(botGlass);
+                    
+                    // Volumetric light beam pointing DOWN (scaled to travel distance, wider cone)
+                    const coneDown = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01 + 0.28 * distDown, distDown, 16, 1, true), beamMat);
+                    coneDown.position.set(0, -0.09 - distDown / 2, 0.055);
+                    coneDown.visible = window.areStairwellLampsOn !== false;
+                    group.add(coneDown);
+                    lampData.beams.push(coneDown);
+                    
+                    // Real SpotLight pointing DOWN (wider angle Math.PI / 2.8)
+                    const lightDown = new THREE.SpotLight(0xfff0c4, (window.areStairwellLampsOn !== false) ? 1.5 : 0, distDown + 0.5, Math.PI / 2.8, 0.6, 1);
+                    lightDown.position.set(0, -0.09, 0.055);
+                    lightDown.userData.originalIntensity = 1.5;
+                    const targetDown = new THREE.Object3D();
+                    targetDown.position.set(0, -distDown, 0.055);
+                    group.add(targetDown);
+                    lightDown.target = targetDown;
+                    group.add(lightDown);
+                    lampData.lights.push(lightDown);
                 } else {
-                    // Ceiling disc fixture (doubled size)
-                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.015, 24), bodyMat);
+                    // Modern Minimalist Spotlight Ceiling Fixture (more voluminous)
+                    // Base plate
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.015, 16), bodyMat);
+                    base.position.y = -0.007;
                     group.add(base);
                     
-                    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.02, 24), glowMat);
-                    glass.position.y = -0.01;
+                    // Short neck/joint
+                    const joint = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 8), accentMat);
+                    joint.position.y = -0.022;
+                    group.add(joint);
+                    
+                    // Spotlight head (diameter 9cm, length 10cm)
+                    const head = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.10, 16), bodyMat);
+                    head.position.y = -0.072;
+                    group.add(head);
+                    
+                    // Gold accent ring on the rim
+                    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.046, 0.006, 16), accentMat);
+                    rim.position.y = -0.119;
+                    group.add(rim);
+                    
+                    // Glass glowing lens
+                    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.006, 16), glowMat);
+                    glass.position.y = -0.121;
                     group.add(glass);
+                    lampData.glasses.push(glass);
+                    
+                    // Volumetric light beam pointing DOWN (scaled to travel distance, wider cone)
+                    const coneCeil = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015 + 0.38 * distDown, distDown, 16, 1, true), beamMat);
+                    coneCeil.position.set(0, -0.121 - distDown / 2, 0);
+                    coneCeil.visible = window.areStairwellLampsOn !== false;
+                    group.add(coneCeil);
+                    lampData.beams.push(coneCeil);
+                    
+                    // Real SpotLight pointing DOWN (wider angle Math.PI / 2.2)
+                    const lightCeil = new THREE.SpotLight(0xfff0c4, (window.areStairwellLampsOn !== false) ? 1.5 : 0, distDown + 0.5, Math.PI / 2.2, 0.5, 1);
+                    lightCeil.position.set(0, -0.121, 0);
+                    lightCeil.userData.originalIntensity = 1.5;
+                    const targetCeil = new THREE.Object3D();
+                    targetCeil.position.set(0, -distDown, 0);
+                    group.add(targetCeil);
+                    lightCeil.target = targetCeil;
+                    group.add(lightCeil);
+                    lampData.lights.push(lightCeil);
                 }
                 
                 group.position.set(x, y, z);
                 group.rotation.y = rotY;
+                
+                window.stairwellLamps.push(lampData);
                 return group;
             }
 
@@ -3438,11 +3556,22 @@
                 });
             });
 
-            // Untergrund-Abwasserleitung (Option A: vom Steigrohr unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
-            const undergroundWasteBack = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 5.8, 16), pipeMatWaste);
-            undergroundWasteBack.rotation.x = Math.PI / 2;
-            undergroundWasteBack.rotation.y = Math.atan2(0.05, 5.8);
-            undergroundWasteBack.position.set(-0.025, -0.15, 0.3); // von Z=-2.6 bis Z=3.2 (Straße, X=0.0)
+            // Vertikale Rohr-Verlängerung nach unten (EG)
+            const pipeVertA = createPipeBetween(V(-0.05, 0.0, -2.6), V(-0.05, -0.10, -2.6), 0.05, pipeMatWaste);
+            pipeVertA.visible = (shaftPosition === 'back') && showInstallations;
+            floorGroups[0].add(pipeVertA);
+            installationObjects.push(pipeVertA);
+            shaftBackObjects.push(pipeVertA);
+
+            // 45-Grad-Bogen (EG)
+            const pipeDiagA = createPipeBetween(V(-0.05, -0.10, -2.6), V(-0.05, -0.35, -2.35), 0.05, pipeMatWaste);
+            pipeDiagA.visible = (shaftPosition === 'back') && showInstallations;
+            floorGroups[0].add(pipeDiagA);
+            installationObjects.push(pipeDiagA);
+            shaftBackObjects.push(pipeDiagA);
+
+            // Untergrund-Abwasserleitung (Option A: vom Ende des Bogens zur Straße, mittig zum Haus bei X=0)
+            const undergroundWasteBack = createPipeBetween(V(-0.05, -0.35, -2.35), V(0.0, -0.35, 3.2), 0.05, pipeMatWaste);
             undergroundWasteBack.visible = (shaftPosition === 'back') && showInstallations;
             floorGroups[0].add(undergroundWasteBack);
             installationObjects.push(undergroundWasteBack);
@@ -3548,11 +3677,22 @@
                 });
             });
 
-            // Untergrund-Abwasserleitung (Option B: von der rechten Steigleitung unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
-            const undergroundWasteRight = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.555, 16), pipeMatWaste);
-            undergroundWasteRight.rotation.x = Math.PI / 2;
-            undergroundWasteRight.rotation.y = Math.atan2(-1.55, 3.2);
-            undergroundWasteRight.position.set(0.775, -0.15, 1.6); // von Z=0.0 (rechts) bis Z=3.2 (Straße, mittig X=0.0)
+            // Vertikale Rohr-Verlängerung nach unten (EG)
+            const pipeVertB = createPipeBetween(V(1.6, 0.0, 0.0), V(1.6, -0.10, 0.0), 0.05, pipeMatWaste);
+            pipeVertB.visible = (shaftPosition === 'right') && showInstallations;
+            floorGroups[0].add(pipeVertB);
+            installationObjects.push(pipeVertB);
+            shaftRightObjects.push(pipeVertB);
+
+            // 45-Grad-Bogen (EG)
+            const pipeDiagB = createPipeBetween(V(1.6, -0.10, 0.0), V(1.4882, -0.35, 0.2236), 0.05, pipeMatWaste);
+            pipeDiagB.visible = (shaftPosition === 'right') && showInstallations;
+            floorGroups[0].add(pipeDiagB);
+            installationObjects.push(pipeDiagB);
+            shaftRightObjects.push(pipeDiagB);
+
+            // Untergrund-Abwasserleitung (Option B: vom Ende des Bogens zur Straße, mittig zum Haus bei X=0)
+            const undergroundWasteRight = createPipeBetween(V(1.4882, -0.35, 0.2236), V(0.0, -0.35, 3.2), 0.05, pipeMatWaste);
             undergroundWasteRight.visible = (shaftPosition === 'right') && showInstallations;
             floorGroups[0].add(undergroundWasteRight);
             installationObjects.push(undergroundWasteRight);
@@ -3686,17 +3826,22 @@
                 });
             });
 
-            // Untergrund-Abwasserleitung (Option C: von der rechten Steigleitung unter der Bodenplatte zur Straße, mittig zum Haus bei X=0)
-            const pStartWaste = new THREE.Vector3(1.325, -0.15, -2.6);
-            const pEndWaste = new THREE.Vector3(0.0, -0.15, 3.2);
-            const dirWaste = new THREE.Vector3().subVectors(pEndWaste, pStartWaste);
-            const lenWaste = dirWaste.length();
-            const midWaste = new THREE.Vector3().addVectors(pStartWaste, pEndWaste).multiplyScalar(0.5);
+            // Vertikale Rohr-Verlängerung nach unten (EG)
+            const pipeVertC = createPipeBetween(V(1.325, 0.0, -2.6), V(1.325, -0.10, -2.6), 0.05, pipeMatWaste);
+            pipeVertC.visible = (shaftPosition === 'diagonal') && showInstallations;
+            floorGroups[0].add(pipeVertC);
+            installationObjects.push(pipeVertC);
+            shaftDiagObjects.push(pipeVertC);
 
-            const undergroundWasteDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, lenWaste, 16), pipeMatWaste);
-            undergroundWasteDiag.position.copy(midWaste);
-            const upVector = new THREE.Vector3(0, 1, 0);
-            undergroundWasteDiag.quaternion.setFromUnitVectors(upVector, dirWaste.clone().normalize());
+            // 45-Grad-Bogen (EG)
+            const pipeDiagC = createPipeBetween(V(1.325, -0.10, -2.6), V(1.2693, -0.35, -2.3563), 0.05, pipeMatWaste);
+            pipeDiagC.visible = (shaftPosition === 'diagonal') && showInstallations;
+            floorGroups[0].add(pipeDiagC);
+            installationObjects.push(pipeDiagC);
+            shaftDiagObjects.push(pipeDiagC);
+
+            // Untergrund-Abwasserleitung (Option C: vom Ende des Bogens zur Straße, mittig zum Haus bei X=0)
+            const undergroundWasteDiag = createPipeBetween(V(1.2693, -0.35, -2.3563), V(0.0, -0.35, 3.2), 0.05, pipeMatWaste);
             undergroundWasteDiag.visible = (shaftPosition === 'diagonal') && showInstallations;
             floorGroups[0].add(undergroundWasteDiag);
             installationObjects.push(undergroundWasteDiag);
@@ -3972,7 +4117,7 @@
                 
                 // Floor 0 (EG)
                 {
-                    const Y_conduit = floorHeights[0];
+                    const Y_conduit = floorHeights[0] - 0.05; // Embedded in the floor slab
                     const Y_socket = Y_conduit + 0.2 + 0.2; // 0.4
                     
                     const group = new THREE.Group();
@@ -4037,38 +4182,41 @@
                     // Riser & buttons (Floor 0)
                     let lightPaths = [];
                     
-                    // Verteilerdose (Junction Box) on the right wall at Z=-0.1, Y=1.5
-                    const jb = createJunctionBox(1.48, 1.5, -0.1, -Math.PI / 2);
+                    // Verteilerdose (Junction Box) on the left wall face (room side) at Z=0.1, Y=1.5
+                    const jb = createJunctionBox(0.33, 1.5, 0.1, -Math.PI / 2);
                     jb.userData.isSelectable = true;
                     jb.userData.name = "Verteilerdose Treppenhaus EG";
                     group.add(jb);
                     
                     // Riser & buttons (Floor 0)
-                    // Riser starts from Verteilerdose (Y=1.5) up to ceiling (Y=2.3)
-                    lightPaths.push([V(1.49, 1.5, -0.1), V(1.49, 2.3, -0.1)]);
-                    // EG Switch conduit runs to Z=2.48, around corner, then along right wall to riser
-                    lightPaths.push([V(0.85, 1.1, 2.48), V(1.49, 1.1, 2.48), V(1.49, 1.1, -0.1), V(1.49, 1.5, -0.1)]);
+                    // Riser starts from Verteilerdose (Y=1.5) up to the top of the floor slab (Y=2.5) inside the left face of supporting wall
+                    lightPaths.push([V(0.35, 1.5, 0.1), V(0.35, 2.5, 0.1)]);
+                    // Riser from floor Y=0.0 to junction box Y=1.5
+                    lightPaths.push([V(0.35, 0.0, 0.1), V(0.35, 1.5, 0.1)]);
+                    // EG Switch conduit runs down to the floor, along the floor, and up inside the wall to the riser
+                    lightPaths.push([V(0.35, 1.1, 1.8), V(0.35, 0.0, 1.8), V(0.35, 0.0, 0.1)]);
                     
                     if (opt === 'back') {
-                        lightPaths.push([V(-0.35, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, -0.1)]);
+                        lightPaths.push([V(-0.35, 1.5, -2.54), V(-0.35, 0.0, -2.54), V(0.35, 0.0, -2.54), V(0.35, 0.0, 0.1)]);
                     } else if (opt === 'right') {
-                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.49, 1.5, -0.35), V(1.49, 1.5, -0.1)]);
+                        lightPaths.push([V(1.54, 1.5, -0.35), V(1.54, 0.0, -0.35), V(0.35, 0.0, -0.35), V(0.35, 0.0, 0.1)]);
                     } else if (opt === 'diagonal') {
-                        lightPaths.push([V(0.85, 1.5, -2.54), V(1.49, 1.5, -2.54), V(1.49, 1.5, -0.1)]);
+                        lightPaths.push([V(0.85, 1.5, -2.54), V(0.85, 0.0, -2.54), V(0.35, 0.0, -2.54), V(0.35, 0.0, 0.1)]);
                     }
-                    const sw = createStairwellSwitch(0.85, 1.1, 2.48, Math.PI);
+                    const sw = createStairwellSwitch(0.33, 1.1, 1.8, -Math.PI / 2);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster EG";
                     group.add(sw);
                     
                     // Lamps & their connection conduits (Floor 0)
                     // (Treppenhauslampe EG is moved to Floor 1 group at Y=4.02 to avoid collision and match 1.8m height above stairs)
-                    const lampEG = createLamp(0.0, 2.15, -0.2, false);
+                    const lampEG = createLamp(0.0, 2.15, -0.2, false, 0, 0, 2.15);
                     lampEG.userData.isSelectable = true;
                     lampEG.userData.name = "Flurlampe EG (Decke)";
                     group.add(lampEG);
                     
-                    lightPaths.push([V(1.49, 2.3, -0.1), V(1.49, 2.3, -0.2), V(0.0, 2.3, -0.2), V(0.0, 2.15, -0.2)]);
+                    // Runs above the concrete ceiling slab (Y=2.5) and drops down to the lamp at Y=2.15
+                    lightPaths.push([V(0.35, 2.5, 0.1), V(0.35, 2.5, -0.2), V(0.0, 2.5, -0.2), V(0.0, 2.15, -0.2)]);
                     
                     paths.forEach(p => {
                         group.add(createCurvedConduit(p, 0.01, 0.07, false));
@@ -4083,13 +4231,15 @@
                 
                 // Floors 1 & 2
                 [1, 2].forEach(fIdx => {
-                    const Y_conduit = floorHeights[fIdx];
-                    const Y_socket = Y_conduit + 0.2 + 0.2; // 20cm above finished floor
+                    const Y_floor = floorHeights[fIdx] + 0.2; // Finished floor level
+                    const Y_conduit = Y_floor - 0.05; // Embedded in the floor construction
+                    const Y_socket = Y_floor + 0.2; // 20cm above finished floor
+                    const Y_switch = Y_floor + 0.9; // 90cm switch height
                     const h = fIdx === 1 ? 4.0 : 6.5;
                     const z_s1 = fIdx === 1 ? -2.4 : -2.35;
-                    const y_s1 = fIdx === 1 ? 2.7 : 5.2; // Sockets at 20cm height (2.3+0.2+0.2=2.7 or 4.8+0.2+0.2=5.2)
+                    const y_s1 = Y_socket; // Sockets at 20cm height
                     const sX = fIdx === 1 ? -0.350 : -0.250;
-                    const sY = fIdx === 1 ? 2.700 : 5.200; // Sockets at 20cm height
+                    const sY = Y_socket; // Sockets at 20cm height
                     const bx = (fIdx === 1) ? 0.500 : (fIdx === 2) ? 0.650 : 1.35;
                     const z_s3 = (fIdx === 1) ? 0.850 : (fIdx === 2) ? 0.750 : 0.500;
                     const z_s4 = (fIdx === 1) ? 2.200 : 1.800;
@@ -4137,25 +4287,34 @@
                     
                     // Riser & buttons (Floors 1 & 2)
                     let lightPaths = [];
-                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, Y_conduit + 2.5, -0.1)]);
-                    lightPaths.push([V(0.85, Y_conduit + 1.1, 2.48), V(1.49, Y_conduit + 1.1, 2.48), V(1.49, Y_conduit + 1.1, -0.1)]);
+                    // Riser runs inside the left face of supporting wall, directly passing through swTop
+                    lightPaths.push([V(0.35, Y_conduit, 0.1), V(0.35, Y_conduit + 2.5, 0.1)]);
+                    // Connection from swTop (riser passes directly through it, but we add vertical drop to floor for continuity if needed)
+                    // swBot runs down to floor, along floor, and connects to riser at Z=0.1
+                    lightPaths.push([V(0.35, Y_switch, 1.8), V(0.35, Y_conduit, 1.8), V(0.35, Y_conduit, 0.1)]);
+                    
                     // Connection to distribution board removed (fed from EG main board)
-                    const swTop = createStairwellSwitch(1.48, Y_conduit + 1.1, -0.1, -Math.PI / 2);
+                    const swTop = createStairwellSwitch(0.33, Y_switch, 0.1, -Math.PI / 2);
                     swTop.userData.isSelectable = true;
                     swTop.userData.name = `Treppenhaustaster ${fIdx}. OG (oben)`;
                     group.add(swTop);
                     
-                    const swBot = createStairwellSwitch(0.85, Y_conduit + 1.1, 2.48, Math.PI);
+                    const swBot = createStairwellSwitch(0.33, Y_switch, 1.8, -Math.PI / 2);
                     swBot.userData.isSelectable = true;
                     swBot.userData.name = `Treppenhaustaster ${fIdx}. OG (unten)`;
                     group.add(swBot);
                     
                     // Lamps & their connection conduits (Floors 1 & 2)
                     const Y_stair_lamp = fIdx === 1 ? 4.02 : 6.50;
-                    const stairLamp = createLamp(1.48, Y_stair_lamp, -0.1, true, -Math.PI / 2);
+                    const Y_ceil = floorHeights[fIdx + 1] + 0.2;
+                    const distUp = Y_ceil - Y_stair_lamp;
+                    const distDown = Y_stair_lamp - Y_floor;
+                    const stairLamp = createLamp(0.61, Y_stair_lamp, 0.1, true, Math.PI / 2, distUp, distDown);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = fIdx === 1 ? "Treppenhauslampe EG" : "Treppenhauslampe 1. OG";
                     group.add(stairLamp);
+                    // Riser to stairLamp cross-wall feed
+                    lightPaths.push([V(0.35, Y_stair_lamp, 0.1), V(0.60, Y_stair_lamp, 0.1)]);
                     
                     // (Ceiling lamps removed)
                     
@@ -4172,8 +4331,10 @@
                 
                 // Floor 3 (Küche)
                 {
-                    const Y_conduit = floorHeights[3];
-                    const Y_socket = Y_conduit + 0.2 + 0.2; // 7.7 (20cm height above finished floor)
+                    const Y_floor = floorHeights[3] + 0.2; // Finished floor level (7.5m)
+                    const Y_conduit = Y_floor - 0.05; // Embedded in the floor construction
+                    const Y_socket = Y_floor + 0.2; // 20cm height above finished floor (7.7m)
+                    const Y_switch = Y_floor + 0.9; // 90cm switch height (8.4m)
                     const h = 9.0;
                     
                     const group = new THREE.Group();
@@ -4217,15 +4378,19 @@
                     
                     // Riser & button (Floor 3)
                     let lightPaths = [];
-                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, Y_conduit + 3.2, -0.1)]);
+                    // Cross-over conduit from riser (terminating at the kitchen floor Y=7.5) to right outer wall along the floor, shifted 10cm back (to Z=0.0)
+                    lightPaths.push([V(0.35, Y_conduit, 0.1), V(0.35, Y_conduit, 0.0), V(1.49, Y_conduit, 0.0), V(1.49, Y_conduit, -0.1)]);
+                    // Vertical feed on the right outer wall going all the way up to the terrace floor (Y=10.7)
+                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, 10.7, -0.1)]);
+                    
                     // Connection to distribution board removed (fed from EG main board)
-                    const sw = createStairwellSwitch(1.48, 8.4, -0.1, -Math.PI / 2);
+                    const sw = createStairwellSwitch(1.48, Y_switch, -0.1, -Math.PI / 2);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster 3. OG";
                     group.add(sw);
                     
                     // Lamps & their connection conduits (Floor 3)
-                    const stairLamp = createLamp(1.48, 9.50, -0.1, true, -Math.PI / 2);
+                    const stairLamp = createLamp(1.48, 9.50, -0.1, true, -Math.PI / 2, 1.2, 2.0);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = "Treppenhauslampe 2. OG";
                     group.add(stairLamp);
@@ -4246,8 +4411,9 @@
             
             // Floor 4 (Terrasse) - always visible (not option-dependent)
             {
-                const Y_conduit = floorHeights[4];
-                const Y_socket = Y_conduit + 0.2 + 0.2; // 10.9 (20cm height above finished floor)
+                const Y_floor = floorHeights[4] + 0.2; // Finished floor level (10.7m)
+                const Y_conduit = Y_floor - 0.05; // Embedded in the floor construction
+                const Y_socket = Y_floor + 0.2; // 20cm height above finished floor (10.9m)
                 const h = 11.8;
                 
                 const group = new THREE.Group();
@@ -4263,21 +4429,20 @@
                 ];
                 
                 const lightPaths = [
-                    // Green riser connection to the topmost lamp on the terrace
-                    [V(1.49, 10.5, -0.1), V(1.49, 11.0, -0.1)],
-                    
-                    // Connection from lamp to switch above it
-                    [V(1.49, 11.0, -0.1), V(1.49, 11.2, -0.1)]
+                    // Cross-over conduit along the floor of the terrace
+                    [V(0.35, Y_conduit, 0.1), V(1.49, Y_conduit, 0.1), V(1.49, Y_conduit, -0.1)],
+                    // Vertical feed on the right outer wall to the switch and lamp
+                    [V(1.49, Y_conduit, -0.1), V(1.49, 11.0, -0.1)]
                 ];
                 
                 // Stairwell lamp for 3. OG (spiral stairs) at Y=11.0 (mounted on the right parapet wall)
-                const stairLamp = createLamp(1.48, 11.0, -0.1, true, -Math.PI / 2);
+                const stairLamp = createLamp(1.48, 11.0, -0.1, true, -Math.PI / 2, 3.0, 0.3);
                 stairLamp.userData.isSelectable = true;
                 stairLamp.userData.name = "Treppenhauslampe 3. OG";
                 group.add(stairLamp);
                 
-                // Eltako Switch (Taster) above the lamp
-                const sw = createStairwellSwitch(1.48, 11.2, -0.1, -Math.PI / 2);
+                // Eltako Switch (Taster) below the lamp
+                const sw = createStairwellSwitch(1.48, 10.8, -0.1, -Math.PI / 2);
                 sw.userData.isSelectable = true;
                 sw.userData.name = "Treppenhaustaster Terrasse";
                 group.add(sw);
@@ -4429,114 +4594,116 @@
         }
 
         function buildWindowWall(group, wallYStart, floorYStart, wallHeight, zPos) {
-            // Rechter Wandteil: geht von X = -0.5 bis 1.5, Breite 2.0m, zentriert bei X = 0.5
-            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.0, wallHeight, 0.5), frontWallMat);
-            wallR.position.set(0.5, wallYStart + wallHeight/2, zPos);
+            // Rechter Wandteil: geht von X = -0.6 bis 1.5, Breite 2.1m, zentriert bei X = 0.45
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.1, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(0.45, wallYStart + wallHeight/2, zPos);
             group.add(wallR);
             registerWall(wallR, true);
 
-            // Fensteröffnung ist von X = -1.5 bis -0.5 (zentriert bei X = -1.0)
+            // Fensteröffnung ist von X = -1.5 bis -0.6 (zentriert bei X = -1.05)
             const bottomH = (floorYStart + 0.9) - wallYStart;
-            const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
-            wallB.position.set(-1.0, wallYStart + bottomH/2, zPos);
+            const wallB = new THREE.Mesh(new THREE.BoxGeometry(0.9, bottomH, 0.5), frontWallMat);
+            wallB.position.set(-1.05, wallYStart + bottomH/2, zPos);
             group.add(wallB);
             registerWall(wallB, true);
 
             const topH = (wallYStart + wallHeight) - (floorYStart + 2.0);
-            const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
-            wallT.position.set(-1.0, floorYStart + 2.0 + topH/2, zPos);
+            const wallT = new THREE.Mesh(new THREE.BoxGeometry(0.9, topH, 0.5), frontWallMat);
+            wallT.position.set(-1.05, floorYStart + 2.0 + topH/2, zPos);
             group.add(wallT);
             registerWall(wallT, true);
 
-            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 1.06, 0.05), glassMat);
-            windowGlass.position.set(-1.0, floorYStart + 1.45, zPos);
+            // Fenster-Glas (0.86m breit, so dass 2cm Rahmen auf jeder Seite bleiben)
+            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.86, 1.06, 0.05), glassMat);
+            windowGlass.position.set(-1.05, floorYStart + 1.45, zPos);
             group.add(windowGlass);
 
             // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
             const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
             
-            // Linke Einfassung (bei X = -1.0 - 0.575 = -1.575)
+            // Linke Einfassung (bei X = -1.05 - 0.525 = -1.575)
             const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
             tL.position.set(-1.575, floorYStart + 1.45, zPos + 0.25);
             group.add(tL);
 
-            // Rechte Einfassung (bei X = -1.0 + 0.575 = -0.425)
+            // Rechte Einfassung (bei X = -1.05 + 0.525 = -0.525)
             const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.4, 0.05), tuffMat);
-            tR.position.set(-0.425, floorYStart + 1.45, zPos + 0.25);
+            tR.position.set(-0.525, floorYStart + 1.45, zPos + 0.25);
             group.add(tR);
 
-            // Obere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
-            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tT.position.set(-1.0, floorYStart + 2.075, zPos + 0.25);
+            // Obere Einfassung (Breite 1.2m, zentriert bei X = -1.05)
+            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.05), tuffMat);
+            tT.position.set(-1.05, floorYStart + 2.075, zPos + 0.25);
             group.add(tT);
 
-            // Untere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
-            const tB = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tB.position.set(-1.0, floorYStart + 0.825, zPos + 0.25);
+            // Untere Einfassung (Breite 1.2m, zentriert bei X = -1.05)
+            const tB = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.05), tuffMat);
+            tB.position.set(-1.05, floorYStart + 0.825, zPos + 0.25);
             group.add(tB);
         }
 
         function buildFrenchBalconyWall(group, wallYStart, floorYStart, wallHeight, zPos) {
-            // Rechter Wandteil: geht von X = -0.5 bis 1.5, Breite 2.0m, zentriert bei X = 0.5
-            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.0, wallHeight, 0.5), frontWallMat);
-            wallR.position.set(0.5, wallYStart + wallHeight/2, zPos);
+            // Rechter Wandteil: geht von X = -0.6 bis 1.5, Breite 2.1m, zentriert bei X = 0.45
+            const wallR = new THREE.Mesh(new THREE.BoxGeometry(2.1, wallHeight, 0.5), frontWallMat);
+            wallR.position.set(0.45, wallYStart + wallHeight/2, zPos);
             group.add(wallR);
             registerWall(wallR, true);
 
-            // Öffnung ist von X = -1.5 bis -0.5 (zentriert bei X = -1.0)
+            // Öffnung ist von X = -1.5 bis -0.6 (zentriert bei X = -1.05)
             const bottomH = floorYStart - wallYStart;
             if (bottomH > 0.001) {
-                const wallB = new THREE.Mesh(new THREE.BoxGeometry(1.0, bottomH, 0.5), frontWallMat);
-                wallB.position.set(-1.0, wallYStart + bottomH/2, zPos);
+                const wallB = new THREE.Mesh(new THREE.BoxGeometry(0.9, bottomH, 0.5), frontWallMat);
+                wallB.position.set(-1.05, wallYStart + bottomH/2, zPos);
                 group.add(wallB);
                 registerWall(wallB, true);
             }
 
             const topH = (wallYStart + wallHeight) - (floorYStart + 2.2);
-            const wallT = new THREE.Mesh(new THREE.BoxGeometry(1.0, topH, 0.5), frontWallMat);
-            wallT.position.set(-1.0, floorYStart + 2.2 + topH/2, zPos);
+            const wallT = new THREE.Mesh(new THREE.BoxGeometry(0.9, topH, 0.5), frontWallMat);
+            wallT.position.set(-1.05, floorYStart + 2.2 + topH/2, zPos);
             group.add(wallT);
             registerWall(wallT, true);
 
-            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.96, 2.16, 0.05), glassMat);
-            windowGlass.position.set(-1.0, floorYStart + 1.1, zPos);
+            // Fenster-Glas (0.86m breit)
+            const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(0.86, 2.16, 0.05), glassMat);
+            windowGlass.position.set(-1.05, floorYStart + 1.1, zPos);
             group.add(windowGlass);
 
             // Tuffstein-Rahmen (bündig/leicht vorstehend, damit er sichtbar wird)
             const tuffMat = new THREE.MeshStandardMaterial({ color: '#8b5a2b', roughness: 1.0 });
             
-            // Linke Einfassung (bei X = -1.0 - 0.575 = -1.575)
+            // Linke Einfassung (bei X = -1.05 - 0.525 = -1.575)
             const tL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
             tL.position.set(-1.575, floorYStart + 1.1, zPos + 0.25);
             group.add(tL);
 
-            // Rechte Einfassung (bei X = -1.0 + 0.575 = -0.425)
+            // Rechte Einfassung (bei X = -1.05 + 0.525 = -0.525)
             const tR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.35, 0.05), tuffMat);
-            tR.position.set(-0.425, floorYStart + 1.1, zPos + 0.25);
+            tR.position.set(-0.525, floorYStart + 1.1, zPos + 0.25);
             group.add(tR);
 
-            // Obere Einfassung (Breite 1.3m, zentriert bei X = -1.0)
-            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.15, 0.05), tuffMat);
-            tT.position.set(-1.0, floorYStart + 2.275, zPos + 0.25);
+            // Obere Einfassung (Breite 1.2m, zentriert bei X = -1.05)
+            const tT = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.05), tuffMat);
+            tT.position.set(-1.05, floorYStart + 2.275, zPos + 0.25);
             group.add(tT);
 
-            // Stahlgeländer (französischer Balkon) außen, zentriert bei X = -1.0
+            // Stahlgeländer (französischer Balkon) außen, zentriert bei X = -1.05
             const railingGroup = new THREE.Group();
             const rMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
             
-            const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
+            const handrail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 8), rMat);
             handrail.rotation.z = Math.PI / 2;
-            handrail.position.set(-1.0, floorYStart + 1.0, zPos + 0.3);
+            handrail.position.set(-1.05, floorYStart + 1.0, zPos + 0.3);
             railingGroup.add(handrail);
             
-            const bottomRail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8), rMat);
+            const bottomRail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 8), rMat);
             bottomRail.rotation.z = Math.PI / 2;
-            bottomRail.position.set(-1.0, floorYStart + 0.1, zPos + 0.3);
+            bottomRail.position.set(-1.05, floorYStart + 0.1, zPos + 0.3);
             railingGroup.add(bottomRail);
             
-            for (let x = -0.55; x <= 0.55; x += 0.11) {
+            for (let x = -0.5; x <= 0.5; x += 0.1) {
                 const stab = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.9, 8), rMat);
-                stab.position.set(-1.0 + x, floorYStart + 0.55, zPos + 0.3);
+                stab.position.set(-1.05 + x, floorYStart + 0.55, zPos + 0.3);
                 railingGroup.add(stab);
             }
             
@@ -4704,9 +4871,9 @@
             canvas.width = 384;
             canvas.height = 80;
             
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-            ctx.strokeStyle = accentColor;
-            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)'; // Transparent dark background
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)'; // Thin white border
+            ctx.lineWidth = 2; // Dünnerer Rahmen
             
             ctx.beginPath();
             ctx.roundRect(4, 4, 376, 72, 10);
@@ -4714,7 +4881,7 @@
             ctx.stroke();
             
             ctx.font = 'bold 20px "Outfit", sans-serif';
-            ctx.fillStyle = accentColor;
+            ctx.fillStyle = '#f8fafc'; // White/light text color for high contrast
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, 192, 40);
@@ -4735,6 +4902,75 @@
         }
 
 
+
+        window.areStairwellLampsOn = true;
+        
+        function showToast(msg) {
+            let toast = document.getElementById("lamp-toast");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "lamp-toast";
+                toast.style.position = "fixed";
+                toast.style.bottom = "80px";
+                toast.style.left = "50%";
+                toast.style.transform = "translateX(-50%)";
+                toast.style.background = "rgba(0,0,0,0.85)";
+                toast.style.color = "#ffffff";
+                toast.style.padding = "8px 16px";
+                toast.style.borderRadius = "20px";
+                toast.style.fontFamily = "sans-serif";
+                toast.style.fontSize = "14px";
+                toast.style.zIndex = "99999";
+                toast.style.pointerEvents = "none";
+                toast.style.transition = "opacity 0.3s";
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.opacity = "1";
+            if (window.toastTimeout) clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => {
+                toast.style.opacity = "0";
+            }, 1500);
+        }
+        
+        function setStairwellLamps(isOn, showToastMsg = true) {
+            window.areStairwellLampsOn = isOn;
+            
+            const chk = document.getElementById("chk-stair-light");
+            if (chk) chk.checked = isOn;
+            
+            if (window.stairwellLamps) {
+                window.stairwellLamps.forEach(lamp => {
+                    // Update glass colors
+                    if (lamp.glasses) {
+                        lamp.glasses.forEach(glass => {
+                            glass.material.color.setHex(window.areStairwellLampsOn ? 0xffea9f : 0x555555);
+                        });
+                    }
+                    // Update light intensities
+                    if (lamp.lights) {
+                        lamp.lights.forEach(light => {
+                            light.intensity = window.areStairwellLampsOn ? light.userData.originalIntensity : 0;
+                        });
+                    }
+                    // Update volumetric beam visibility
+                    if (lamp.beams) {
+                        lamp.beams.forEach(beam => {
+                            beam.visible = window.areStairwellLampsOn;
+                        });
+                    }
+                });
+            }
+            
+            localStorage.setItem('bosa_areStairwellLampsOn', window.areStairwellLampsOn);
+            if (showToastMsg) {
+                showToast(window.areStairwellLampsOn ? "Licht eingeschaltet" : "Licht ausgeschaltet");
+            }
+        }
+        
+        function toggleStairwellLamps() {
+            setStairwellLamps(!window.areStairwellLampsOn);
+        }
 
         let pointerDownX = 0;
         let pointerDownY = 0;
@@ -4764,6 +5000,10 @@
                     if (selected) break;
                 }
                 if (selected) {
+                    if (selected.userData && selected.userData.name && selected.userData.name.includes("Treppenhaustaster")) {
+                        toggleStairwellLamps();
+                        return;
+                    }
                     selectObject(selected);
                     return;
                 }
