@@ -466,6 +466,14 @@
                         <button class="floor-btn" id="s-btn-diagonal" onclick="selectShaftPosition('diagonal')" data-i18n="shaftDiag">Hinten rechts</button>
                     </div>
                 </div>
+
+                <div class="bath-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px; margin-top: 6px;">
+                    <span data-i18n="visBathTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Bad-Option (EG)</span>
+                    <div class="floor-grid" id="bath-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <button class="floor-btn" id="b-btn-side" onclick="selectBathPosition('side')" data-i18n="bathSide">Vorne links</button>
+                        <button class="floor-btn active" id="b-btn-back" onclick="selectBathPosition('back')" data-i18n="bathBack">Hinten (3x1,8m)</button>
+                    </div>
+                </div>
                 
                 <div class="switch-container">
                     <span data-i18n="visFurniture">Möbel einblenden</span>
@@ -519,6 +527,10 @@
                 <li class="legend-item">
                     <span class="legend-color" style="background:#e2e8f0; border: 1px solid rgba(0,0,0,0.2);"></span>
                     <span data-i18n="legFloor"><b>Böden / Decken:</b> Massive Zwischendecken. Im 2. OG historische Bogendecke.</span>
+                </li>
+                <li class="legend-item">
+                    <span class="legend-color" style="background:#06b6d4; border: 1px solid rgba(0,0,0,0.2);"></span>
+                    <span data-i18n="legBath"><b>Badezimmer EG:</b> Schaltbare Grundriss-Option (Vorne links 1,2x2,8m vs. Großes Bad hinten 3,0x1,8m).</span>
                 </li>
 
                 <li class="legend-item">
@@ -647,6 +659,9 @@
                 shaftBack: "Hinten Mitte",
                 shaftRight: "Seite rechts",
                 shaftDiag: "Hinten rechts",
+                visBathTitle: "Bad-Option (EG)",
+                bathSide: "Vorne links",
+                bathBack: "Hinten (3x1,8m)",
                 visFurniture: "Möbel einblenden",
                 visLabels: "Labels einblenden",
                 visDimensions: "Bemaßung einblenden",
@@ -660,6 +675,7 @@
                 legTitle: "Legende",
                 legWall: "<b>Mauerwerk:</b> 0.5m dicke Außenwände (transparent schaltbar).",
                 legFloor: "<b>Böden / Decken:</b> Massive Zwischendecken. Im 2. OG historische Bogendecke.",
+                legBath: "<b>Badezimmer EG:</b> Schaltbare Grundriss-Option (Vorne links 1,2x2,8m vs. Großes Bad hinten 3,0x1,8m).",
 
                 legNewStairs: "<b>Neue Wendeltreppe:</b> Platzsparend im 3. OG hinten rechts (1,2m x 1,2m) mit Austrittshaus auf Terrasse.",
                 legPipes: "<b>Versorgungsleitungen:</b> Abwasser (Orange, zur Str.), Elektro (Schwarz), Warmwasser (Rot), Kaltwasser (Cyan). Schacht schaltbar (hinten vs. rechts vs. diagonal).",
@@ -686,6 +702,9 @@
                 shaftBack: "Back Center",
                 shaftRight: "Right Side",
                 shaftDiag: "Back Right",
+                visBathTitle: "Bathroom Option (GF)",
+                bathSide: "Front Left",
+                bathBack: "Rear (3x1.8m)",
                 visFurniture: "Show Furniture",
                 visLabels: "Show Labels",
                 visDimensions: "Show Dimensions",
@@ -699,6 +718,7 @@
                 legTitle: "Legend",
                 legWall: "<b>Masonry:</b> 0.5m thick outer walls (can be transparent).",
                 legFloor: "<b>Floors / Ceilings:</b> Solid ceilings. Historic vault ceiling on 2nd floor.",
+                legBath: "<b>Bathroom GF:</b> Switchable floor plan option (Front left 1.2x2.8m vs. Large bath back 3.0x1.8m).",
 
                 legNewStairs: "<b>New Spiral Stairs:</b> Space-saving on 3rd floor back right (1.2m x 1.2m) with exit house on terrace.",
                 legPipes: "<b>Utility Pipes:</b> Waste (Orange, to street), Electric (Black), Hot Water (Red), Cold (Cyan). Switchable shaft (back vs. right vs. diagonal).",
@@ -725,6 +745,9 @@
                 shaftBack: "Posteriore centro",
                 shaftRight: "Lato destro",
                 shaftDiag: "Posteriore destro",
+                visBathTitle: "Opzione Bagno (PT)",
+                bathSide: "Fronte sinistra",
+                bathBack: "Posteriore (3x1,8m)",
                 visFurniture: "Mostra Mobili",
                 visLabels: "Mostra Etichette",
                 visDimensions: "Mostra Quote",
@@ -738,6 +761,7 @@
                 legTitle: "Legenda",
                 legWall: "<b>Muratura:</b> Muri esterni di 0,5m (rendibili trasparenti).",
                 legFloor: "<b>Pavimenti / Soffitti:</b> Solai massicci. Soffitto a volta storico al 2° piano.",
+                legBath: "<b>Bagno PT:</b> Opzione planimetrica selezionabile (Fronte sinistra 1,2x2,8m vs. Grande bagno posteriore 3,0x1,8m).",
 
                 legNewStairs: "<b>Nuova Scala a Chiocciola:</b> Salvaspazio al 3° piano a destra (1,2m x 1,2m) con casotto in terrazza.",
                 legPipes: "<b>Impianti:</b> Scarico (Arancio, strada), Elettrico (Nero), Acqua calda (Rosso), Fredda (Ciano). Vano selezionabile (dietro vs. destra vs. diagonale).",
@@ -813,6 +837,42 @@
 
         // --- 1. GLOBALE VARIABLEN & EINSTELLUNGEN ---
         const V = (x, y, z) => new THREE.Vector3(x, y, z);
+        function createWashingMachine(name) {
+            const group = new THREE.Group();
+            const wmMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }); // white body
+            const wmPanelMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); // dark panel
+            const wmGlassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, transparent: true, opacity: 0.6 });
+
+            // Main body (0.6m x 0.85m x 0.6m)
+            const wmBody = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.85, 0.58), wmMat);
+            wmBody.position.y = 0.425;
+            group.add(wmBody);
+
+            // Control panel at the top (facing -X)
+            const wmPanel = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.1, 0.54), wmPanelMat);
+            wmPanel.position.set(-0.291, 0.78, 0);
+            group.add(wmPanel);
+
+            // Round door (bullauge) facing -X
+            const doorGroup = new THREE.Group();
+            doorGroup.position.set(-0.291, 0.45, 0);
+            doorGroup.rotation.z = Math.PI / 2; // face normal along X
+
+            const doorFrame = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 24), newMetalMat);
+            doorGroup.add(doorFrame);
+
+            const doorGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.022, 24), wmGlassMat);
+            doorGroup.add(doorGlass);
+
+            group.add(doorGroup);
+
+            // Placed next to the tank/wp at Z=0.6, so at Z=0.0
+            group.position.set(1.2, 0.0, 0.0);
+            group.userData.isSelectable = true;
+            group.userData.name = name;
+
+            return group;
+        }
         function createPipeBetween(p1, p2, radius, material) {
             const dir = new THREE.Vector3().subVectors(p2, p1);
             const len = dir.length();
@@ -849,6 +909,11 @@
         let showInstallations = true;
         let shaftOnRight = false;
         let shaftPosition = 'back'; // 'back', 'right', 'diagonal'
+        let bathPosition = 'back';  // 'side', 'back'
+        let bathSideGroup, bathBackGroup;
+        let bathSideFurnitureGroup, bathBackFurnitureGroup;
+        let bathSideDimObjects = [];
+        let bathBackDimObjects = [];
         let showFurniture = true;
         let showLabels = true;
         let showDimensions = true;
@@ -896,6 +961,7 @@
             } else {
                 shaftPosition = getVal('bosa_shaftPosition', 'back');
             }
+            bathPosition = getVal('bosa_bathPosition', 'back');
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
             showDimensions = getBool('bosa_showDimensions', true);
@@ -994,6 +1060,10 @@
             } else if (shaftPosition === 'diagonal') {
                 document.getElementById('s-btn-diagonal').classList.add('active');
             }
+            
+            // Bath position UI initialization
+            selectBathPosition(bathPosition);
+
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
             document.getElementById('chk-dimensions').checked = showDimensions;
@@ -1282,43 +1352,6 @@
             const grp = floorGroups[0];
             const H = 2.3;
 
-            function createWashingMachine(name) {
-                const group = new THREE.Group();
-                const wmMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }); // white body
-                const wmPanelMat = new THREE.MeshStandardMaterial({ color: 0x333333 }); // dark panel
-                const wmGlassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, transparent: true, opacity: 0.6 });
-                
-                // Main body (0.6m x 0.85m x 0.6m)
-                const wmBody = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.85, 0.58), wmMat);
-                wmBody.position.y = 0.425;
-                group.add(wmBody);
-                
-                // Control panel at the top (facing -X)
-                const wmPanel = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.1, 0.54), wmPanelMat);
-                wmPanel.position.set(-0.291, 0.78, 0);
-                group.add(wmPanel);
-                
-                // Round door (bullauge) facing -X
-                const doorGroup = new THREE.Group();
-                doorGroup.position.set(-0.291, 0.45, 0);
-                doorGroup.rotation.z = Math.PI / 2; // face normal along X
-                
-                const doorFrame = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.02, 24), newMetalMat);
-                doorGroup.add(doorFrame);
-                
-                const doorGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.022, 24), wmGlassMat);
-                doorGroup.add(doorGlass);
-                
-                group.add(doorGroup);
-                
-                // Placed next to the tank/wp at Z=0.6, so at Z=0.0
-                group.position.set(1.2, 0.0, 0.0);
-                group.userData.isSelectable = true;
-                group.userData.name = name;
-                
-                return group;
-            }
-
             // Bodenplatte (nur Innenbereich: 3.0m x 5.0m)
             const floorGeo = new THREE.BoxGeometry(3.0, 0.2, 5.0);
             const floorMesh = new THREE.Mesh(floorGeo, floorMat);
@@ -1530,105 +1563,226 @@
                 grp.add(step);
             }
 
-            // --- BADEZIMMER (EG) ---
-            // Das Bad geht nicht ganz nach hinten (endet bei Z = -1.0), hat eine diagonale Türwand
-            // und startet exakt 0.7m entfernt von der Eingangstür (bei Z = 1.8, statt an der Außenwand bei Z = 2.5)
-            // Es werden keine unnötigen Wände bis zur Vorderseite des Gebäudes gezeichnet.
-            
-            const bathNew = new THREE.Group();
-            
-            // Rückwand des Bades (Z = -1.0)
-            const backPartitionNew = new THREE.Mesh(new THREE.BoxGeometry(1.2, H, 0.05), innerWallMat);
-            backPartitionNew.position.set(-0.9, H/2, -1.0);
-            bathNew.add(backPartitionNew);
-
-            // Längswand hinten (X = -0.3, Z = -1.0 bis 1.0)
-            const wallNewB = new THREE.Mesh(new THREE.BoxGeometry(0.05, H, 2.0), innerWallMat);
-            wallNewB.position.set(-0.3, H/2, 0.0);
-            bathNew.add(wallNewB);
-
-            // Diagonale Türwand von (-0.3, 1.0) bis (-0.7, 1.8)
-            const diagWallNew = createDiagonalDoorWall(-0.3, 1.0, -0.7, 1.8, 0.65, 2.0, H, innerWallMat, doorWoodMat);
-            bathNew.add(diagWallNew);
-
-            // Querwand vorne des Bades (Z = 1.8)
-            const frontPartitionNew = new THREE.Mesh(new THREE.BoxGeometry(0.8, H, 0.05), innerWallMat);
-            frontPartitionNew.position.set(-1.1, H/2, 1.8);
-            bathNew.add(frontPartitionNew);
-
-            // --- BADEZIMMER-MÖBEL (EG) ---
-            const egBathFurniture = new THREE.Group();
-            egBathFurniture.visible = showFurniture;
-            furnitureObjects.push(egBathFurniture);
-
+            // --- BADEZIMMER-OPTIONEN (EG) ---
             const chromeMat = new THREE.MeshStandardMaterial({ color: '#cccccc', metalness: 0.8, roughness: 0.2 });
             const ceramicMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.1 });
+            const mirrorGlassMat = new THREE.MeshStandardMaterial({ color: '#f0f9ff', metalness: 0.95, roughness: 0.05 });
 
-            // 1. Dusche hinten (Z = -1.0 bis -0.1)
-            // Duschwanne
-            const showerTray = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.04, 0.9), new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.9 }));
-            showerTray.position.set(-0.9, 0.02, -0.55); // auf dem Fußboden Y = 0.0
-            egBathFurniture.add(showerTray);
+            // =========================================================================
+            // 1. OPTION "VORNE LINKS / KOMPAKT" (1,2m x 2,8m)
+            // =========================================================================
+            bathSideGroup = new THREE.Group();
+            
+            // Rückwand des Bades (Z = -1.0)
+            const backPartitionSide = new THREE.Mesh(new THREE.BoxGeometry(1.2, H, 0.05), innerWallMat);
+            backPartitionSide.position.set(-0.9, H/2, -1.0);
+            bathSideGroup.add(backPartitionSide);
 
-            // Duschwand (Glas) bei Z = -0.1, geht von X = -1.5 bis -0.7 (40cm Einstieg rechts frei)
-            const showerGlass = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.0, 0.01), glassMat);
-            showerGlass.position.set(-1.1, 1.0, -0.1);
-            egBathFurniture.add(showerGlass);
+            // Längswand hinten (X = -0.3, Z = -1.0 bis 1.0)
+            const wallSideB = new THREE.Mesh(new THREE.BoxGeometry(0.05, H, 2.0), innerWallMat);
+            wallSideB.position.set(-0.3, H/2, 0.0);
+            bathSideGroup.add(wallSideB);
 
-            // Duscharmatur (Stange, Duschkopf und Mischbatterie)
-            const showerPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6, 8), chromeMat);
-            showerPipe.position.set(-0.9, 0.8, -0.98);
-            egBathFurniture.add(showerPipe);
+            // Diagonale Türwand von (-0.3, 1.0) bis (-0.7, 1.8)
+            const diagWallSide = createDiagonalDoorWall(-0.3, 1.0, -0.7, 1.8, 0.65, 2.0, H, innerWallMat, doorWoodMat);
+            bathSideGroup.add(diagWallSide);
 
-            const showerHead = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.02, 16), chromeMat);
-            showerHead.position.set(-0.9, 1.6, -0.85);
-            egBathFurniture.add(showerHead);
+            // Querwand vorne des Bades (Z = 1.8)
+            const frontPartitionSide = new THREE.Mesh(new THREE.BoxGeometry(0.8, H, 0.05), innerWallMat);
+            frontPartitionSide.position.set(-1.1, H/2, 1.8);
+            bathSideGroup.add(frontPartitionSide);
 
-            const showerArm = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.15), chromeMat);
-            showerArm.position.set(-0.9, 1.6, -0.925);
-            egBathFurniture.add(showerArm);
+            // Möbel Option Vorne Links
+            bathSideFurnitureGroup = new THREE.Group();
+            bathSideFurnitureGroup.visible = showFurniture && (bathPosition === 'side');
+            furnitureObjects.push(bathSideFurnitureGroup);
 
-            // 2. Waschtisch links (Z = 0.2 bis 0.8)
-            // Unterschrank (schwebend, 35cm tief, 50cm hoch, 60cm breit)
-            const vanity = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.6), woodFurnitureMat);
-            vanity.position.set(-1.325, 0.4, 0.5); // an der linken Wand
-            egBathFurniture.add(vanity);
+            // Dusche
+            const showerTraySide = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.04, 0.9), new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.9 }));
+            showerTraySide.position.set(-0.9, 0.02, -0.55);
+            bathSideFurnitureGroup.add(showerTraySide);
 
-            // Keramikwaschbecken (liegt oben auf dem Unterschrank)
-            const basin = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.45), ceramicMat);
-            basin.position.set(-1.325, 0.69, 0.5);
-            egBathFurniture.add(basin);
+            const showerGlassSide = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.0, 0.01), glassMat);
+            showerGlassSide.position.set(-1.1, 1.0, -0.1);
+            bathSideFurnitureGroup.add(showerGlassSide);
 
-            // Verchromter Wasserhahn
-            const tap = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.1, 0.08), chromeMat);
-            tap.position.set(-1.425, 0.74, 0.5);
-            egBathFurniture.add(tap);
+            const showerPipeSide = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6, 8), chromeMat);
+            showerPipeSide.position.set(-0.9, 0.8, -0.98);
+            bathSideFurnitureGroup.add(showerPipeSide);
 
-            // 3. Toilette links (Z = 1.1 bis 1.5)
-            // Toilettenbecken (X = -1.5 bis -1.15, Z = 1.05 bis 1.55)
-            const toilet = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), ceramicMat);
-            toilet.position.set(-1.325, 0.2, 1.3);
-            egBathFurniture.add(toilet);
+            const showerHeadSide = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.02, 16), chromeMat);
+            showerHeadSide.position.set(-0.9, 1.6, -0.85);
+            bathSideFurnitureGroup.add(showerHeadSide);
 
-            // Toilettensitz (soft close deckel)
-            const toiletSeat = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.02, 0.51), new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.5 }));
-            toiletSeat.position.set(-1.325, 0.41, 1.3);
-            egBathFurniture.add(toiletSeat);
+            const showerArmSide = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.15), chromeMat);
+            showerArmSide.position.set(-0.9, 1.6, -0.925);
+            bathSideFurnitureGroup.add(showerArmSide);
 
-            // Spülkasten an der linken Wand
-            const cistern = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.4, 0.35), ceramicMat);
-            cistern.position.set(-1.425, 0.6, 1.3);
-            egBathFurniture.add(cistern);
+            // Waschtisch links
+            const vanitySide = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.6), woodFurnitureMat);
+            vanitySide.position.set(-1.325, 0.4, 0.5);
+            bathSideFurnitureGroup.add(vanitySide);
 
-            bathNew.add(egBathFurniture);
+            const basinSide = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.45), ceramicMat);
+            basinSide.position.set(-1.325, 0.69, 0.5);
+            bathSideFurnitureGroup.add(basinSide);
+
+            const tapSide = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.1, 0.08), chromeMat);
+            tapSide.position.set(-1.425, 0.74, 0.5);
+            bathSideFurnitureGroup.add(tapSide);
+
+            // Toilette links
+            const toiletSide = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 0.5), ceramicMat);
+            toiletSide.position.set(-1.325, 0.2, 1.3);
+            bathSideFurnitureGroup.add(toiletSide);
+
+            const toiletSeatSide = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.02, 0.51), new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.5 }));
+            toiletSeatSide.position.set(-1.325, 0.41, 1.3);
+            bathSideFurnitureGroup.add(toiletSeatSide);
+
+            const cisternSide = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.4, 0.35), ceramicMat);
+            cisternSide.position.set(-1.425, 0.6, 1.3);
+            bathSideFurnitureGroup.add(cisternSide);
+
+            bathSideGroup.add(bathSideFurnitureGroup);
+            bathSideGroup.visible = (bathPosition === 'side');
+            grp.add(bathSideGroup);
+
+            // =========================================================================
+            // 2. OPTION "HINTEN" (3,0m x 2,0m Großbad an der Rückwand)
+            // =========================================================================
+            bathBackGroup = new THREE.Group();
+
+            // Durchgehende Trennwand bei Z = -0.7 mit Türöffnung bei X = -0.40 bis 0.40
+            const wallBackPartL = new THREE.Mesh(new THREE.BoxGeometry(1.1, H, 0.05), innerWallMat);
+            wallBackPartL.position.set(-0.95, H/2, -0.7);
+            bathBackGroup.add(wallBackPartL);
+
+            const wallBackPartR = new THREE.Mesh(new THREE.BoxGeometry(1.1, H, 0.05), innerWallMat);
+            wallBackPartR.position.set(0.95, H/2, -0.7);
+            bathBackGroup.add(wallBackPartR);
+
+            // Türsturz
+            const topH_back = H - 2.0;
+            const doorHeaderBack = new THREE.Mesh(new THREE.BoxGeometry(0.8, topH_back, 0.05), innerWallMat);
+            doorHeaderBack.position.set(0.0, 2.0 + topH_back/2, -0.7);
+            bathBackGroup.add(doorHeaderBack);
+
+            // Holztür mit Türdrücker
+            const bathBackDoorHinge = new THREE.Group();
+            bathBackDoorHinge.position.set(-0.4, 0, -0.7);
+            const bathBackDoorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.78, 1.98, 0.04), doorWoodMat);
+            bathBackDoorLeaf.position.set(0.39, 1.0, 0);
+            bathBackDoorHinge.add(bathBackDoorLeaf);
+
+            const handleBack = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.12), chromeMat);
+            handleBack.position.set(0.72, 1.05, 0.03);
+            bathBackDoorHinge.add(handleBack);
+
+            bathBackDoorHinge.rotation.y = -Math.PI / 3;
+            bathBackGroup.add(bathBackDoorHinge);
+
+            // Möbel Option Hinten (3x1,8m)
+            bathBackFurnitureGroup = new THREE.Group();
+            bathBackFurnitureGroup.visible = showFurniture && (bathPosition === 'back');
+            furnitureObjects.push(bathBackFurnitureGroup);
+
+            // 1. Großzügige Walk-In Dusche (hinten links: X = -1.5 bis -0.2, Z = -2.5 bis -1.4)
+            const showerTrayBack = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 0.03, 1.1),
+                new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.85 })
+            );
+            showerTrayBack.position.set(-0.85, 0.015, -1.95);
+            bathBackFurnitureGroup.add(showerTrayBack);
+
+            // Klarglas Duschabtrennung Walk-In (feststehend)
+            const showerGlassBack = new THREE.Mesh(new THREE.BoxGeometry(0.01, 2.0, 1.1), glassMat);
+            showerGlassBack.position.set(-0.2, 1.0, -1.95);
+            bathBackFurnitureGroup.add(showerGlassBack);
+
+            // Duscharmatur an der linken Außenwand
+            const showerPipeBack = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.6, 12), chromeMat);
+            showerPipeBack.position.set(-1.46, 1.1, -1.95);
+            bathBackFurnitureGroup.add(showerPipeBack);
+
+            const showerHeadBack = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 24), chromeMat);
+            showerHeadBack.position.set(-1.15, 1.9, -1.95);
+            bathBackFurnitureGroup.add(showerHeadBack);
+
+            const showerArmBack = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.02, 0.02), chromeMat);
+            showerArmBack.position.set(-1.31, 1.9, -1.95);
+            bathBackFurnitureGroup.add(showerArmBack);
+
+            const showerMixerBack = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.22), chromeMat);
+            showerMixerBack.position.set(-1.44, 1.0, -1.95);
+            bathBackFurnitureGroup.add(showerMixerBack);
+
+            // 2. Großer moderner Waschtisch an der rechten Wand (X = 1.5)
+            const vanityBack = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.5, 1.0), woodFurnitureMat);
+            vanityBack.position.set(1.275, 0.45, -1.7);
+            bathBackFurnitureGroup.add(vanityBack);
+
+            const basinBack = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.10, 0.65), ceramicMat);
+            basinBack.position.set(1.275, 0.75, -1.7);
+            bathBackFurnitureGroup.add(basinBack);
+
+            const tapBack = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.18, 0.06), chromeMat);
+            tapBack.position.set(1.42, 0.86, -1.7);
+            bathBackFurnitureGroup.add(tapBack);
+
+            // LED-Wandspiegel
+            const mirrorBack = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.80, 0.80), mirrorGlassMat);
+            mirrorBack.position.set(1.485, 1.45, -1.7);
+            bathBackFurnitureGroup.add(mirrorBack);
+
+            const mirrorFrameMat = new THREE.MeshStandardMaterial({ color: '#38bdf8', roughness: 0.3, emissive: 0x0284c7, emissiveIntensity: 0.3 });
+            const mirrorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.83, 0.83), mirrorFrameMat);
+            mirrorFrame.position.set(1.492, 1.45, -1.7);
+            bathBackFurnitureGroup.add(mirrorFrame);
+
+            // 3. Wand-WC mit Vorwandelement an der Rückwand
+            const wcCisternBlockBack = new THREE.Mesh(new THREE.BoxGeometry(0.70, 1.15, 0.18), innerWallMat);
+            wcCisternBlockBack.position.set(0.55, 0.575, -2.41);
+            bathBackFurnitureGroup.add(wcCisternBlockBack);
+
+            const toiletBack = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.38, 0.52), ceramicMat);
+            toiletBack.position.set(0.55, 0.25, -2.06);
+            bathBackFurnitureGroup.add(toiletBack);
+
+            const toiletSeatBack = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.02, 0.53), new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.5 }));
+            toiletSeatBack.position.set(0.55, 0.45, -2.06);
+            bathBackFurnitureGroup.add(toiletSeatBack);
+
+            const flushPlateBack = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.01), chromeMat);
+            flushPlateBack.position.set(0.55, 0.95, -2.315);
+            bathBackFurnitureGroup.add(flushPlateBack);
+
+            // 4. Design-Handtuchwärmer an der linken Wand (Z = -0.9)
+            const towelWarmerGrp = new THREE.Group();
+            const railMat = new THREE.MeshStandardMaterial({ color: '#475569', metalness: 0.8, roughness: 0.2 });
+            const tRailV1 = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.3, 8), railMat);
+            tRailV1.position.set(-1.46, 1.1, -1.1);
+            towelWarmerGrp.add(tRailV1);
+            const tRailV2 = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.3, 8), railMat);
+            tRailV2.position.set(-1.46, 1.1, -0.7);
+            towelWarmerGrp.add(tRailV2);
+            for (let r = 0; r < 8; r++) {
+                const rH = 0.55 + r * 0.15;
+                const rGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.4, 8);
+                rGeo.rotateX(Math.PI / 2);
+                const rMesh = new THREE.Mesh(rGeo, railMat);
+                rMesh.position.set(-1.46, rH, -0.9);
+                towelWarmerGrp.add(rMesh);
+            }
+            bathBackFurnitureGroup.add(towelWarmerGrp);
+
+            bathBackGroup.add(bathBackFurnitureGroup);
+            bathBackGroup.visible = (bathPosition === 'back');
+            grp.add(bathBackGroup);
 
             // 1. OPTION A: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpBack = new THREE.Group();
-            
-            // Washing machine next to the tank & WP
-            const wmBack = createWashingMachine("Waschmaschine (Option A)");
-            equipGrpBack.add(wmBack);
-            
+
             const tankMat = new THREE.MeshLambertMaterial({ color: 0xc62828 }); // rot = warm wasser
             const tankBack = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankBack.position.set(1.2, 0.5, 0.6);
@@ -1701,11 +1855,7 @@
 
             // 2. OPTION B: Wärmepumpe & Warmwassertank & Autoclave (kompakt neben Steigleitung an der rechten Wand)
             const equipGrpRight = new THREE.Group();
-            
-            // Washing machine next to the tank & WP
-            const wmRight = createWashingMachine("Waschmaschine (Option B)");
-            equipGrpRight.add(wmRight);
-            
+
             const tankRight = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankRight.position.set(1.2, 0.5, 0.6);
             tankRight.userData.isSelectable = true;
@@ -1762,10 +1912,6 @@
 
             // 3. OPTION C: Wärmepumpe & Warmwassertank & Autoclave (immer unter der ersten Treppe rechts)
             const equipGrpDiag = new THREE.Group();
-            
-            // Washing machine next to the tank & WP
-            const wmDiag = createWashingMachine("Waschmaschine (Option C)");
-            equipGrpDiag.add(wmDiag);
 
             const tankDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.0, 16), tankMat);
             tankDiag.position.set(1.2, 0.5, 0.6);
@@ -1849,9 +1995,10 @@
             installationObjects.push(equipGrpDiag);
             shaftDiagObjects.push(equipGrpDiag);
 
-            // Dimensions Floor 0 (EG)
-            // Flurbreite is an internal clearance, so it stays inside
+            // Flurbreite (nur bei Bad Vorne Links)
             const dimFlur = createDimensionLine(V(-0.275, 0.5, 0.5), V(0.35, 0.5, 0.5), "62,5 cm", 0xc2410c, V(0, 0, 1), 0.15);
+            dimFlur.visible = showDimensions && (bathPosition === 'side');
+            bathSideDimObjects.push(dimFlur);
             grp.add(dimFlur);
             
             // Outer width dimension at the back (Z = -3.2)
@@ -1866,12 +2013,32 @@
             const dimHeight = createDimensionLine(V(-2.2, 0.0, -2.6), V(-2.2, 2.3, -2.6), "2,30 m", 0xc2410c, V(-1, 0, 0), 0.15);
             grp.add(dimHeight);
 
-            // Badezimmer-Maße (EG)
-            const dimBathWidth = createDimensionLine(V(-1.5, 0.05, -0.9), V(-0.3, 0.05, -0.9), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
-            grp.add(dimBathWidth);
+            // Badezimmer-Maße Option Vorne Links (EG)
+            const dimBathWidthSide = createDimensionLine(V(-1.5, 0.05, -0.9), V(-0.3, 0.05, -0.9), "1,20 m", 0xc2410c, V(0, 0, 1), 0.15);
+            dimBathWidthSide.visible = showDimensions && (bathPosition === 'side');
+            bathSideDimObjects.push(dimBathWidthSide);
+            grp.add(dimBathWidthSide);
             
-            const dimBathDepth = createDimensionLine(V(-1.4, 0.05, -1.0), V(-1.4, 0.05, 1.8), "2,80 m", 0xc2410c, V(1, 0, 0), 0.15);
-            grp.add(dimBathDepth);
+            const dimBathDepthSide = createDimensionLine(V(-1.4, 0.05, -1.0), V(-1.4, 0.05, 1.8), "2,80 m", 0xc2410c, V(1, 0, 0), 0.15);
+            dimBathDepthSide.visible = showDimensions && (bathPosition === 'side');
+            bathSideDimObjects.push(dimBathDepthSide);
+            grp.add(dimBathDepthSide);
+
+            // Badezimmer-Maße Option Hinten (3x1,8m)
+            const dimBathWidthBack = createDimensionLine(V(-1.5, 0.05, -0.6), V(1.5, 0.05, -0.6), "3,00 m", 0xc2410c, V(0, 0, 1), 0.15);
+            dimBathWidthBack.visible = showDimensions && (bathPosition === 'back');
+            bathBackDimObjects.push(dimBathWidthBack);
+            grp.add(dimBathWidthBack);
+
+            const dimBathDepthBack = createDimensionLine(V(-1.4, 0.05, -2.5), V(-1.4, 0.05, -0.7), "1,80 m", 0xc2410c, V(1, 0, 0), 0.15);
+            dimBathDepthBack.visible = showDimensions && (bathPosition === 'back');
+            bathBackDimObjects.push(dimBathDepthBack);
+            grp.add(dimBathDepthBack);
+
+            const dimFoyerDepthBack = createDimensionLine(V(-1.4, 0.05, -0.7), V(-1.4, 0.05, 2.5), "3,20 m", 0xc2410c, V(1, 0, 0), 0.15);
+            dimFoyerDepthBack.visible = showDimensions && (bathPosition === 'back');
+            bathBackDimObjects.push(dimFoyerDepthBack);
+            grp.add(dimFoyerDepthBack);
             
             // Treppenhaus-Maße (EG) - Raised to Y=1.2 to avoid being hidden inside the steps/appliances
             const dimStairWidth = createDimensionLine(V(0.6, 1.2, 2.4), V(1.5, 1.2, 2.4), "90 cm", 0xc2410c, V(0, 0, -1), 0.15);
@@ -1886,8 +2053,6 @@
             
             const dimDoorEGHeight = createDimensionLine(V(-1.5, 0.0, 3.2), V(-1.5, 2.0, 3.2), "2,00 m", 0xc2410c, V(-1, 0, 0), 0.15);
             grp.add(dimDoorEGHeight);
-
-            grp.add(bathNew);
             
         }
 
@@ -2286,16 +2451,25 @@
             
             // Küchenmöbel (Boden ist hier durch das Gewölbe bei 7.5, also Y_start + 0.2)
             const floorTop = Y_start + 0.2;
-            const counter1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 0.6), woodFurnitureMat);
-            counter1.position.set(-0.25, floorTop + 0.4, -2.2); 
-            counter1.visible = showFurniture;
-            counter1.userData.isSelectable = true;
-            counter1.userData.name = "Arbeitsplatte hinten (Küche)";
-            grp.add(counter1);
-            furnitureObjects.push(counter1);
+            // Arbeitsplatte hinten, mit Nische für die Waschmaschine (X = 0.0 bis 0.62)
+            const counter1a = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.85, 0.6), woodFurnitureMat);
+            counter1a.position.set(-0.75, floorTop + 0.425, -2.2);
+            counter1a.visible = showFurniture;
+            counter1a.userData.isSelectable = true;
+            counter1a.userData.name = "Arbeitsplatte hinten links (Küche)";
+            grp.add(counter1a);
+            furnitureObjects.push(counter1a);
 
-            const counter2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 1.9), woodFurnitureMat);
-            counter2.position.set(-1.2, floorTop + 0.4, -0.95);
+            const counter1b = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.85, 0.6), woodFurnitureMat);
+            counter1b.position.set(0.81, floorTop + 0.425, -2.2);
+            counter1b.visible = showFurniture;
+            counter1b.userData.isSelectable = true;
+            counter1b.userData.name = "Arbeitsplatte hinten rechts (Küche)";
+            grp.add(counter1b);
+            furnitureObjects.push(counter1b);
+
+            const counter2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.85, 1.9), woodFurnitureMat);
+            counter2.position.set(-1.2, floorTop + 0.425, -0.95);
             counter2.visible = showFurniture;
             counter2.userData.isSelectable = true;
             counter2.userData.name = "Arbeitsplatte links (Küche)";
@@ -2312,7 +2486,7 @@
             // Ceranfeld (schwarze Glasplatte, 60x50cm, 1cm hoch)
             const ceranMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.8 });
             const cooktop = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.01, 0.5), ceranMat);
-            cooktop.position.set(0, 0.8 + 0.005, 0); // liegt auf Arbeitsplatte auf (H=0.8)
+            cooktop.position.set(0, 0.85 + 0.005, 0); // liegt auf Arbeitsplatte auf (H=0.85)
             stoveGroup.add(cooktop);
 
             // 4 Kochplatten (graue Kreise auf dem Ceranfeld)
@@ -2320,19 +2494,19 @@
             const plateGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.002, 16);
             
             const p1 = new THREE.Mesh(plateGeo, plateMat);
-            p1.position.set(-0.15, 0.8 + 0.011, -0.12);
+            p1.position.set(-0.15, 0.85 + 0.011, -0.12);
             stoveGroup.add(p1);
 
             const p2 = new THREE.Mesh(plateGeo, plateMat);
-            p2.position.set(0.15, 0.8 + 0.011, -0.12);
+            p2.position.set(0.15, 0.85 + 0.011, -0.12);
             stoveGroup.add(p2);
 
             const p3 = new THREE.Mesh(plateGeo, plateMat);
-            p3.position.set(-0.15, 0.8 + 0.011, 0.12);
+            p3.position.set(-0.15, 0.85 + 0.011, 0.12);
             stoveGroup.add(p3);
 
             const p4 = new THREE.Mesh(plateGeo, plateMat);
-            p4.position.set(0.15, 0.8 + 0.011, 0.12);
+            p4.position.set(0.15, 0.85 + 0.011, 0.12);
             stoveGroup.add(p4);
 
             // Backofen-Tür an der Vorderseite des Counters (Z = -1.9, so lokal Z = -2.2 + 0.3 = 0.3)
@@ -2370,27 +2544,27 @@
             // Edelstahl-Spülenabdeckung (60x50cm, flach)
             const steelPlateMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.8 });
             const sinkPlate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.005, 0.65), steelPlateMat);
-            sinkPlate.position.set(0, 0.8 + 0.0025, 0); // liegt auf Arbeitsplatte (H=0.8)
+            sinkPlate.position.set(0, 0.85 + 0.0025, 0); // liegt auf Arbeitsplatte (H=0.85)
             sinkGroup.add(sinkPlate);
 
             // Spülbecken (abgesetzt, dunkler)
             const basinMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.4, metalness: 0.6 });
             const basin = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.006, 0.42), basinMat);
-            basin.position.set(0.02, 0.8 + 0.004, 0);
+            basin.position.set(0.02, 0.85 + 0.004, 0);
             sinkGroup.add(basin);
 
             // Wasserhahn (Mischbatterie, gebogenes Rohr)
             const tapBase = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), steelPlateMat);
-            tapBase.position.set(-0.18, 0.8 + 0.08, 0);
+            tapBase.position.set(-0.18, 0.85 + 0.08, 0);
             sinkGroup.add(tapBase);
 
             const tapCurve = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8), steelPlateMat);
             tapCurve.rotation.z = Math.PI / 2;
-            tapCurve.position.set(-0.13, 0.8 + 0.16, 0);
+            tapCurve.position.set(-0.13, 0.85 + 0.16, 0);
             sinkGroup.add(tapCurve);
 
             const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.04, 8), steelPlateMat);
-            tapSpout.position.set(-0.08, 0.8 + 0.14, 0);
+            tapSpout.position.set(-0.08, 0.85 + 0.14, 0);
             sinkGroup.add(tapSpout);
 
             sinkGroup.visible = showFurniture;
@@ -2398,6 +2572,15 @@
             sinkGroup.userData.name = "Spüle (Küche)";
             grp.add(sinkGroup);
             furnitureObjects.push(sinkGroup);
+
+
+            // --- Waschmaschine unterbaut in der Nische der hinteren Arbeitsplatte (rechts neben der Spüle) ---
+            const wmKitchen = createWashingMachine("Waschmaschine (Küche)");
+            wmKitchen.position.set(0.31, floorTop, -2.2);
+            wmKitchen.rotation.y = Math.PI / 2; // Bullauge zeigt nach +Z, in den Raum hinein
+            wmKitchen.visible = showFurniture;
+            grp.add(wmKitchen);
+            furnitureObjects.push(wmKitchen);
 
 
             // --- Roter Kühlschrank (Retro-Look) nahe der Wendeltreppe ---
@@ -3581,17 +3764,18 @@
             const elecBoxBack = new THREE.Group();
             elecBoxBack.userData.isSelectable = true;
             elecBoxBack.userData.name = "Hauptverteilung (Option A)";
-            const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.1), elecBoxMat);
-            elecBoxBackMesh.position.set(-0.35, 1.5, -2.55); // Jetzt links
+            // Nicht mehr im Bad (Rückwand), sondern im Technikraum unter der Treppe (neben Tank/WP)
+            const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.3), elecBoxMat);
+            elecBoxBackMesh.position.set(1.55, 1.5, 0.6);
             elecBoxBack.add(elecBoxBackMesh);
-            
-            // Verbindungsleitung Kasten -> Steigleitung (Rückwand)
-            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.04), elecBoxMat);
-            connElecBack.position.set(-0.26, 1.5, -2.55); // Jetzt links
+
+            // Verbindungsleitung Kasten -> Steigleitung (Rechte Wand, Technikraum)
+            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.18), elecBoxMat);
+            connElecBack.position.set(1.55, 1.5, 0.69);
             elecBoxBack.add(connElecBack);
 
             const labelElecBack = createTextSpriteSmall("elec", "#3b82f6");
-            labelElecBack.position.set(-0.35, 1.85, -3.4); // Jetzt links
+            labelElecBack.position.set(2.6, 1.85, 0.6);
             elecBoxBack.add(labelElecBack);
             elecBoxBack.visible = (shaftPosition === 'back') && showInstallations;
             floorGroups[0].add(elecBoxBack);
@@ -5291,6 +5475,34 @@
             selectShaftPosition(val ? 'right' : 'back');
         }
 
+        function selectBathPosition(pos) {
+            bathPosition = pos;
+            localStorage.setItem('bosa_bathPosition', pos);
+            
+            // Update UI buttons active class
+            document.querySelectorAll('#bath-grid .floor-btn').forEach(btn => btn.classList.remove('active'));
+            if (pos === 'side') {
+                const btn = document.getElementById('b-btn-side');
+                if (btn) btn.classList.add('active');
+            } else if (pos === 'back') {
+                const btn = document.getElementById('b-btn-back');
+                if (btn) btn.classList.add('active');
+            }
+            
+            if (bathSideGroup) bathSideGroup.visible = (pos === 'side');
+            if (bathBackGroup) bathBackGroup.visible = (pos === 'back');
+            
+            if (bathSideFurnitureGroup) bathSideFurnitureGroup.visible = (pos === 'side') && showFurniture;
+            if (bathBackFurnitureGroup) bathBackFurnitureGroup.visible = (pos === 'back') && showFurniture;
+            
+            bathSideDimObjects.forEach(obj => {
+                obj.visible = (pos === 'side') && showDimensions;
+            });
+            bathBackDimObjects.forEach(obj => {
+                obj.visible = (pos === 'back') && showDimensions;
+            });
+        }
+
         function toggleLabels(val) {
             showLabels = val;
             localStorage.setItem('bosa_showLabels', val);
@@ -5306,13 +5518,29 @@
         function toggleDimensions(val) {
             showDimensions = val;
             localStorage.setItem('bosa_showDimensions', val);
-            dimensionObjects.forEach(obj => obj.visible = val);
+            dimensionObjects.forEach(obj => {
+                if (bathSideDimObjects.includes(obj)) {
+                    obj.visible = val && (bathPosition === 'side');
+                } else if (bathBackDimObjects.includes(obj)) {
+                    obj.visible = val && (bathPosition === 'back');
+                } else {
+                    obj.visible = val;
+                }
+            });
         }
 
         function toggleFurniture(val) {
             showFurniture = val;
             localStorage.setItem('bosa_showFurniture', val);
-            furnitureObjects.forEach(obj => obj.visible = val);
+            furnitureObjects.forEach(obj => {
+                if (obj === bathSideFurnitureGroup) {
+                    obj.visible = val && (bathPosition === 'side');
+                } else if (obj === bathBackFurnitureGroup) {
+                    obj.visible = val && (bathPosition === 'back');
+                } else {
+                    obj.visible = val;
+                }
+            });
         }
 
         function togglePanel(isCollapsed) {
