@@ -884,6 +884,66 @@
             mesh.quaternion.setFromUnitVectors(up, dir.clone().normalize());
             return mesh;
         }
+        function createCurvedConduit(points, radius = 0.01, bendRadius = 0.07, isLighting = false, colorOverride = null) {
+            if (!points || points.length < 2) return new THREE.Group();
+
+            // Filter out consecutive duplicate points to avoid division by zero
+            const cleanPoints = [points[0]];
+            for (let i = 1; i < points.length; i++) {
+                if (points[i].distanceTo(cleanPoints[cleanPoints.length - 1]) > 0.001) {
+                    cleanPoints.push(points[i]);
+                }
+            }
+
+            if (cleanPoints.length < 2) return new THREE.Group();
+
+            const curvePath = new THREE.CurvePath();
+            let currentStart = cleanPoints[0].clone();
+
+            for (let i = 1; i < cleanPoints.length; i++) {
+                const pCurrent = cleanPoints[i - 1];
+                const pNext = cleanPoints[i];
+
+                const segmentDir = new THREE.Vector3().subVectors(pNext, pCurrent).normalize();
+                const segmentLen = pCurrent.distanceTo(pNext);
+
+                let r = bendRadius;
+                if (i > 1) {
+                    const prevLen = cleanPoints[i - 2].distanceTo(pCurrent);
+                    r = Math.min(r, prevLen * 0.45);
+                }
+                r = Math.min(r, segmentLen * 0.45);
+
+                let straightEnd = pNext.clone();
+                if (i < cleanPoints.length - 1) {
+                    straightEnd.subVectors(pNext, segmentDir.clone().multiplyScalar(r));
+                }
+
+                if (currentStart.distanceTo(straightEnd) > 0.001) {
+                    curvePath.add(new THREE.LineCurve3(currentStart.clone(), straightEnd.clone()));
+                }
+
+                if (i < cleanPoints.length - 1) {
+                    const pAfter = cleanPoints[i + 1];
+                    const nextSegmentDir = new THREE.Vector3().subVectors(pAfter, pNext).normalize();
+                    const nextSegmentLen = pNext.distanceTo(pAfter);
+
+                    let rNext = Math.min(bendRadius, segmentLen * 0.45, nextSegmentLen * 0.45);
+
+                    const bendStart = straightEnd.clone();
+                    const bendEnd = new THREE.Vector3().addVectors(pNext, nextSegmentDir.clone().multiplyScalar(rNext));
+
+                    curvePath.add(new THREE.QuadraticBezierCurve3(bendStart, pNext.clone(), bendEnd));
+                    currentStart.copy(bendEnd);
+                }
+            }
+
+            const colorVal = colorOverride !== null ? colorOverride : (isLighting ? 0x22c55e : 0x111111); // Green for lighting, black for sockets, override for water pipes
+            const conduitMat = new THREE.MeshLambertMaterial({ color: colorVal }); // Wellrohr
+            const geom = new THREE.TubeGeometry(curvePath, Math.max(20, cleanPoints.length * 10), radius, 8, false);
+            const mesh = new THREE.Mesh(geom, conduitMat);
+            return mesh;
+        }
         let scene, camera, renderer, controls;
         let floorGroups = [];
         let beforeObjects = [];
@@ -1653,24 +1713,24 @@
             // =========================================================================
             bathBackGroup = new THREE.Group();
 
-            // Durchgehende Trennwand bei Z = -0.7 mit Türöffnung bei X = -0.40 bis 0.40
-            const wallBackPartL = new THREE.Mesh(new THREE.BoxGeometry(1.1, H, 0.05), innerWallMat);
-            wallBackPartL.position.set(-0.95, H/2, -0.7);
+            // Durchgehende Trennwand bei Z = -0.7 mit Türöffnung bei X = -1,30 bis -0,50 (weit links)
+            const wallBackPartL = new THREE.Mesh(new THREE.BoxGeometry(0.2, H, 0.05), innerWallMat);
+            wallBackPartL.position.set(-1.4, H/2, -0.7);
             bathBackGroup.add(wallBackPartL);
 
-            const wallBackPartR = new THREE.Mesh(new THREE.BoxGeometry(1.1, H, 0.05), innerWallMat);
-            wallBackPartR.position.set(0.95, H/2, -0.7);
+            const wallBackPartR = new THREE.Mesh(new THREE.BoxGeometry(2.0, H, 0.05), innerWallMat);
+            wallBackPartR.position.set(0.5, H/2, -0.7);
             bathBackGroup.add(wallBackPartR);
 
             // Türsturz
             const topH_back = H - 2.0;
             const doorHeaderBack = new THREE.Mesh(new THREE.BoxGeometry(0.8, topH_back, 0.05), innerWallMat);
-            doorHeaderBack.position.set(0.0, 2.0 + topH_back/2, -0.7);
+            doorHeaderBack.position.set(-0.9, 2.0 + topH_back/2, -0.7);
             bathBackGroup.add(doorHeaderBack);
 
             // Holztür mit Türdrücker
             const bathBackDoorHinge = new THREE.Group();
-            bathBackDoorHinge.position.set(-0.4, 0, -0.7);
+            bathBackDoorHinge.position.set(-1.3, 0, -0.7);
             const bathBackDoorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.78, 1.98, 0.04), doorWoodMat);
             bathBackDoorLeaf.position.set(0.39, 1.0, 0);
             bathBackDoorHinge.add(bathBackDoorLeaf);
@@ -1687,74 +1747,74 @@
             bathBackFurnitureGroup.visible = showFurniture && (bathPosition === 'back');
             furnitureObjects.push(bathBackFurnitureGroup);
 
-            // 1. Großzügige Walk-In Dusche (hinten links: X = -1.5 bis -0.2, Z = -2.5 bis -1.4)
+            // 1. Großzügige Walk-In Dusche (hinten rechts: X = 0.2 bis 1.5, Z = -2.5 bis -1.4)
             const showerTrayBack = new THREE.Mesh(
                 new THREE.BoxGeometry(1.3, 0.03, 1.1),
                 new THREE.MeshStandardMaterial({ color: '#e2e8f0', roughness: 0.85 })
             );
-            showerTrayBack.position.set(-0.85, 0.015, -1.95);
+            showerTrayBack.position.set(0.85, 0.015, -1.95);
             bathBackFurnitureGroup.add(showerTrayBack);
 
             // Klarglas Duschabtrennung Walk-In (feststehend)
             const showerGlassBack = new THREE.Mesh(new THREE.BoxGeometry(0.01, 2.0, 1.1), glassMat);
-            showerGlassBack.position.set(-0.2, 1.0, -1.95);
+            showerGlassBack.position.set(0.2, 1.0, -1.95);
             bathBackFurnitureGroup.add(showerGlassBack);
 
-            // Duscharmatur an der linken Außenwand
+            // Duscharmatur an der rechten Außenwand
             const showerPipeBack = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.6, 12), chromeMat);
-            showerPipeBack.position.set(-1.46, 1.1, -1.95);
+            showerPipeBack.position.set(1.46, 1.1, -1.95);
             bathBackFurnitureGroup.add(showerPipeBack);
 
             const showerHeadBack = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.02, 24), chromeMat);
-            showerHeadBack.position.set(-1.15, 1.9, -1.95);
+            showerHeadBack.position.set(1.15, 1.9, -1.95);
             bathBackFurnitureGroup.add(showerHeadBack);
 
             const showerArmBack = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.02, 0.02), chromeMat);
-            showerArmBack.position.set(-1.31, 1.9, -1.95);
+            showerArmBack.position.set(1.31, 1.9, -1.95);
             bathBackFurnitureGroup.add(showerArmBack);
 
             const showerMixerBack = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.22), chromeMat);
-            showerMixerBack.position.set(-1.44, 1.0, -1.95);
+            showerMixerBack.position.set(1.44, 1.0, -1.95);
             bathBackFurnitureGroup.add(showerMixerBack);
 
-            // 2. Großer moderner Waschtisch an der rechten Wand (X = 1.5)
+            // 2. Großer moderner Waschtisch an der linken Wand (X = -1.5)
             const vanityBack = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.5, 1.0), woodFurnitureMat);
-            vanityBack.position.set(1.275, 0.45, -1.7);
+            vanityBack.position.set(-1.275, 0.45, -1.7);
             bathBackFurnitureGroup.add(vanityBack);
 
             const basinBack = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.10, 0.65), ceramicMat);
-            basinBack.position.set(1.275, 0.75, -1.7);
+            basinBack.position.set(-1.275, 0.75, -1.7);
             bathBackFurnitureGroup.add(basinBack);
 
             const tapBack = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.18, 0.06), chromeMat);
-            tapBack.position.set(1.42, 0.86, -1.7);
+            tapBack.position.set(-1.42, 0.86, -1.7);
             bathBackFurnitureGroup.add(tapBack);
 
             // LED-Wandspiegel
             const mirrorBack = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.80, 0.80), mirrorGlassMat);
-            mirrorBack.position.set(1.485, 1.45, -1.7);
+            mirrorBack.position.set(-1.485, 1.45, -1.7);
             bathBackFurnitureGroup.add(mirrorBack);
 
             const mirrorFrameMat = new THREE.MeshStandardMaterial({ color: '#38bdf8', roughness: 0.3, emissive: 0x0284c7, emissiveIntensity: 0.3 });
             const mirrorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.83, 0.83), mirrorFrameMat);
-            mirrorFrame.position.set(1.492, 1.45, -1.7);
+            mirrorFrame.position.set(-1.492, 1.45, -1.7);
             bathBackFurnitureGroup.add(mirrorFrame);
 
-            // 3. Wand-WC mit Vorwandelement an der Rückwand
+            // 3. Wand-WC mit Vorwandelement an der Rückwand (links)
             const wcCisternBlockBack = new THREE.Mesh(new THREE.BoxGeometry(0.70, 1.15, 0.18), innerWallMat);
-            wcCisternBlockBack.position.set(0.55, 0.575, -2.41);
+            wcCisternBlockBack.position.set(-0.55, 0.575, -2.41);
             bathBackFurnitureGroup.add(wcCisternBlockBack);
 
             const toiletBack = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.38, 0.52), ceramicMat);
-            toiletBack.position.set(0.55, 0.25, -2.06);
+            toiletBack.position.set(-0.55, 0.25, -2.06);
             bathBackFurnitureGroup.add(toiletBack);
 
             const toiletSeatBack = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.02, 0.53), new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.5 }));
-            toiletSeatBack.position.set(0.55, 0.45, -2.06);
+            toiletSeatBack.position.set(-0.55, 0.45, -2.06);
             bathBackFurnitureGroup.add(toiletSeatBack);
 
             const flushPlateBack = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.01), chromeMat);
-            flushPlateBack.position.set(0.55, 0.95, -2.315);
+            flushPlateBack.position.set(-0.55, 0.95, -2.315);
             bathBackFurnitureGroup.add(flushPlateBack);
 
             // 4. Design-Handtuchwärmer an der linken Wand (Z = -0.9)
@@ -1814,15 +1874,14 @@
             stubRedBack.position.set(1.375, 0.8, 0.6);
             equipGrpBack.add(stubRedBack);
 
-            const connRedBack1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.15, 8), pipeRedMat);
-            connRedBack1.rotation.x = Math.PI / 2;
-            connRedBack1.position.set(1.55, 0.8, -0.975);
-            equipGrpBack.add(connRedBack1);
-
-            const connRedBack2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.51, 8), pipeRedMat);
-            connRedBack2.rotation.z = Math.PI / 2;
-            connRedBack2.position.set(0.795, 0.8, -2.55);
-            equipGrpBack.add(connRedBack2);
+            const connRedBack = createCurvedConduit([
+                V(1.55, 0.8, 0.6),
+                V(1.55, -0.05, 0.6),
+                V(1.55, -0.05, -2.55),
+                V(0.04, -0.05, -2.55),
+                V(0.04, 0.8, -2.55)
+            ], 0.02, 0.07, false, 0xef4444);
+            equipGrpBack.add(connRedBack);
 
             // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr)
             const stubCyanBack = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
@@ -1830,15 +1889,14 @@
             stubCyanBack.position.set(1.375, 0.3, 1.1);
             equipGrpBack.add(stubCyanBack);
 
-            const connCyanBack1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.65, 8), pipeCyanMat);
-            connCyanBack1.rotation.x = Math.PI / 2;
-            connCyanBack1.position.set(1.55, 0.3, -0.725);
-            equipGrpBack.add(connCyanBack1);
-
-            const connCyanBack2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.455, 8), pipeCyanMat);
-            connCyanBack2.rotation.z = Math.PI / 2;
-            connCyanBack2.position.set(0.8225, 0.3, -2.55);
-            equipGrpBack.add(connCyanBack2);
+            const connCyanBack = createCurvedConduit([
+                V(1.55, 0.3, 1.1),
+                V(1.55, -0.05, 1.1),
+                V(1.55, -0.05, -2.55),
+                V(0.095, -0.05, -2.55),
+                V(0.095, 0.3, -2.55)
+            ], 0.02, 0.07, false, 0x06b6d4);
+            equipGrpBack.add(connCyanBack);
 
             const labelWpTankBack = createTextSpriteSmall("wpTank", "#ef4444");
             labelWpTankBack.position.set(2.6, 1.6, 0.6);
@@ -1880,9 +1938,12 @@
             stubRedRight.position.set(1.375, 0.8, 0.6);
             equipGrpRight.add(stubRedRight);
 
-            const connRedRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.56, 8), pipeRedMat);
-            connRedRight.rotation.x = Math.PI / 2;
-            connRedRight.position.set(1.55, 0.8, 0.32); // in der rechten Wand bei X=1.55
+            const connRedRight = createCurvedConduit([
+                V(1.55, 0.8, 0.6),
+                V(1.55, -0.05, 0.6),
+                V(1.55, -0.05, 0.04),
+                V(1.55, 0.8, 0.04)
+            ], 0.02, 0.07, false, 0xef4444); // in der rechten Wand bei X=1.55
             equipGrpRight.add(connRedRight);
 
             const stubCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
@@ -1890,9 +1951,12 @@
             stubCyanRight.position.set(1.375, 0.3, 1.1);
             equipGrpRight.add(stubCyanRight);
 
-            const connCyanRight = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.005, 8), pipeCyanMat);
-            connCyanRight.rotation.x = Math.PI / 2;
-            connCyanRight.position.set(1.55, 0.3, 0.5975); // in der rechten Wand bei X=1.55 hinter dem Tank
+            const connCyanRight = createCurvedConduit([
+                V(1.55, 0.3, 1.1),
+                V(1.55, -0.05, 1.1),
+                V(1.55, -0.05, 0.095),
+                V(1.55, 0.3, 0.095)
+            ], 0.02, 0.07, false, 0x06b6d4); // in der rechten Wand bei X=1.55 hinter dem Tank
             equipGrpRight.add(connCyanRight);
 
             const labelWpTankRight = createTextSpriteSmall("wpTankAlt", "#ef4444");
@@ -1939,9 +2003,14 @@
             elecBoxDiagMesh.position.set(0.85, 1.5, -2.55); // links vom Schacht (da rechts die Wand ist)
             elecBoxDiag.add(elecBoxDiagMesh);
 
-            // Verbindungsleitung Kasten -> Steigleitung (Rückwand)
-            const connElecDiag = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.04, 0.04), elecBoxMat);
-            connElecDiag.position.set(1.1025, 1.5, -2.55);
+            // Verbindungsleitung Kasten -> Steigleitung, am Boden geführt, rechtwinklig mit leichtem Bogen an den Ecken
+            const Y_conduitElecDiagEG = -0.05; // im Fußbodenaufbau, wie die übrigen Leitungen im Gebäude
+            const connElecDiag = createCurvedConduit([
+                V(0.85, 1.4, -2.55),
+                V(0.85, Y_conduitElecDiagEG, -2.55),
+                V(1.205, Y_conduitElecDiagEG, -2.55),
+                V(1.205, 0.2, -2.55)
+            ], 0.02, 0.07, false);
             elecBoxDiag.add(connElecDiag);
 
             const labelElecDiag = createTextSpriteSmall("elec", "#3b82f6");
@@ -1956,15 +2025,14 @@
             stubRedDiag.position.set(1.375, 0.8, 0.6);
             equipGrpDiag.add(stubRedDiag);
 
-            const connRedDiag1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.15, 8), pipeRedMat);
-            connRedDiag1.rotation.x = Math.PI / 2;
-            connRedDiag1.position.set(1.55, 0.8, -0.975);
-            equipGrpDiag.add(connRedDiag1);
-
-            const connRedDiag2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.135, 8), pipeRedMat);
-            connRedDiag2.rotation.z = Math.PI / 2;
-            connRedDiag2.position.set(1.4825, 0.8, -2.55);
-            equipGrpDiag.add(connRedDiag2);
+            const connRedDiag = createCurvedConduit([
+                V(1.55, 0.8, 0.6),
+                V(1.55, -0.05, 0.6),
+                V(1.55, -0.05, -2.55),
+                V(1.415, -0.05, -2.55),
+                V(1.415, 0.8, -2.55)
+            ], 0.02, 0.07, false, 0xef4444);
+            equipGrpDiag.add(connRedDiag);
 
             // Cyan Kaltwasser-Verbindungsleitung (Autoclave -> Steigrohr)
             const stubCyanDiag = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35, 8), pipeCyanMat);
@@ -1972,15 +2040,14 @@
             stubCyanDiag.position.set(1.375, 0.3, 1.1);
             equipGrpDiag.add(stubCyanDiag);
 
-            const connCyanDiag1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3.65, 8), pipeCyanMat);
-            connCyanDiag1.rotation.x = Math.PI / 2;
-            connCyanDiag1.position.set(1.55, 0.3, -0.725);
-            equipGrpDiag.add(connCyanDiag1);
-
-            const connCyanDiag2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.08, 8), pipeCyanMat);
-            connCyanDiag2.rotation.z = Math.PI / 2;
-            connCyanDiag2.position.set(1.51, 0.3, -2.55);
-            equipGrpDiag.add(connCyanDiag2);
+            const connCyanDiag = createCurvedConduit([
+                V(1.55, 0.3, 1.1),
+                V(1.55, -0.05, 1.1),
+                V(1.55, -0.05, -2.55),
+                V(1.47, -0.05, -2.55),
+                V(1.47, 0.3, -2.55)
+            ], 0.02, 0.07, false, 0x06b6d4);
+            equipGrpDiag.add(connCyanDiag);
 
             const labelWpTankDiag = createTextSpriteSmall("wpTank", "#ef4444");
             labelWpTankDiag.position.set(2.6, 1.6, 0.6);
@@ -3764,18 +3831,24 @@
             const elecBoxBack = new THREE.Group();
             elecBoxBack.userData.isSelectable = true;
             elecBoxBack.userData.name = "Hauptverteilung (Option A)";
-            // Nicht mehr im Bad (Rückwand), sondern im Technikraum unter der Treppe (neben Tank/WP)
+            // Nach hinten versetzt an die rechte Wand (Z = -0.35), damit keine Kollision mit der Treppe auftritt
             const elecBoxBackMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.3), elecBoxMat);
-            elecBoxBackMesh.position.set(1.55, 1.5, 0.6);
+            elecBoxBackMesh.position.set(1.55, 1.5, -0.35);
             elecBoxBack.add(elecBoxBackMesh);
 
-            // Verbindungsleitung Kasten -> Steigleitung (Rechte Wand, Technikraum)
-            const connElecBack = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.18), elecBoxMat);
-            connElecBack.position.set(1.55, 1.5, 0.69);
+            // Verbindungsleitung: vom Kasten am Boden entlang zur Steigleitung geführt, rechtwinklig mit leichtem Bogen an den Ecken
+            const Y_conduitElecEG = -0.05; // im Fußbodenaufbau, wie die übrigen Leitungen im Gebäude
+            const connElecBack = createCurvedConduit([
+                V(1.55, 1.4, -0.35),
+                V(1.55, Y_conduitElecEG, -0.35),
+                V(1.55, Y_conduitElecEG, -2.55),
+                V(-0.17, Y_conduitElecEG, -2.55),
+                V(-0.17, 0.2, -2.55)
+            ], 0.02, 0.07, false);
             elecBoxBack.add(connElecBack);
 
             const labelElecBack = createTextSpriteSmall("elec", "#3b82f6");
-            labelElecBack.position.set(2.6, 1.85, 0.6);
+            labelElecBack.position.set(2.6, 1.85, -0.35);
             elecBoxBack.add(labelElecBack);
             elecBoxBack.visible = (shaftPosition === 'back') && showInstallations;
             floorGroups[0].add(elecBoxBack);
@@ -3889,9 +3962,13 @@
             elecBoxRightMesh.position.set(1.55, 1.5, -0.35); // Jetzt hinten (negatives Z)
             elecBoxRight.add(elecBoxRightMesh);
  
-            // Verbindungsleitung Kasten -> Steigleitung (Rechte Wand)
-            const connElecRight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.18), elecBoxMat);
-            connElecRight.position.set(1.55, 1.5, -0.26); // Jetzt hinten
+            // Verbindungsleitung Kasten -> Steigleitung, am Boden geführt, rechtwinklig mit leichtem Bogen an den Ecken
+            const connElecRight = createCurvedConduit([
+                V(1.55, 1.4, -0.35),
+                V(1.55, Y_conduitElecEG, -0.35),
+                V(1.55, Y_conduitElecEG, -0.17),
+                V(1.55, 0.2, -0.17)
+            ], 0.02, 0.07, false);
             elecBoxRight.add(connElecRight);
  
             const labelElecRight = createTextSpriteSmall("elecAlt", "#3b82f6");
@@ -4229,67 +4306,8 @@
                 installationObjects.push(roomGroup);
             });
 
-            // Helper function to create curved conduits with rounded bends
-            function createCurvedConduit(points, radius = 0.01, bendRadius = 0.07, isLighting = false) {
-                if (!points || points.length < 2) return new THREE.Group();
-                
-                // Filter out consecutive duplicate points to avoid division by zero
-                const cleanPoints = [points[0]];
-                for (let i = 1; i < points.length; i++) {
-                    if (points[i].distanceTo(cleanPoints[cleanPoints.length - 1]) > 0.001) {
-                        cleanPoints.push(points[i]);
-                    }
-                }
-                
-                if (cleanPoints.length < 2) return new THREE.Group();
-                
-                const curvePath = new THREE.CurvePath();
-                let currentStart = cleanPoints[0].clone();
-                
-                for (let i = 1; i < cleanPoints.length; i++) {
-                    const pCurrent = cleanPoints[i - 1];
-                    const pNext = cleanPoints[i];
-                    
-                    const segmentDir = new THREE.Vector3().subVectors(pNext, pCurrent).normalize();
-                    const segmentLen = pCurrent.distanceTo(pNext);
-                    
-                    let r = bendRadius;
-                    if (i > 1) {
-                        const prevLen = cleanPoints[i - 2].distanceTo(pCurrent);
-                        r = Math.min(r, prevLen * 0.45);
-                    }
-                    r = Math.min(r, segmentLen * 0.45);
-                    
-                    let straightEnd = pNext.clone();
-                    if (i < cleanPoints.length - 1) {
-                        straightEnd.subVectors(pNext, segmentDir.clone().multiplyScalar(r));
-                    }
-                    
-                    if (currentStart.distanceTo(straightEnd) > 0.001) {
-                        curvePath.add(new THREE.LineCurve3(currentStart.clone(), straightEnd.clone()));
-                    }
-                    
-                    if (i < cleanPoints.length - 1) {
-                        const pAfter = cleanPoints[i + 1];
-                        const nextSegmentDir = new THREE.Vector3().subVectors(pAfter, pNext).normalize();
-                        const nextSegmentLen = pNext.distanceTo(pAfter);
-                        
-                        let rNext = Math.min(bendRadius, segmentLen * 0.45, nextSegmentLen * 0.45);
-                        
-                        const bendStart = straightEnd.clone();
-                        const bendEnd = new THREE.Vector3().addVectors(pNext, nextSegmentDir.clone().multiplyScalar(rNext));
-                        
-                        curvePath.add(new THREE.QuadraticBezierCurve3(bendStart, pNext.clone(), bendEnd));
-                        currentStart.copy(bendEnd);
-                    }
-                }
-                
-                const colorVal = isLighting ? 0x22c55e : 0x111111; // Green for lighting, black for sockets
-                const conduitMat = new THREE.MeshLambertMaterial({ color: colorVal }); // Wellrohr
-                const geom = new THREE.TubeGeometry(curvePath, Math.max(20, cleanPoints.length * 10), radius, 8, false);
-                const mesh = new THREE.Mesh(geom, conduitMat);
-                return mesh;
-            }
+            // createCurvedConduit ist jetzt global definiert (siehe oben, nahe createPipeBetween),
+            // damit auch buildFloor0_EG() sie für die Hauptverteiler-Zuleitungen nutzen kann.
 
 
 
@@ -4311,17 +4329,20 @@
                     if (opt === 'back') {
                         const boxX = -0.35;
                         paths = [
+                            // Zuleitung vom Hauptverteilerkasten zum Steckdosen-Verteilpunkt (am Boden geführt, ohne unnötigen Aufstieg über dem Bad)
+                            [V(1.55, 1.4, -0.35), V(1.55, Y_conduit, -0.35), V(1.55, Y_conduit, -2.54), V(boxX, Y_conduit, -2.54)],
+
                             // Left-side daisy-chain
-                            [V(boxX - 0.02, 1.4, -2.54), V(boxX - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_socket, -2.54)],
+                            [V(boxX - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_conduit, -2.54), V(-1.35 - 0.02, Y_socket, -2.54)],
                             [V(-1.35 + 0.02, Y_socket, -2.54), V(-1.35 + 0.02, Y_conduit, -2.54), V(-1.54, Y_conduit, -2.54), V(-1.54, Y_conduit, 0.15 - 0.02), V(-1.54, 0.55, 0.15 - 0.02)],
                             [V(-1.54, 0.55, 0.15 + 0.02), V(-1.54, Y_conduit, 0.15 + 0.02), V(-1.54, Y_conduit, 0.85 - 0.02), V(-1.54, 0.55, 0.85 - 0.02)],
                             [V(-1.54, 0.55, 0.85 + 0.02), V(-1.54, Y_conduit, 0.85 + 0.02), V(-1.54, Y_conduit, 2.1 - 0.02), V(-1.54, Y_socket, 2.1 - 0.02)],
                             
                             // Right-side daisy-chain
-                            [V(boxX + 0.02, 1.4, -2.54), V(boxX + 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_socket, -2.54)],
+                            [V(boxX + 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_conduit, -2.54), V(-0.5 - 0.02, Y_socket, -2.54)],
                             [V(-0.5 + 0.02, Y_socket, -2.54), V(-0.5 + 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_conduit, -2.54), V(0.4 - 0.02, Y_socket, -2.54)],
                             [V(0.4 + 0.02, Y_socket, -2.54), V(0.4 + 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_conduit, -2.54), V(1.35 - 0.02, Y_socket, -2.54)],
-                            
+
                             // Right wall daisy chain: back-right socket to washing machine, to heat pump, to autoclave
                             [V(1.54, Y_socket, 0.0 + 0.02), V(1.54, Y_conduit, 0.0 + 0.02), V(1.54, Y_conduit, 0.6 - 0.02), V(1.54, 1.2, 0.6 - 0.02)],
                             [V(1.54, 1.2, 0.6 + 0.02), V(1.54, Y_conduit, 0.6 + 0.02), V(1.54, Y_conduit, 1.2 - 0.02), V(1.54, Y_socket, 1.2 - 0.02)]
@@ -4381,7 +4402,7 @@
                     lightPaths.push([V(0.35, 1.1, 1.8), V(0.35, 0.0, 1.8), V(0.35, 0.0, 0.1)]);
                     
                     if (opt === 'back') {
-                        lightPaths.push([V(-0.35, 1.5, -2.54), V(-0.35, 0.0, -2.54), V(0.35, 0.0, -2.54), V(0.35, 0.0, 0.1)]);
+                        lightPaths.push([V(-0.35, 0.0, -2.54), V(0.35, 0.0, -2.54), V(0.35, 0.0, 0.1)]);
                     } else if (opt === 'right') {
                         lightPaths.push([V(1.54, 1.5, -0.35), V(1.54, 0.0, -0.35), V(0.35, 0.0, -0.35), V(0.35, 0.0, 0.1)]);
                     } else if (opt === 'diagonal') {

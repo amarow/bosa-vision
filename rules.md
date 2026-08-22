@@ -1,0 +1,4 @@
+- elektrische Leitungen dürfen nur unten am Boden horizontal in der Wand laufen und im rechten Winkel zu den endpunkten (Steckdosen, schalter) geführt. jedoch mit einem leichten bogen
+- das gleich gilt auch für wasserleitungen (brauchen keinen Bogen)
+- bitte nicht eigenmächtig commiten und puschen, erst nach aufforderung
+- bitte keine zeitaufwändigen Kontrollversuche unternehmen wie chrome instrumentalisieren, JS-Syntax , o ähnliches, das ist auf dieser MAschine zu langsam. Ich sehe das Ergebnis sofort im Browser über einen Live Server
