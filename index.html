@@ -19,13 +19,6 @@
             --warning: #ef4444;
         }
 
-        .editor-btn {
-            transition: all 0.2s ease;
-        }
-        .editor-btn:hover {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border-color: rgba(255, 255, 255, 0.3) !important;
-        }
 
         body { 
             margin: 0; 
@@ -396,14 +389,34 @@
             <button class="lang-btn" id="btn-toggle-panel" onclick="togglePanel(true)" title="Menü einklappen">←</button>
         </div>
 
+        <!-- Floor Isolator -->
         <div>
-            <h1 data-i18n="title">Turmhaus Bosa</h1>
-            <div class="subtitle" data-i18n="subtitle">Interaktives 3D-Modell</div>
+            <div class="section-title" data-i18n="floorTitle">Etagen-Fokus</div>
+            <div class="floor-grid">
+                <button class="floor-btn" id="f-btn-all" onclick="focusFloor('all')" data-i18n="btnAll">Alle</button>
+                <button class="floor-btn" id="f-btn-4" onclick="focusFloor(4)" data-i18n="btnTerrace">Terrasse</button>
+                <button class="floor-btn" id="f-btn-3" onclick="focusFloor(3)" data-i18n="btn3">3. OG (Küche)</button>
+                <button class="floor-btn" id="f-btn-2" onclick="focusFloor(2)" data-i18n="btn2">2. OG</button>
+                <button class="floor-btn" id="f-btn-1" onclick="focusFloor(1)" data-i18n="btn1">1. OG</button>
+                <button class="floor-btn active" id="f-btn-0" onclick="focusFloor(0)" data-i18n="btn0">EG (Parterre)</button>
+            </div>
         </div>
 
-        <div class="metric-card">
-            <div class="metric-title" data-i18n="dimTitle">Baukörper-Maße (Innen)</div>
-            <span data-i18n="dimBody">Grundfläche: <b>3,0m x 5,0m</b><br>Außenwände: <b>0,5m massiv</b><br>Ausrichtung: <b>Eingang = Vorne (Süden)</b></span>
+        <div class="shaft-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px;">
+            <span data-i18n="visShaftTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Schacht-Option</span>
+            <div class="floor-grid" id="shaft-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <button class="floor-btn" id="s-btn-back" onclick="selectShaftPosition('back')" data-i18n="shaftBack">Hinten Mitte</button>
+                <button class="floor-btn" id="s-btn-right" onclick="selectShaftPosition('right')" data-i18n="shaftRight">Seite rechts</button>
+                <button class="floor-btn" id="s-btn-diagonal" onclick="selectShaftPosition('diagonal')" data-i18n="shaftDiag">Hinten rechts</button>
+            </div>
+        </div>
+
+        <div class="bath-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px;">
+            <span data-i18n="visBathTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Bad-Option (EG)</span>
+            <div class="floor-grid" id="bath-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <button class="floor-btn" id="b-btn-side" onclick="selectBathPosition('side')" data-i18n="bathSide">Vorne links</button>
+                <button class="floor-btn active" id="b-btn-back" onclick="selectBathPosition('back')" data-i18n="bathBack">Hinten (3x1,8m)</button>
+            </div>
         </div>
 
         <!-- View Controllers -->
@@ -458,23 +471,6 @@
                     </label>
                 </div>
 
-                <div class="shaft-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px; margin-top: 6px;">
-                    <span data-i18n="visShaftTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Schacht-Option</span>
-                    <div class="floor-grid" id="shaft-grid" style="grid-template-columns: repeat(3, 1fr);">
-                        <button class="floor-btn" id="s-btn-back" onclick="selectShaftPosition('back')" data-i18n="shaftBack">Hinten Mitte</button>
-                        <button class="floor-btn" id="s-btn-right" onclick="selectShaftPosition('right')" data-i18n="shaftRight">Seite rechts</button>
-                        <button class="floor-btn" id="s-btn-diagonal" onclick="selectShaftPosition('diagonal')" data-i18n="shaftDiag">Hinten rechts</button>
-                    </div>
-                </div>
-
-                <div class="bath-option-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px; margin-top: 6px;">
-                    <span data-i18n="visBathTitle" style="font-weight: 600; font-size: 12px; color: var(--text-secondary);">Bad-Option (EG)</span>
-                    <div class="floor-grid" id="bath-grid" style="grid-template-columns: repeat(2, 1fr);">
-                        <button class="floor-btn" id="b-btn-side" onclick="selectBathPosition('side')" data-i18n="bathSide">Vorne links</button>
-                        <button class="floor-btn active" id="b-btn-back" onclick="selectBathPosition('back')" data-i18n="bathBack">Hinten (3x1,8m)</button>
-                    </div>
-                </div>
-                
                 <div class="switch-container">
                     <span data-i18n="visFurniture">Möbel einblenden</span>
                     <label class="switch">
@@ -503,23 +499,16 @@
             </div>
         </div>
 
-        <!-- Floor Isolator -->
-        <div>
-            <div class="section-title" data-i18n="floorTitle">Etagen-Fokus</div>
-            <div class="floor-grid">
-                <button class="floor-btn" id="f-btn-all" onclick="focusFloor('all')" data-i18n="btnAll">Alle</button>
-                <button class="floor-btn" id="f-btn-4" onclick="focusFloor(4)" data-i18n="btnTerrace">Terrasse</button>
-                <button class="floor-btn" id="f-btn-3" onclick="focusFloor(3)" data-i18n="btn3">3. OG (Küche)</button>
-                <button class="floor-btn" id="f-btn-2" onclick="focusFloor(2)" data-i18n="btn2">2. OG</button>
-                <button class="floor-btn" id="f-btn-1" onclick="focusFloor(1)" data-i18n="btn1">1. OG</button>
-                <button class="floor-btn active" id="f-btn-0" onclick="focusFloor(0)" data-i18n="btn0">EG (Parterre)</button>
-            </div>
-        </div>
-
         <!-- Color Legend -->
         <div>
-            <div class="section-title" data-i18n="legTitle">Legende</div>
-            <ul class="legend-list">
+            <div class="section-title">
+                <span data-i18n="legTitle">Legende</span>
+                <label class="switch">
+                    <input type="checkbox" id="chk-legend" onchange="toggleLegend(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <ul class="legend-list" id="legend-list" style="display: none;">
                 <li class="legend-item">
                     <span class="legend-color" style="background:#f1f5f9; border: 1px solid rgba(255,255,255,0.3);"></span>
                     <span data-i18n="legWall"><b>Mauerwerk:</b> 0.5m dicke Außenwände (transparent schaltbar).</span>
@@ -549,79 +538,17 @@
             </ul>
         </div>
 
-        <div class="version-tag">v3.7.1</div>
+        <div class="version-tag">v4.0.0</div>
     </div>
     
-    <!-- Editor Panel for Object Movement -->
-    <div id="editor-panel" style="display: none; position: fixed; bottom: 20px; left: 20px; width: 300px; z-index: 1000; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; color: #f8fafc; font-family: 'Outfit', sans-serif; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-            <span style="font-weight: 700; font-size: 14px; color: #10b981; display: flex; align-items: center; gap: 6px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Editor-Modus
-            </span>
-            <button onclick="deselectObject()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; padding: 0 4px;">&times;</button>
-        </div>
-        
-        <div>
-            <div id="edit-obj-name" style="font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #f8fafc;">Objektname</div>
-            <div id="edit-obj-pos" style="font-size: 11px; color: #94a3b8; line-height: 1.4; font-family: monospace;">X: 0.000m | Y: 0.000m | Z: 0.000m</div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <!-- X Controls -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
-                <span style="width: 50px; font-weight: 600; color: #38bdf8;">X (L/R)</span>
-                <div style="display: flex; gap: 4px; flex-grow: 1;">
-                    <button class="editor-btn" onclick="moveSelectedObject('x', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('x', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('x', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('x', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
-                </div>
-            </div>
-
-            <!-- Y Controls -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
-                <span style="width: 50px; font-weight: 600; color: #10b981;">Y (Höhe)</span>
-                <div style="display: flex; gap: 4px; flex-grow: 1;">
-                    <button class="editor-btn" onclick="moveSelectedObject('y', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('y', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('y', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('y', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
-                </div>
-            </div>
-
-            <!-- Z Controls -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
-                <span style="width: 50px; font-weight: 600; color: #fbbf24;">Z (V/H)</span>
-                <div style="display: flex; gap: 4px; flex-grow: 1;">
-                    <button class="editor-btn" onclick="moveSelectedObject('z', -0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-5cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('z', -0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('z', 0.01)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+1cm</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('z', 0.05)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+5cm</button>
-                </div>
-            </div>
-
-            <!-- Rotation Controls -->
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; margin-top: 2px;">
-                <span style="width: 50px; font-weight: 600; color: #ec4899;">Drehung</span>
-                <div style="display: flex; gap: 4px; flex-grow: 1;">
-                    <button class="editor-btn" onclick="moveSelectedObject('rot', -Math.PI/2)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-90° (Y)</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('rot', -Math.PI/12)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">-15° (Y)</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('rot', Math.PI/12)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+15° (Y)</button>
-                    <button class="editor-btn" onclick="moveSelectedObject('rot', Math.PI/2)" style="flex: 1; padding: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #fff; cursor: pointer; font-weight: 600; font-size: 10px;">+90° (Y)</button>
-                </div>
-            </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 4px;">
-            <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">Code-Snippet (Kopieren für Andreas):</span>
-            <div style="display: flex; gap: 4px;">
-                <input id="edit-obj-code" readonly type="text" value="position.set(0, 0, 0)" style="flex-grow: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px; font-size: 10px; color: #10b981; font-family: monospace; text-align: center;" onclick="this.select()">
-                <button onclick="document.getElementById('edit-obj-code').select(); document.execCommand('copy');" style="padding: 4px 8px; background: #10b981; border: none; border-radius: 4px; color: #fff; font-size: 10px; font-weight: 600; cursor: pointer;">Copy</button>
-            </div>
-        </div>
+    <!-- Persistenter Hinweis auf ungespeicherte Overrides. Auswahl/Verschieben per Klick+Tastatur
+         (Pfeiltasten/PageUp/PageDown/Q/E, Entf zum Löschen) - kein separates Editor-Panel mehr nötig. -->
+    <div id="overrides-savebar" style="display: none; position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 10px; padding: 10px 14px; color: #f8fafc; font-family: 'Outfit', sans-serif; font-size: 12px; align-items: center; gap: 12px;">
+        <span id="overrides-savebar-text">Ungespeicherte Änderungen</span>
+        <button id="overrides-savebar-discard-btn" onclick="discardOverridesDraft()" style="padding: 6px 10px; background: none; border: 1px solid rgba(248, 113, 113, 0.5); border-radius: 4px; color: #f87171; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;">Verwerfen</button>
+        <button id="overrides-savebar-btn" onclick="saveOverridesToFileNow()" style="padding: 6px 10px; background: #10b981; border: none; border-radius: 4px; color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;">Speichern</button>
     </div>
-    
+
     <div id="instructions" data-i18n="instructions">
         <b>Bedienung:</b> Linksklick + Ziehen = Drehen | Rechtsklick + Ziehen = Verschieben | Mausrad = Zoomen
     </div>
@@ -631,6 +558,10 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
+        // Editor-Modus (Klick-Auswahl, Verschieben, Löschen, overrides.json schreiben) nur lokal
+        // verfügbar (Live-Server/file://) — auf GitHub Pages ist die Auslieferung schreibgeschützt.
+        const isEditorAvailable = location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(location.hostname);
+
         // --- TRANSLATIONS ---
         const floorLabelTranslations = {
             de: ["Parterre (EG)", "1. OG (Schlafen)", "2. OG (Schlafen)", "3. OG (Küche)", "Terrasse"],
@@ -942,6 +873,15 @@
             const conduitMat = new THREE.MeshLambertMaterial({ color: colorVal }); // Wellrohr
             const geom = new THREE.TubeGeometry(curvePath, Math.max(20, cleanPoints.length * 10), radius, 8, false);
             const mesh = new THREE.Mesh(geom, conduitMat);
+            // Leitungen selbst anklickbar/löschbar machen (z.B. um nach dem Verschieben/Löschen
+            // einer Steckdose die dann falsche Leitung manuell zu entfernen).
+            let leitungsArt = 'Elektro';
+            if (colorVal === 0xef4444) leitungsArt = 'Warmwasser';
+            else if (colorVal === 0x06b6d4) leitungsArt = 'Kaltwasser';
+            else if (colorVal === 0xf97316) leitungsArt = 'Abwasser';
+            else if (isLighting) leitungsArt = 'Beleuchtung';
+            mesh.userData.isSelectable = true;
+            mesh.userData.name = `Leitung (${leitungsArt})`;
             return mesh;
         }
         let scene, camera, renderer, controls;
@@ -955,6 +895,8 @@
         let labelObjects = [];
         let furnitureObjects = [];
         let craneObjects = [];
+        let allSelectableObjects = [];
+        let selectableById = {};
         let swivelArmGroup; // Global für Position und Rotation
         let labelCrane;     // Global für das Kran-Label
         let craneCable, craneWeight, craneHook; // Global für Seilanimation
@@ -977,6 +919,7 @@
         let showFurniture = true;
         let showLabels = true;
         let showDimensions = true;
+        let showLegend = false;
         const dimensionObjects = [];
         let showCrane = true;
         let craneFolded = false;
@@ -1025,12 +968,313 @@
             showFurniture = getBool('bosa_showFurniture', true);
             showLabels = getBool('bosa_showLabels', true);
             showDimensions = getBool('bosa_showDimensions', true);
+            showLegend = getBool('bosa_showLegend', false);
             window.areStairwellLampsOn = getBool('bosa_areStairwellLampsOn', true);
             const floorVal = getVal('bosa_focusedFloor', '0');
             activeFocusedFloor = floorVal === 'all' ? 'all' : parseInt(floorVal);
 
             currentLang = getVal('bosa_lang', 'de');
             panelCollapsed = getBool('bosa_panel_collapsed', false);
+        }
+
+        // --- PERSISTENZ DER OBJEKT-PLATZIERUNG (overrides.json) ---
+        // Objekte haben keine stabile ID im Code, nur userData.name (menschenlesbar, nicht
+        // garantiert kollisionsfrei). buildBuilding() erzeugt Objekte aber immer in derselben,
+        // deterministischen Reihenfolge (auch nicht sichtbare Varianten werden immer gebaut, nur
+        // .visible wird umgeschaltet) — daher wird nach dem Bauen per Traversal eine stabile ID
+        // aus Name + Vorkommen-Index abgeleitet.
+        const OVERRIDES_LS_KEY = 'bosa_overrides_draft';
+        const OVERRIDES_DIRTY_LS_KEY = 'bosa_overrides_dirty';
+        let objectOverrides = { positions: {}, deleted: [] };
+        let overridesFileHandle = null;
+        let overridesPendingHandle = null; // gemerkte Datei, deren Berechtigung noch bestätigt werden muss
+        let overridesDirty = false;
+
+        function buildSelectableRegistry() {
+            allSelectableObjects = [];
+            selectableById = {};
+            const nameCounts = {};
+            scene.traverse((obj) => {
+                if (!obj.userData || !obj.userData.isSelectable) return;
+                // Objekte aus einem Datenmodell (z.B. Steckdosen) bringen bereits eine stabile,
+                // datenmodell-basierte ID mit - die respektieren wir. Nur für Objekte ohne eigene ID
+                // (noch imperativ erzeugt) greift die alte Name+Vorkommen-Index-Heuristik.
+                let id = obj.userData.overrideId;
+                if (!id) {
+                    const baseName = obj.userData.name || 'Unbenannt';
+                    const n = nameCounts[baseName] || 0;
+                    nameCounts[baseName] = n + 1;
+                    id = baseName + '#' + n;
+                    obj.userData.overrideId = id;
+                }
+                selectableById[id] = obj;
+                allSelectableObjects.push(obj);
+            });
+        }
+
+        function applyOverrides(data) {
+            objectOverrides = data && typeof data === 'object'
+                ? { positions: data.positions || {}, deleted: data.deleted || [] }
+                : { positions: {}, deleted: [] };
+
+            for (const id in objectOverrides.positions) {
+                const obj = selectableById[id];
+                if (!obj) {
+                    console.warn('overrides.json: Objekt für Position-Override nicht gefunden:', id);
+                    continue;
+                }
+                const p = objectOverrides.positions[id];
+                obj.position.set(p.x, p.y, p.z);
+                if (typeof p.rotY === 'number') obj.rotation.y = p.rotY;
+            }
+
+            objectOverrides.deleted.forEach((id) => {
+                const obj = selectableById[id];
+                if (!obj) {
+                    console.warn('overrides.json: gelöschtes Objekt nicht gefunden:', id);
+                    return;
+                }
+                if (obj.parent) obj.parent.remove(obj);
+                delete selectableById[id];
+                const idx = allSelectableObjects.indexOf(obj);
+                if (idx !== -1) allSelectableObjects.splice(idx, 1);
+            });
+        }
+
+        async function loadOverridesFromFile() {
+            try {
+                const res = await fetch('overrides.json', { cache: 'no-store' });
+                if (!res.ok) return { positions: {}, deleted: [] };
+                return await res.json();
+            } catch (e) {
+                return { positions: {}, deleted: [] };
+            }
+        }
+
+        // Arbeitskopie kommt aus dem localStorage (überlebt Reloads, ohne die Datei anzufassen).
+        // Nur beim allerersten Start (noch kein localStorage-Draft vorhanden) wird die Datei
+        // gelesen und als Ausgangspunkt in den localStorage übernommen.
+        async function loadOverridesForSession() {
+            const draftRaw = localStorage.getItem(OVERRIDES_LS_KEY);
+            if (draftRaw) {
+                try {
+                    return { data: JSON.parse(draftRaw), fromDraft: true };
+                } catch (e) {
+                    // Kaputter Draft - ignorieren, mit der Datei neu starten.
+                }
+            }
+            const fileData = await loadOverridesFromFile();
+            localStorage.setItem(OVERRIDES_LS_KEY, JSON.stringify(fileData));
+            return { data: fileData, fromDraft: false };
+        }
+
+        // --- IndexedDB: FileSystemFileHandle über Sessions hinweg merken (nur Editor-Modus) ---
+        function idbOpen() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('bosa-vision-fs', 1);
+                req.onupgradeneeded = () => req.result.createObjectStore('handles');
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        async function idbGetHandle() {
+            const db = await idbOpen();
+            return new Promise((resolve) => {
+                const tx = db.transaction('handles', 'readonly');
+                const req = tx.objectStore('handles').get('overridesFile');
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => resolve(null);
+            });
+        }
+        async function idbSetHandle(handle) {
+            const db = await idbOpen();
+            return new Promise((resolve) => {
+                const tx = db.transaction('handles', 'readwrite');
+                tx.objectStore('handles').put(handle, 'overridesFile');
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => resolve();
+            });
+        }
+
+        async function tryRestoreFileHandle() {
+            try {
+                const handle = await idbGetHandle();
+                if (!handle) return;
+                const perm = await handle.queryPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    overridesFileHandle = handle;
+                } else {
+                    // Datei ist gemerkt, Berechtigung muss nur noch (leicht, ohne Dateiauswahl) bestätigt werden.
+                    overridesPendingHandle = handle;
+                }
+            } catch (e) {
+                // Handle ungültig geworden (Datei umbenannt/gelöscht) - ignorieren, Nutzer verbindet neu.
+            }
+            updateOverridesStatusUI();
+        }
+
+        // Bestätigt den Zugriff auf eine bereits gemerkte Datei erneut - zeigt nur eine kurze
+        // "Zugriff erlauben?"-Rückfrage, KEINEN Datei-Auswahl-Dialog.
+        async function requestOverridesPermission() {
+            if (!overridesPendingHandle) {
+                await connectOverridesFile();
+                return;
+            }
+            try {
+                const perm = await overridesPendingHandle.requestPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    overridesFileHandle = overridesPendingHandle;
+                    overridesPendingHandle = null;
+                    showToast('Zugriff auf overrides.json bestätigt');
+                    if (overridesDirty) await writeOverridesFile();
+                } else {
+                    showToast('Zugriff verweigert');
+                }
+            } catch (e) {
+                console.error('Zugriff auf overrides.json fehlgeschlagen:', e);
+                overridesPendingHandle = null;
+                showToast('Datei nicht mehr auffindbar – bitte neu verbinden');
+            }
+            updateOverridesStatusUI();
+        }
+
+        async function connectOverridesFile() {
+            if (!window.showSaveFilePicker) {
+                showToast('Automatisches Speichern erfordert Chrome/Edge');
+                return;
+            }
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'overrides.json',
+                    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+                });
+                overridesFileHandle = handle;
+                overridesPendingHandle = null;
+                await idbSetHandle(handle);
+                await writeOverridesFile();
+                showToast('overrides.json verbunden');
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    console.error('overrides.json verbinden fehlgeschlagen:', e);
+                    showToast('Verbinden fehlgeschlagen: ' + e.message);
+                }
+            }
+            updateOverridesStatusUI();
+        }
+
+        // Schreibt die Datei nur auf explizite Anforderung (Button), NICHT bei jeder Änderung -
+        // vermeidet, dass ein Dev-Live-Server bei jedem Verschieben/Löschen die Seite neu lädt.
+        async function writeOverridesFile() {
+            if (!overridesFileHandle) {
+                updateOverridesStatusUI();
+                return;
+            }
+            try {
+                const writable = await overridesFileHandle.createWritable();
+                await writable.write(JSON.stringify(objectOverrides, null, 2));
+                await writable.close();
+                window.overridesLastSavedAt = new Date();
+                overridesDirty = false;
+                localStorage.setItem(OVERRIDES_DIRTY_LS_KEY, 'false');
+                showToast('overrides.json gespeichert');
+            } catch (e) {
+                console.error('overrides.json konnte nicht geschrieben werden:', e);
+                overridesFileHandle = null;
+                showToast('Verbindung zu overrides.json verloren – bitte erneut verbinden');
+            }
+            updateOverridesStatusUI();
+        }
+
+        // Wird vom "Speichern"-Button aufgerufen: nutzt eine bereits gemerkte Datei (nur kurze
+        // Bestätigung nötig) bevor als letzter Ausweg der volle Datei-Auswahl-Dialog kommt.
+        async function saveOverridesToFileNow() {
+            if (overridesFileHandle) {
+                await writeOverridesFile();
+            } else if (overridesPendingHandle) {
+                await requestOverridesPermission();
+            } else {
+                await connectOverridesFile(); // schreibt bei Erfolg bereits einmal
+            }
+        }
+
+        // Wird vom "Änderungen verwerfen"-Button aufgerufen: leert NUR den lokalen Arbeitsstand
+        // (localStorage-Draft) und lädt neu, sodass beim Start wieder frisch aus der echten
+        // overrides.json gelesen wird (siehe loadOverridesForSession) - die Datei selbst bleibt
+        // dabei unangetastet, es wird nichts auf der Festplatte gelöscht.
+        function discardOverridesDraft() {
+            if (!window.confirm('Alle nicht gespeicherten Änderungen verwerfen und Stand aus overrides.json neu laden?')) return;
+            localStorage.removeItem(OVERRIDES_LS_KEY);
+            localStorage.removeItem(OVERRIDES_DIRTY_LS_KEY);
+            location.reload();
+        }
+
+        // Jede Positions-/Löschänderung landet sofort (synchron, kein Datei-I/O) im localStorage -
+        // übersteht Reloads verlustfrei. Erst saveOverridesToFileNow() schreibt in die echte Datei.
+        function persistOverridesDraft() {
+            localStorage.setItem(OVERRIDES_LS_KEY, JSON.stringify(objectOverrides));
+            overridesDirty = true;
+            localStorage.setItem(OVERRIDES_DIRTY_LS_KEY, 'true');
+            updateOverridesStatusUI();
+        }
+
+        function recordSelectedObjectOverride() {
+            if (!selectedObject) return;
+            if (!selectedObject.userData.overrideId) {
+                console.warn('Objekt ohne overrideId, Position wird nicht gespeichert:', selectedObject.userData.name);
+                return;
+            }
+            const id = selectedObject.userData.overrideId;
+            objectOverrides.positions[id] = {
+                x: selectedObject.position.x,
+                y: selectedObject.position.y,
+                z: selectedObject.position.z,
+                rotY: selectedObject.rotation.y
+            };
+            persistOverridesDraft();
+        }
+
+        // Einzige Speicher-UI: die Leiste unten links, unabhängig von der Objektauswahl. Wird nur
+        // angezeigt, wenn tatsächlich etwas zu tun ist (ungespeicherte Änderung oder Zugriff nötig).
+        function updateOverridesStatusUI() {
+            const bar = document.getElementById('overrides-savebar');
+            const barText = document.getElementById('overrides-savebar-text');
+            const barBtn = document.getElementById('overrides-savebar-btn');
+            const discardBtn = document.getElementById('overrides-savebar-discard-btn');
+            if (!bar || !barText || !barBtn || !discardBtn) return;
+
+            discardBtn.style.display = overridesDirty ? 'inline-block' : 'none';
+
+            if (!isEditorAvailable || (!overridesDirty && !overridesPendingHandle)) {
+                bar.style.display = 'none';
+                return;
+            }
+            if (!window.showSaveFilePicker) {
+                barText.textContent = 'Ungespeicherte Änderungen (nur im Browser, Datei-Speichern erfordert Chrome/Edge)';
+                barBtn.style.display = 'none';
+            } else if (overridesPendingHandle) {
+                barText.textContent = 'Zugriff auf overrides.json bestätigen';
+                barBtn.textContent = 'Erlauben';
+                barBtn.style.display = 'inline-block';
+            } else if (!overridesFileHandle) {
+                barText.textContent = 'Ungespeicherte Änderungen';
+                barBtn.textContent = 'overrides.json verbinden';
+                barBtn.style.display = 'inline-block';
+            } else {
+                barText.textContent = 'Ungespeicherte Änderungen';
+                barBtn.textContent = 'Speichern';
+                barBtn.style.display = 'inline-block';
+            }
+            bar.style.display = 'flex';
+        }
+
+        async function initOverridesPersistence() {
+            const { data, fromDraft } = await loadOverridesForSession();
+            applyOverrides(data);
+            overridesDirty = fromDraft && localStorage.getItem(OVERRIDES_DIRTY_LS_KEY) !== 'false';
+            if (isEditorAvailable) {
+                await tryRestoreFileHandle();
+            }
+            updateOverridesStatusUI();
         }
 
         // --- 2. INITIALISIERUNG ---
@@ -1104,6 +1348,17 @@
             // Gesamten Baukörper generieren
             buildBuilding();
 
+            // Objekt-Registry aufbauen und gespeicherte Positions-/Lösch-Overrides anwenden.
+            // In try/catch, damit ein Fehler hier niemals die restliche Initialisierung (und damit
+            // das Rendering/animate()) verhindert - dieser Teil läuft für alle Besucher, auch auf
+            // GitHub Pages, nicht nur im Editor-Modus.
+            try {
+                buildSelectableRegistry();
+                initOverridesPersistence();
+            } catch (e) {
+                console.error('Objekt-Overrides konnten nicht initialisiert werden:', e);
+            }
+
             // UI Initialzustand synchronisieren
             document.getElementById('slider-explosion').value = Math.round(targetExplosion * 100);
             document.getElementById('val-explosion').innerText = Math.round(targetExplosion * 100) + "%";
@@ -1127,6 +1382,8 @@
             document.getElementById('chk-furniture').checked = showFurniture;
             document.getElementById('chk-labels').checked = showLabels;
             document.getElementById('chk-dimensions').checked = showDimensions;
+            document.getElementById('chk-legend').checked = showLegend;
+            document.getElementById('legend-list').style.display = showLegend ? '' : 'none';
             document.getElementById('chk-stair-light').checked = window.areStairwellLampsOn;
             
             // Sprache initial anwenden
@@ -4163,144 +4420,108 @@
 
 
             // Sockets without static straight conduits (conduits are built as curved daisy-chains below)
-            const distFloors = [0, 1, 2, 3, 4];
-            distFloors.forEach((fIdx) => {
-                const Y_floor = floorHeights[fIdx] + 0.2;
-                const Y_conduit = floorHeights[fIdx];
-                const Y_socket = Y_floor + 0.2; // 20 cm height above finished floor
-                
-                const roomGroup = new THREE.Group();
-                
-                let socketNum = 1;
-                function addSocketWithNumber(x, y, z, rotY, badgeX, badgeY, badgeZ) {
-                    const socket = createSocket(x, y, z, rotY);
-                    socket.userData.isSelectable = true;
-                    socket.userData.name = `Steckdose ${socketNum++} (${fIdx === 4 ? "Terrasse" : fIdx === 3 ? "Küche" : fIdx === 0 ? "EG" : fIdx + ". OG"})`;
-                    roomGroup.add(socket);
-                }
+            //
+            // Datenmodell + generischer Renderer (Pilot für den Umbau auf ein modell-getriebenes
+            // Rendering, siehe Diskussion zu Leitungs-Abhängigkeiten): Positionen/Rotationen leben
+            // als reine Daten in buildSocketModel(), ein einziger Renderer erzeugt daraus die
+            // Steckdosen-Objekte. Die y-Werte nutzen bewusst dieselben Formeln (Y_floor/Y_socket)
+            // wie vorher, keine neu berechneten Zahlen - Positionen sind 1:1 identisch zum alten Code.
+            function buildSocketModel() {
+                const model = {};
+                [0, 1, 2, 3, 4].forEach((fIdx) => {
+                    const Y_floor = floorHeights[fIdx] + 0.2;
+                    const Y_socket = Y_floor + 0.2; // 20 cm height above finished floor
+                    const sockets = [];
 
-                if (fIdx === 3) {
-                    // Front socket on right wall at Z = 2.4 (in-wall X = 1.54)
-                    addSocketWithNumber(1.48, Y_socket, 2.4, -Math.PI / 2, 1.42, Y_socket + 0.15, 2.4);
-
-                    // New socket right of the French balcony (front wall, X = -0.1, Y = 7.7) (in-wall Z = 2.54)
-                    addSocketWithNumber(-0.1, 7.7, 2.48, Math.PI, -0.1, 7.7 + 0.15, 2.42);
-                    
-                    // Kitchen countertop sockets (above countertop Y_floor + 1.0)
-                    // 1. Back Wall Corner socket (in-wall Z = -2.48)
-                    addSocketWithNumber(-1.2, Y_floor + 1.0, -2.48, 0, -1.2, Y_floor + 1.15, -2.42);
-
-                    // 2. Back Wall Socket near the stairs (right end of back counter) (in-wall Z = -2.48)
-                    addSocketWithNumber(0.8, Y_floor + 1.0, -2.48, 0, 0.8, Y_floor + 1.15, -2.42);
-
-                    // 3. Left Wall countertop socket (above left counter, shifted to Z = -1.5) (in-wall X = -1.48)
-                    addSocketWithNumber(-1.48, Y_floor + 1.0, -1.5, Math.PI / 2, -1.42, Y_floor + 1.15, -1.5);
-
-                    // Fridge socket (right wall, near Z = -0.93, Y = 7.7) (in-wall X = 1.5)
-                    addSocketWithNumber(1.5, 7.7, -0.93, -Math.PI / 2, 1.44, 7.7 + 0.15, -0.93);
-                } else if (fIdx === 0) {
-                    // Sockets for washing machine (Z = 0.0), heat pump (Z = 0.6) and autoclave (Z = 1.2) on the right wall
-                    addSocketWithNumber(1.5, Y_socket, 0.0, -Math.PI / 2, 1.44, Y_socket + 0.15, 0.0);
-                    addSocketWithNumber(1.5, 1.2, 0.6, -Math.PI / 2, 1.44, 1.2 + 0.15, 0.6);
-                    addSocketWithNumber(1.5, Y_socket, 1.2, -Math.PI / 2, 1.44, Y_socket + 0.15, 1.2);
-                } else if (fIdx === 1 || fIdx === 2) {
-                    // Other floors: standard window socket at X = -1.0 (unless 2. OG or 1. OG user moved it)
-                    let sX = -1.0;
-                    let sY = Y_socket;
-                    
-                    if (fIdx === 2) {
-                        sX = -0.250;
-                        sY = 5.200;
-                    } else if (fIdx === 1) {
-                        sX = -0.350;
-                        sY = 2.700;
+                    if (fIdx === 3) {
+                        sockets.push(
+                            { x: 1.48, y: Y_socket, z: 2.4, rotY: -Math.PI / 2 },
+                            { x: -0.1, y: 7.7, z: 2.48, rotY: Math.PI },
+                            { x: -1.2, y: Y_floor + 1.0, z: -2.48, rotY: 0 },
+                            { x: 0.8, y: Y_floor + 1.0, z: -2.48, rotY: 0 },
+                            { x: -1.48, y: Y_floor + 1.0, z: -1.5, rotY: Math.PI / 2 },
+                            { x: 1.5, y: 7.7, z: -0.93, rotY: -Math.PI / 2 }
+                        );
+                    } else if (fIdx === 0) {
+                        sockets.push(
+                            { x: 1.5, y: Y_socket, z: 0.0, rotY: -Math.PI / 2 },
+                            { x: 1.5, y: 1.2, z: 0.6, rotY: -Math.PI / 2 },
+                            { x: 1.5, y: Y_socket, z: 1.2, rotY: -Math.PI / 2 }
+                        );
+                    } else if (fIdx === 1 || fIdx === 2) {
+                        let sX = -1.0, sY = Y_socket;
+                        if (fIdx === 2) { sX = -0.250; sY = 5.200; }
+                        else if (fIdx === 1) { sX = -0.350; sY = 2.700; }
+                        sockets.push({ x: sX, y: sY, z: 2.48, rotY: Math.PI });
+                    } else if (fIdx === 4) {
+                        [-1.8, 0.0, 1.8].forEach(lz => {
+                            sockets.push({ x: -1.48, y: Y_socket, z: lz, rotY: Math.PI / 2 });
+                        });
+                        [{ x: -1.0, y: Y_floor + 0.9 }, { x: -0.2, y: Y_floor + 0.9 }].forEach(bs => {
+                            sockets.push({ x: bs.x, y: bs.y, z: -2.48, rotY: 0 });
+                        });
                     }
-                    
-                    addSocketWithNumber(sX, sY, 2.48, Math.PI, sX, sY + 0.15, 2.42);
-                } else if (fIdx === 4) {
-                    // Terrace: installations
-                    // Sub-distribution board (Unterverteiler Terrasse) inside the exit shed (back wall: X=0.9, Y=11.8, Z=-2.475)
+
+                    let leftSockets = [];
+                    if (fIdx === 1) {
+                        leftSockets = [{ z: -2.4, y: 2.700 }, { z: -0.2, y: Y_socket }, { z: 0.850, y: Y_socket }, { z: 2.200, y: Y_socket }];
+                    } else if (fIdx === 2) {
+                        leftSockets = [{ z: -2.35, y: 5.200 }, { z: -0.2, y: Y_socket }, { z: 0.5, y: Y_socket }, { z: 1.8, y: Y_socket }];
+                    } else if (fIdx === 0) {
+                        leftSockets = [{ z: 0.15, y: 0.550 }, { z: 0.85, y: 0.550 }, { z: 2.1, y: Y_socket }];
+                    } else if (fIdx === 3) {
+                        leftSockets = [{ z: -1.0, y: Y_socket }, { z: 0.5, y: Y_socket }, { z: 1.8, y: Y_socket }];
+                    }
+                    leftSockets.forEach(s => {
+                        sockets.push({ x: -1.48, y: s.y, z: s.z, rotY: Math.PI / 2 });
+                    });
+
+                    if (fIdx !== 4) {
+                        const bx = (fIdx === 1) ? 0.500 : (fIdx === 2) ? 0.650 : 1.35;
+                        sockets.push({ x: bx, y: Y_socket, z: -2.48, rotY: 0 });
+                    }
+
+                    if (fIdx === 0) {
+                        [-1.35, -0.5, 0.4].forEach(bx => {
+                            sockets.push({ x: bx, y: Y_socket, z: -2.48, rotY: 0 });
+                        });
+                    }
+
+                    model[fIdx] = sockets;
+                });
+                return model;
+            }
+
+            function floorLabelForInstallations(fIdx) {
+                return fIdx === 4 ? "Terrasse" : fIdx === 3 ? "Küche" : fIdx === 0 ? "EG" : fIdx + ". OG";
+            }
+
+            const socketModel = buildSocketModel();
+            [0, 1, 2, 3, 4].forEach((fIdx) => {
+                const roomGroup = new THREE.Group();
+
+                // Terrasse hat zusätzlich einen eigenen Unterverteiler-Kasten (kein Steckdosen-Datensatz).
+                if (fIdx === 4) {
                     const subBoxGroup = new THREE.Group();
                     subBoxGroup.userData.isSelectable = true;
                     subBoxGroup.userData.name = "Unterverteiler Terrasse";
-
-                    // Verteilerkasten (16x20cm, 8cm tief, blau)
                     const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.20, 0.08), elecBoxMat);
                     boxMesh.position.set(0.9, 11.8, -2.475);
                     subBoxGroup.add(boxMesh);
-
-                    // Badge/Label
                     const labelSprite = createTextSpriteSmall("elecSub", "#3b82f6");
                     labelSprite.position.set(0.9, 12.05, -2.475);
                     subBoxGroup.add(labelSprite);
                     roomGroup.add(subBoxGroup);
-
-                    // Three sockets on the left wall at floor level (Y_socket = 10.9)
-                    const leftZCoords = [-1.8, 0.0, 1.8];
-                    leftZCoords.forEach(lz => {
-                        addSocketWithNumber(-1.48, Y_socket, lz, Math.PI / 2, -1.42, Y_socket + 0.15, lz);
-                    });
-
-                    // Two sockets on the back wall outside the exit shed at 90cm height (Y = Y_floor + 0.9 = 11.6)
-                    const backSockets = [
-                        { x: -1.0, y: Y_floor + 0.9 },
-                        { x: -0.2, y: Y_floor + 0.9 }
-                    ];
-                    backSockets.forEach(bs => {
-                        addSocketWithNumber(bs.x, bs.y, -2.48, 0, bs.x, bs.y + 0.15, -2.42);
-                    });
-                }
-                
-                // Sockets on the left wall (with floor-specific configurations)
-                let leftSockets = [];
-                if (fIdx === 1) {
-                    leftSockets = [
-                        { z: -2.4, y: 2.700 },
-                        { z: -0.2, y: Y_socket },
-                        { z: 0.850, y: Y_socket },
-                        { z: 2.200, y: Y_socket }
-                    ];
-                } else if (fIdx === 2) {
-                    leftSockets = [
-                        { z: -2.35, y: 5.200 },
-                        { z: -0.2, y: Y_socket },
-                        { z: 0.5, y: Y_socket },
-                        { z: 1.8, y: Y_socket }
-                    ];
-                } else if (fIdx === 0) {
-                    // EG (Bathroom) left wall sockets: two flanking the vanity sink at Y=1.2, one in front area
-                    leftSockets = [
-                        { z: 0.15, y: 0.550 }, // Left of vanity (user moved to Y=0.550)
-                        { z: 0.85, y: 0.550 }, // Right of vanity (user moved to Y=0.550)
-                        { z: 2.1, y: Y_socket }        // Front left
-                    ];
-                } else if (fIdx === 3) {
-                    // Kitchen (3. OG) standard left wall sockets
-                    leftSockets = [
-                        { z: -1.0, y: Y_socket },
-                        { z: 0.5, y: Y_socket },
-                        { z: 1.8, y: Y_socket }
-                    ];
                 }
 
-                leftSockets.forEach(s => {
-                    addSocketWithNumber(-1.48, s.y, s.z, Math.PI / 2, -1.42, s.y + 0.15, s.z);
+                socketModel[fIdx].forEach((s, i) => {
+                    const socket = createSocket(s.x, s.y, s.z, s.rotY);
+                    socket.userData.isSelectable = true;
+                    socket.userData.name = `Steckdose ${i + 1} (${floorLabelForInstallations(fIdx)})`;
+                    socket.userData.overrideId = `socket-f${fIdx}-${i + 1}`; // stabile, datenmodell-basierte ID
+                    roomGroup.add(socket);
                 });
-                
-                if (fIdx !== 4) {
-                    // Socket in the back-right corner (in-wall Z = -2.48)
-                    const bx = (fIdx === 1) ? 0.500 : (fIdx === 2) ? 0.650 : 1.35;
-                    addSocketWithNumber(bx, Y_socket, -2.48, 0, bx, Y_socket + 0.15, -2.42);
-                }
 
-                if (fIdx === 0) {
-                    // Three more sockets on the back wall in EG (X = -1.35, X = -0.5, X = 0.4)
-                    const extraBackX = [-1.35, -0.5, 0.4];
-                    extraBackX.forEach(bx => {
-                        addSocketWithNumber(bx, Y_socket, -2.48, 0, bx, Y_socket + 0.15, -2.42);
-                    });
-                }
-                
                 roomGroup.visible = showInstallations;
                 floorGroups[fIdx].add(roomGroup);
                 installationObjects.push(roomGroup);
@@ -4391,6 +4612,7 @@
                     const jb = createJunctionBox(0.33, 1.5, 0.1, -Math.PI / 2);
                     jb.userData.isSelectable = true;
                     jb.userData.name = "Verteilerdose Treppenhaus EG";
+                    jb.userData.overrideId = `junctionbox-eg-${opt}`;
                     group.add(jb);
                     
                     // Riser & buttons (Floor 0)
@@ -4411,13 +4633,15 @@
                     const sw = createStairwellSwitch(0.33, 1.1, 1.8, -Math.PI / 2);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster EG";
+                    sw.userData.overrideId = `switch-eg-${opt}`;
                     group.add(sw);
-                    
+
                     // Lamps & their connection conduits (Floor 0)
                     // (Treppenhauslampe EG is moved to Floor 1 group at Y=4.02 to avoid collision and match 1.8m height above stairs)
                     const lampEG = createLamp(0.0, 2.15, -0.2, false, 0, 0, 2.15);
                     lampEG.userData.isSelectable = true;
                     lampEG.userData.name = "Flurlampe EG (Decke)";
+                    lampEG.userData.overrideId = `lamp-eg-flur-${opt}`;
                     group.add(lampEG);
                     
                     // Runs above the concrete ceiling slab (Y=2.5) and drops down to the lamp at Y=2.15
@@ -4502,11 +4726,13 @@
                     const swTop = createStairwellSwitch(0.33, Y_switch, 0.1, -Math.PI / 2);
                     swTop.userData.isSelectable = true;
                     swTop.userData.name = `Treppenhaustaster ${fIdx}. OG (oben)`;
+                    swTop.userData.overrideId = `switch-f${fIdx}-top-${opt}`;
                     group.add(swTop);
-                    
+
                     const swBot = createStairwellSwitch(0.33, Y_switch, 1.8, -Math.PI / 2);
                     swBot.userData.isSelectable = true;
                     swBot.userData.name = `Treppenhaustaster ${fIdx}. OG (unten)`;
+                    swBot.userData.overrideId = `switch-f${fIdx}-bot-${opt}`;
                     group.add(swBot);
                     
                     // Lamps & their connection conduits (Floors 1 & 2)
@@ -4517,6 +4743,7 @@
                     const stairLamp = createLamp(0.61, Y_stair_lamp, 0.1, true, Math.PI / 2, distUp, distDown);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = fIdx === 1 ? "Treppenhauslampe EG" : "Treppenhauslampe 1. OG";
+                    stairLamp.userData.overrideId = `lamp-stair-f${fIdx}-${opt}`;
                     group.add(stairLamp);
                     // Riser to stairLamp cross-wall feed
                     lightPaths.push([V(0.35, Y_stair_lamp, 0.1), V(0.60, Y_stair_lamp, 0.1)]);
@@ -4592,12 +4819,14 @@
                     const sw = createStairwellSwitch(1.48, Y_switch, -0.1, -Math.PI / 2);
                     sw.userData.isSelectable = true;
                     sw.userData.name = "Treppenhaustaster 3. OG";
+                    sw.userData.overrideId = `switch-f3-${opt}`;
                     group.add(sw);
-                    
+
                     // Lamps & their connection conduits (Floor 3)
                     const stairLamp = createLamp(1.48, 9.50, -0.1, true, -Math.PI / 2, 1.2, 2.0);
                     stairLamp.userData.isSelectable = true;
                     stairLamp.userData.name = "Treppenhauslampe 2. OG";
+                    stairLamp.userData.overrideId = `lamp-stair-f3-${opt}`;
                     group.add(stairLamp);
                     
                     // (Ceiling lamps removed)
@@ -4644,12 +4873,14 @@
                 const stairLamp = createLamp(1.48, 11.0, -0.1, true, -Math.PI / 2, 3.0, 0.3);
                 stairLamp.userData.isSelectable = true;
                 stairLamp.userData.name = "Treppenhauslampe 3. OG";
+                stairLamp.userData.overrideId = 'lamp-stair-f4';
                 group.add(stairLamp);
-                
+
                 // Eltako Switch (Taster) below the lamp
                 const sw = createStairwellSwitch(1.48, 10.8, -0.1, -Math.PI / 2);
                 sw.userData.isSelectable = true;
                 sw.userData.name = "Treppenhaustaster Terrasse";
+                sw.userData.overrideId = 'switch-f4';
                 group.add(sw);
                 
                 paths.forEach(p => {
@@ -5180,12 +5411,11 @@
         let pointerDownX = 0;
         let pointerDownY = 0;
         let selectedObject = null;
-        let selectedBoxHelper = null;
-        let selectionCorners = null;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
         function onCanvasClick(event) {
+            if (!isEditorAvailable) return;
             if (event.target.tagName !== 'CANVAS') return;
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -5244,96 +5474,48 @@
         function selectObject(obj) {
             deselectObject();
             selectedObject = obj;
-            
-            // Red wireframe selection box
-            selectedBoxHelper = new THREE.BoxHelper(selectedObject, 0xff0000);
-            scene.add(selectedBoxHelper);
-            
-            // 8 bright red corner boxes
-            selectionCorners = new THREE.Group();
-            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000, toneMapped: false });
-            const geom = new THREE.BoxGeometry(0.04, 0.04, 0.04);
-            for (let i = 0; i < 8; i++) {
-                const cornerMesh = new THREE.Mesh(geom, mat);
-                selectionCorners.add(cornerMesh);
-            }
-            scene.add(selectionCorners);
-            
-            updateSelectionHelper();
-            updateEditorUI();
+
+            // Objekt selbst rot einfärben statt Umriss/Eckmarker (materialien werden pro Mesh
+            // geklont, damit nicht versehentlich ein von anderen Objekten geteiltes Material
+            // mitgefärbt wird).
+            selectedObject.traverse((node) => {
+                if (!node.isMesh) return;
+                node.userData.preSelectMaterial = node.material;
+                const mat = node.material.clone();
+                mat.color.set(0xff0000);
+                if (mat.emissive) mat.emissive.set(0x330000);
+                node.material = mat;
+            });
         }
 
         function deselectObject() {
-            if (selectedBoxHelper) {
-                scene.remove(selectedBoxHelper);
-                selectedBoxHelper.geometry.dispose();
-                selectedBoxHelper.material.dispose();
-                selectedBoxHelper = null;
-            }
-            if (selectionCorners) {
-                scene.remove(selectionCorners);
-                selectionCorners.children.forEach(c => {
-                    c.geometry.dispose();
-                    c.material.dispose();
+            if (selectedObject) {
+                selectedObject.traverse((node) => {
+                    if (!node.isMesh || !node.userData.preSelectMaterial) return;
+                    node.material.dispose();
+                    node.material = node.userData.preSelectMaterial;
+                    delete node.userData.preSelectMaterial;
                 });
-                selectionCorners = null;
             }
             selectedObject = null;
-            const panel = document.getElementById('editor-panel');
-            if (panel) panel.style.display = 'none';
         }
 
-        function updateSelectionHelper() {
-            if (!selectedObject || !selectionCorners) return;
-            
-            // Recalculate bounding box in world space
-            const box = new THREE.Box3().setFromObject(selectedObject);
-            const corners = [
-                new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-                new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-                new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-                new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-                new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-                new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-                new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-                new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-            ];
-            
-            for (let i = 0; i < 8; i++) {
-                selectionCorners.children[i].position.copy(corners[i]);
-            }
-            
-            if (selectedBoxHelper) {
-                selectedBoxHelper.update();
-            }
-        }
-
-        function updateEditorUI() {
-            const panel = document.getElementById('editor-panel');
-            if (!panel || !selectedObject) return;
-            panel.style.display = 'flex';
-            const nameEl = document.getElementById('edit-obj-name');
-            const posEl = document.getElementById('edit-obj-pos');
-            const codeEl = document.getElementById('edit-obj-code');
-            if (nameEl) nameEl.innerText = selectedObject.userData.name || 'Unbekanntes Objekt';
-            const pos = selectedObject.position;
-            const rotY = selectedObject.rotation.y;
-            if (posEl) {
-                posEl.innerHTML = `<b>X:</b> ${pos.x.toFixed(3)}m | <b>Y:</b> ${pos.y.toFixed(3)}m | <b>Z:</b> ${pos.z.toFixed(3)}m<br><b>Rot Y:</b> ${(rotY * 180 / Math.PI).toFixed(0)}°`;
-            }
-            if (codeEl) {
-                codeEl.value = `position.set(${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`;
-            }
-        }
-
-        function moveSelectedObject(axis, val) {
+        function deleteSelectedObjectWithConfirm() {
             if (!selectedObject) return;
-            if (axis === 'x') selectedObject.position.x += val;
-            if (axis === 'y') selectedObject.position.y += val;
-            if (axis === 'z') selectedObject.position.z += val;
-            if (axis === 'rot') selectedObject.rotation.y += val;
-            updateSelectionHelper();
-            updateEditorUI();
+
+            const id = selectedObject.userData.overrideId;
+            if (id) {
+                if (!objectOverrides.deleted.includes(id)) objectOverrides.deleted.push(id);
+                delete objectOverrides.positions[id];
+                delete selectableById[id];
+                const idx = allSelectableObjects.indexOf(selectedObject);
+                if (idx !== -1) allSelectableObjects.splice(idx, 1);
+            }
+
+            const obj = selectedObject;
+            deselectObject();
+            if (obj.parent) obj.parent.remove(obj);
+            persistOverridesDraft();
         }
 
         // Keyboard Controls for Movement
@@ -5346,8 +5528,9 @@
             }
             
             const step = e.shiftKey ? 0.01 : 0.05; // 1cm with Shift, 5cm normally
+            const rotStep = e.shiftKey ? Math.PI / 2 : Math.PI / 12; // 90° with Shift, 15° normally
             let moved = false;
-            
+
             switch (e.key) {
                 case 'ArrowUp':
                     selectedObject.position.z -= step; // Move backward (towards back wall)
@@ -5379,15 +5562,31 @@
                     moved = true;
                     e.preventDefault();
                     break;
+                case 'q':
+                case 'Q':
+                    selectedObject.rotation.y -= rotStep; // Rotate left
+                    moved = true;
+                    e.preventDefault();
+                    break;
+                case 'e':
+                case 'E':
+                    selectedObject.rotation.y += rotStep; // Rotate right
+                    moved = true;
+                    e.preventDefault();
+                    break;
                 case 'Escape':
                     deselectObject();
                     e.preventDefault();
                     break;
+                case 'Delete':
+                case 'Backspace':
+                    deleteSelectedObjectWithConfirm();
+                    e.preventDefault();
+                    break;
             }
-            
+
             if (moved) {
-                updateSelectionHelper();
-                updateEditorUI();
+                recordSelectedObjectOverride();
             }
         });
 
@@ -5548,6 +5747,12 @@
                     obj.visible = val;
                 }
             });
+        }
+
+        function toggleLegend(val) {
+            showLegend = val;
+            localStorage.setItem('bosa_showLegend', val);
+            document.getElementById('legend-list').style.display = val ? '' : 'none';
         }
 
         function toggleFurniture(val) {
