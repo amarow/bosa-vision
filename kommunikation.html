@@ -148,6 +148,10 @@
     .tab-btn:hover { border-color: var(--accent-hover); color: var(--ink); }
     .tab-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
 
+    .diy-filter-btn { border-style: dashed; opacity: 0.55; }
+    .diy-filter-btn:first-of-type { margin-left: 12px; }
+    .diy-filter-btn.active { border-style: solid; opacity: 1; font-weight: 700; }
+
     .table-card {
         background: var(--card-bg);
         border: 1px solid var(--border-light);
@@ -231,6 +235,10 @@
         width: 16%;
     }
 
+    td.col-diy {
+        width: 130px;
+    }
+
     footer {
         max-width: 1200px;
         margin: 0 auto 40px;
@@ -280,6 +288,9 @@
         <button class="tab-btn" data-category="terrasse" onclick="setCategory('terrasse')" data-i18n="tabTerrasse">Terrasse</button>
         <button class="tab-btn" data-category="fassade" onclick="setCategory('fassade')" data-i18n="tabFassade">Fassade</button>
         <button class="tab-btn" data-category="sonstiges" onclick="setCategory('sonstiges')" data-i18n="tabSonstiges">Sonstiges</button>
+        <button class="tab-btn diy-filter-btn active" id="diy-filter-full" onclick="toggleDiyFilter('full')" data-i18n="diyFull">Eigenleistung</button>
+        <button class="tab-btn diy-filter-btn active" id="diy-filter-partial" onclick="toggleDiyFilter('partial')" data-i18n="diyPartial">teilweise</button>
+        <button class="tab-btn diy-filter-btn active" id="diy-filter-none" onclick="toggleDiyFilter('none')" data-i18n="diyFremd">Fremdleistung</button>
     </div>
 
     <div class="table-card">
@@ -292,6 +303,7 @@
                     <th data-i18n="colStatus">Status</th>
                     <th data-i18n="colNotes">Anmerkungen</th>
                     <th data-i18n="colExecutor">Ausführer</th>
+                    <th data-i18n="colDiy">Ausführung</th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -316,6 +328,10 @@
             colTopic: "Thema",
             colNotes: "Anmerkungen",
             colExecutor: "Ausführer",
+            colDiy: "Ausführung",
+            diyFull: "Eigenleistung",
+            diyPartial: "teilweise",
+            diyFremd: "Fremdleistung",
             tabAll: "Alle",
             tabElektro: "Elektro",
             tabSanitaer: "Sanitär",
@@ -337,6 +353,10 @@
             colTopic: "Topic",
             colNotes: "Notes",
             colExecutor: "Executed by",
+            colDiy: "Execution",
+            diyFull: "DIY",
+            diyPartial: "partial",
+            diyFremd: "Contractor",
             tabAll: "All",
             tabElektro: "Electrical",
             tabSanitaer: "Plumbing",
@@ -358,6 +378,10 @@
             colTopic: "Argomento",
             colNotes: "Note",
             colExecutor: "Esecutore",
+            colDiy: "Esecuzione",
+            diyFull: "Fai da te",
+            diyPartial: "parziale",
+            diyFremd: "Ditta esterna",
             tabAll: "Tutti",
             tabElektro: "Elettrico",
             tabSanitaer: "Idraulico",
@@ -508,15 +532,61 @@
         return statusColors[statusDe] || { bg: '#eef2f6', fg: '#64748b' };
     }
 
+    // Ausführungs-Art wird automatisch aus dem deutschen Ausführer-Text (executor.de) abgeleitet:
+    // exakt "Eigenleistung" -> full (Eigenleistung), "Eigenleistung" + weiterer Text -> partial
+    // (teilweise), kein "Eigenleistung" -> none (Fremdleistung). Kein eigenes Feld in der Quelle nötig.
+    function diyLevel(executorDe) {
+        const text = (executorDe || '').trim();
+        if (!text.includes('Eigenleistung')) return 'none';
+        return text === 'Eigenleistung' ? 'full' : 'partial';
+    }
+
+    const diyColors = {
+        full:    { bg: '#dcfce7', fg: '#166534' }, // grün - Eigenleistung
+        partial: { bg: '#fef3c7', fg: '#92400e' }, // gelb - teilweise
+        none:    { bg: '#dbeafe', fg: '#1d4ed8' }  // blau - Fremdleistung
+    };
+
     let currentLang = localStorage.getItem('bosa_lang') || 'de';
     let currentCategory = localStorage.getItem('bosa_km_category') || 'all';
+
+    // Je Ausführungs-Art (full/partial/none) ein eigener Filter-Button, unabhängig ein-/ausschaltbar.
+    // Default: alle drei aktiv (nichts ausgeblendet). Zustand als "full,partial,none"-Teilliste gespeichert.
+    const storedDiyFilters = localStorage.getItem('bosa_km_diy_filters');
+    let diyFilters = storedDiyFilters
+        ? { full: storedDiyFilters.includes('full'), partial: storedDiyFilters.includes('partial'), none: storedDiyFilters.includes('none') }
+        : { full: true, partial: true, none: true };
+
+    function applyDiyButtonStyle(level) {
+        const btn = document.getElementById('diy-filter-' + level);
+        if (diyFilters[level]) {
+            btn.style.background = diyColors[level].bg;
+            btn.style.borderColor = diyColors[level].fg;
+            btn.style.color = diyColors[level].fg;
+        } else {
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+        }
+    }
 
     function setCategory(category) {
         currentCategory = category;
         localStorage.setItem('bosa_km_category', category);
 
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-btn[data-category]').forEach(btn => btn.classList.remove('active'));
         document.querySelector('.tab-btn[data-category="' + category + '"]').classList.add('active');
+
+        renderRows(currentLang);
+    }
+
+    function toggleDiyFilter(level) {
+        diyFilters[level] = !diyFilters[level];
+        localStorage.setItem('bosa_km_diy_filters', Object.keys(diyFilters).filter(k => diyFilters[k]).join(','));
+
+        const btn = document.getElementById('diy-filter-' + level);
+        btn.classList.toggle('active', diyFilters[level]);
+        applyDiyButtonStyle(level);
 
         renderRows(currentLang);
     }
@@ -525,7 +595,8 @@
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
 
-        const filtered = currentCategory === 'all' ? rows : rows.filter(r => r.category === currentCategory);
+        let filtered = currentCategory === 'all' ? rows : rows.filter(r => r.category === currentCategory);
+        filtered = filtered.filter(r => diyFilters[diyLevel(r.executor.de)]);
 
         const sorted = filtered.slice().sort((a, b) => {
             const pa = (a.prio === null || a.prio === undefined) ? Infinity : a.prio;
@@ -535,6 +606,9 @@
 
         sorted.forEach(row => {
             const s = statusStyle(row.status.de);
+            const diy = diyLevel(row.executor.de);
+            const d = diyColors[diy];
+            const diyText = diy === 'full' ? translations[lang].diyFull : diy === 'partial' ? translations[lang].diyPartial : translations[lang].diyFremd;
             const tr = document.createElement('tr');
             tr.innerHTML =
                 '<td class="col-id">' + row.id + '</td>' +
@@ -542,7 +616,8 @@
                 '<td class="col-prio">' + (row.prio === null || row.prio === undefined ? '–' : row.prio) + '</td>' +
                 '<td class="col-status"><span class="status-badge" style="background:' + s.bg + ';color:' + s.fg + ';border-color:' + s.fg + '33;">' + row.status[lang] + '</span></td>' +
                 '<td class="col-notes">' + row.notes[lang] + '</td>' +
-                '<td class="col-executor">' + row.executor[lang] + '</td>';
+                '<td class="col-executor">' + row.executor[lang] + '</td>' +
+                '<td class="col-diy"><span class="status-badge" style="background:' + d.bg + ';color:' + d.fg + ';border-color:' + d.fg + '33;">' + diyText + '</span></td>';
             tbody.appendChild(tr);
         });
     }
@@ -567,6 +642,10 @@
 
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector('.tab-btn[data-category="' + currentCategory + '"]').classList.add('active');
+    ['full', 'partial', 'none'].forEach(level => {
+        document.getElementById('diy-filter-' + level).classList.toggle('active', diyFilters[level]);
+        applyDiyButtonStyle(level);
+    });
 
     setLanguage(currentLang);
 </script>

@@ -25,6 +25,6 @@ Jeder Eintrag ist ein Block, eingeleitet durch `### <Nr.>`. Darunter je Zeile ei
 - **Prio** – 1 (hoch) bis 3 (niedrig). Einträge werden in der Gesamttabelle danach sortiert (fach-übergreifend); leere Prio steht am Ende.
 - **Thema** – kurze Überschrift.
 - **Anmerkungen** – Kontext, Auflagen, offene Fragen.
-- **Ausführer** – wer es macht (Geometra, Handwerker, "noch zu bestimmen" ...).
+- **Ausführer** – wer es macht (Geometra, Handwerker, "noch zu bestimmen" ...). Daraus leitet die Tabelle automatisch eine zusätzliche Spalte **"Ausführung"** ab (farbig, grün/gelb/blau) plus drei einzeln umschaltbare Filter-Buttons "Eigenleistung" / "teilweise" / "Fremdleistung": Steht im Ausführer-Feld exakt das Wort `Eigenleistung` (Groß-/Kleinschreibung beachten) allein, erscheint grün "Eigenleistung"; steht `Eigenleistung` zusammen mit weiterem Text (z. B. "Schlosser + Eigenleistung", "Eigenleistung oder Dienstleister"), erscheint gelb "teilweise"; kommt `Eigenleistung` gar nicht vor, erscheint blau "Fremdleistung". Alle drei Filter-Buttons sind standardmäßig aktiv (nichts ausgeblendet); ein Klick auf einen Button blendet nur dessen Zeilen aus, beliebige Kombinationen sind möglich. Kein eigenes Feld nötig.
 
 Neuen Eintrag anlegen: Block kopieren, `### <Nr.>` anpassen, Felder ausfüllen. Feld leer lassen, wenn (noch) unbekannt.
