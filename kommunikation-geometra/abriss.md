@@ -1,4 +1,4 @@
-# Kommunikationstabelle – Abriss
+# Projekttabelle – Abriss
 
 Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `kommunikation.html`."
 

@@ -1,4 +1,4 @@
-# Kommunikationstabelle – Sanitär
+# Projekttabelle – Sanitär
 
 Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `kommunikation.html`."
 

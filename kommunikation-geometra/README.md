@@ -1,4 +1,4 @@
-# Kommunikationstabelle – deutsche Quelle
+# Projekttabelle – deutsche Quelle
 
 Die Teilprojekte sind nach Gewerk auf mehrere Dateien in diesem Ordner (`kommunikation-geometra/`) aufgeteilt. Diese Datei ist nur noch die gemeinsame Anleitung + Übersicht, keine Einträge mehr hier.
 
