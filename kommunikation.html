@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turmhaus Bosa - Kommunikation mit dem Geometra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-glass: rgba(15, 23, 42, 0.85);
+        --border-glass: rgba(255, 255, 255, 0.1);
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --accent: #0284c7;
+        --accent-hover: #38bdf8;
+        --accent-glow: rgba(2, 132, 199, 0.4);
+        --warning: #ef4444;
+
+        --page-bg: #eef2f6;
+        --card-bg: #ffffff;
+        --row-alt: #f8fafc;
+        --ink: #1e293b;
+        --ink-secondary: #64748b;
+        --border-light: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background-color: var(--page-bg);
+        font-family: 'Outfit', sans-serif;
+        color: var(--ink);
+    }
+
+    header {
+        background-color: #0b0f19;
+        background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
+        border-bottom: 1px solid var(--border-glass);
+        padding: 20px 28px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .header-titles h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .header-titles p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .model-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid var(--border-glass);
+        padding: 8px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .model-link:hover {
+        color: var(--text-primary);
+        border-color: var(--accent-hover);
+        background: rgba(56, 189, 248, 0.1);
+    }
+
+    .lang-switch {
+        display: flex;
+        gap: 4px;
+        background: rgba(30, 41, 59, 0.6);
+        padding: 4px;
+        border-radius: 8px;
+        border: 1px solid var(--border-glass);
+    }
+
+    .lang-btn {
+        padding: 6px 14px;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+        transition: all 0.2s;
+    }
+
+    .lang-btn:hover { color: var(--text-primary); }
+    .lang-btn.active { background: var(--accent); color: white; }
+
+    main {
+        max-width: 1200px;
+        margin: 28px auto;
+        padding: 0 20px 40px;
+    }
+
+    .intro {
+        margin: 0 0 20px;
+        font-size: 14px;
+        color: var(--ink-secondary);
+        max-width: 780px;
+    }
+
+    .category-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 20px;
+    }
+
+    .tab-btn {
+        padding: 8px 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-light);
+        color: var(--ink-secondary);
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        font-family: 'Outfit', sans-serif;
+        transition: all 0.15s;
+    }
+
+    .tab-btn:hover { border-color: var(--accent-hover); color: var(--ink); }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+    }
+
+    thead th {
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--ink-secondary);
+        background: var(--row-alt);
+        padding: 14px 16px;
+        border-bottom: 2px solid var(--border-light);
+        position: sticky;
+        top: 0;
+    }
+
+    tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+        vertical-align: top;
+        line-height: 1.5;
+    }
+
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody tr:hover { background: rgba(2, 132, 199, 0.06); }
+
+    td.col-id {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        color: var(--ink-secondary);
+        font-size: 13px;
+        width: 56px;
+        white-space: nowrap;
+    }
+
+    td.col-status {
+        width: 100px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    td.col-prio {
+        font-family: 'JetBrains Mono', monospace;
+        text-align: center;
+        width: 60px;
+        color: var(--ink-secondary);
+    }
+
+    td.col-topic {
+        font-weight: 600;
+        width: 26%;
+    }
+
+    td.col-notes {
+        color: var(--ink-secondary);
+        width: 36%;
+    }
+
+    td.col-executor {
+        width: 16%;
+    }
+
+    footer {
+        max-width: 1200px;
+        margin: 0 auto 40px;
+        padding: 0 20px;
+        font-size: 12px;
+        color: var(--ink-secondary);
+    }
+
+    @media print {
+        header { display: none; }
+        body { background: white; }
+        main { margin: 0; padding: 0; max-width: none; }
+        .table-card { box-shadow: none; border: none; overflow-x: visible; }
+        table { min-width: 0; }
+        thead th { position: static; }
+        .intro { display: none; }
+        .category-tabs { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="header-titles">
+        <h1 data-i18n="pageTitle">Turmhaus Bosa - Kommunikation mit dem Geometra</h1>
+        <p data-i18n="pageSubtitle">Teilprojekte der Renovierung im Überblick</p>
+    </div>
+    <div class="header-actions">
+        <a class="model-link" href="index.html" data-i18n="modelLink">→ 3D-Modell</a>
+        <div class="lang-switch">
+            <button class="lang-btn active" id="btn-lang-de" onclick="setLanguage('de')">DE</button>
+            <button class="lang-btn" id="btn-lang-it" onclick="setLanguage('it')">IT</button>
+            <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">EN</button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <p class="intro" data-i18n="intro">Diese Tabelle listet die einzelnen Teilprojekte der Renovierung auf und dient der Abstimmung mit dem Geometra. Alle Inhalte sind auf Deutsch, Englisch und Italienisch verfügbar.</p>
+
+    <div class="category-tabs" id="category-tabs">
+        <button class="tab-btn active" data-category="all" onclick="setCategory('all')" data-i18n="tabAll">Alle</button>
+        <button class="tab-btn" data-category="elektro" onclick="setCategory('elektro')" data-i18n="tabElektro">Elektro</button>
+        <button class="tab-btn" data-category="sanitaer" onclick="setCategory('sanitaer')" data-i18n="tabSanitaer">Sanitär</button>
+        <button class="tab-btn" data-category="maurer" onclick="setCategory('maurer')" data-i18n="tabMaurer">Maurerarbeiten</button>
+        <button class="tab-btn" data-category="abriss" onclick="setCategory('abriss')" data-i18n="tabAbriss">Abriss</button>
+        <button class="tab-btn" data-category="terrasse" onclick="setCategory('terrasse')" data-i18n="tabTerrasse">Terrasse</button>
+        <button class="tab-btn" data-category="fassade" onclick="setCategory('fassade')" data-i18n="tabFassade">Fassade</button>
+        <button class="tab-btn" data-category="sonstiges" onclick="setCategory('sonstiges')" data-i18n="tabSonstiges">Sonstiges</button>
+    </div>
+
+    <div class="table-card">
+        <table>
+            <thead>
+                <tr>
+                    <th data-i18n="colId">ID</th>
+                    <th data-i18n="colTopic">Thema</th>
+                    <th data-i18n="colPrio">Prio</th>
+                    <th data-i18n="colStatus">Status</th>
+                    <th data-i18n="colNotes">Anmerkungen</th>
+                    <th data-i18n="colExecutor">Ausführer</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Zeilen werden per JS aus rows[] gerendert -->
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer data-i18n="footerNote">Quelle: kommunikation-geometra/*.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten.</footer>
+
+<script>
+    const translations = {
+        de: {
+            pageTitle: "Turmhaus Bosa - Kommunikation mit dem Geometra",
+            pageSubtitle: "Teilprojekte der Renovierung im Überblick",
+            modelLink: "→ 3D-Modell",
+            intro: "Diese Tabelle listet die einzelnen Teilprojekte der Renovierung auf und dient der Abstimmung mit dem Geometra. Alle Inhalte sind auf Deutsch, Englisch und Italienisch verfügbar.",
+            colId: "ID",
+            colStatus: "Status",
+            colPrio: "Prio",
+            colTopic: "Thema",
+            colNotes: "Anmerkungen",
+            colExecutor: "Ausführer",
+            tabAll: "Alle",
+            tabElektro: "Elektro",
+            tabSanitaer: "Sanitär",
+            tabMaurer: "Maurerarbeiten",
+            tabAbriss: "Abriss",
+            tabTerrasse: "Terrasse",
+            tabFassade: "Fassade",
+            tabSonstiges: "Sonstiges",
+            footerNote: "Quelle: kommunikation-geometra/*.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten."
+        },
+        en: {
+            pageTitle: "Turmhaus Bosa - Communication with the Geometra",
+            pageSubtitle: "Overview of renovation sub-projects",
+            modelLink: "→ 3D model",
+            intro: "This table lists the individual sub-projects of the renovation and is used to coordinate with the Geometra. All content is available in German, English and Italian.",
+            colId: "ID",
+            colStatus: "Status",
+            colPrio: "Prio",
+            colTopic: "Topic",
+            colNotes: "Notes",
+            colExecutor: "Executed by",
+            tabAll: "All",
+            tabElektro: "Electrical",
+            tabSanitaer: "Plumbing",
+            tabMaurer: "Masonry work",
+            tabAbriss: "Demolition",
+            tabTerrasse: "Terrace",
+            tabFassade: "Facade",
+            tabSonstiges: "Other",
+            footerNote: "Source: kommunikation-geometra/*.md (German, split by trade). Record changes there and ask Claude to update this page."
+        },
+        it: {
+            pageTitle: "Turmhaus Bosa - Comunicazione con il Geometra",
+            pageSubtitle: "Panoramica dei sotto-progetti della ristrutturazione",
+            modelLink: "→ Modello 3D",
+            intro: "Questa tabella elenca i singoli sotto-progetti della ristrutturazione e serve per il confronto con il Geometra. Tutti i contenuti sono disponibili in tedesco, inglese e italiano.",
+            colId: "ID",
+            colStatus: "Stato",
+            colPrio: "Priorità",
+            colTopic: "Argomento",
+            colNotes: "Note",
+            colExecutor: "Esecutore",
+            tabAll: "Tutti",
+            tabElektro: "Elettrico",
+            tabSanitaer: "Idraulico",
+            tabMaurer: "Opere murarie",
+            tabAbriss: "Demolizione",
+            tabTerrasse: "Terrazza",
+            tabFassade: "Facciata",
+            tabSonstiges: "Altro",
+            footerNote: "Fonte: kommunikation-geometra/*.md (tedesco, suddivisa per mestiere). Registrare lì le modifiche e chiedere a Claude di aggiornare questa pagina."
+        }
+    };
+
+    // Jede Zeile: { id, category, status:{de,en,it}, prio: number|null, topic:{de,en,it}, notes:{de,en,it}, executor:{de,en,it} }
+    // category: 'elektro'|'sanitaer'|'maurer'|'abriss'|'terrasse'|'fassade'|'sonstiges' - entspricht der kommunikation-geometra/<category>.md
+    // Quelle: kommunikation-geometra/*.md (Nr./Status/Prio/Thema/Anmerkungen/Ausführer) - dort pflegen, nicht direkt hier.
+    const rows = [
+        { id: "EH", category: "elektro", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Elektroinstallation Hauptverteilung / Zählerkasten EG / Erdung", en: "Electrical installation – main distribution / meter box / earthing, ground floor", it: "Impianto elettrico – quadro principale / contatore / messa a terra, piano terra" },
+            notes: { de: "Anschluss und Setzung des Verteilerkastens im EG, Steigleitung durch den Schacht zu den Unterverteilern der Obergeschosse.", en: "Connection and installation of the distribution box on the ground floor, riser cable through the shaft to the sub-distribution boxes on the upper floors.", it: "Allacciamento e posa del quadro di distribuzione al piano terra, montante attraverso il cavedio fino ai quadri secondari dei piani superiori." },
+            executor: { de: "Zertifizierter Elektroinstallateur (DiCo/DiRi)", en: "Certified electrician (DiCo/DiRi)", it: "Elettricista certificato (DiCo/DiRi)" } },
+        { id: "EU", category: "elektro", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Elektroinstallation Unterverteilung je Etage", en: "Electrical installation – sub-distribution per floor", it: "Impianto elettrico – quadro secondario per piano" },
+            notes: { de: "Verteilung zu den Steckdosen je Etage, nach italienischen Vorschriften: Spiralschlauch + Litze 2,5 mm².", en: "Distribution to the sockets on each floor, per Italian regulations: corrugated conduit + 2.5 mm² wire.", it: "Distribuzione alle prese per piano, secondo la normativa italiana: guaina spiralata + cavo 2,5 mm²." },
+            executor: { de: "Eigenleistung, wenn vom Elektroinstallateur akzeptiert", en: "DIY, if accepted by the electrician", it: "Fai da te, se accettato dall'elettricista" } },
+        { id: "EB", category: "elektro", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Elektroinstallation feste Beleuchtung: Treppenhauslicht und Zimmerbeleuchtung", en: "Electrical installation, fixed lighting: staircase light and room lighting", it: "Impianto elettrico, illuminazione fissa: luce vano scala e illuminazione stanze" },
+            notes: { de: "Treppenhauslicht soll an den Ein- und Ausgängen jedes Treppenhauses ein-/ausschaltbar sein. Lampe im Treppenhaus und Wandleuchte auf der Etage werden zusammen geschaltet (Eltako).", en: "Staircase light should be switchable on/off at each entrance/exit of the staircase. The staircase lamp and the wall light on the floor are switched together (Eltako).", it: "La luce del vano scala deve poter essere accesa/spenta da ogni ingresso/uscita del vano scala. La lampada del vano scala e la luce a parete del piano vengono comandate insieme (Eltako)." },
+            executor: { de: "Eigenleistung, wenn vom Elektroinstallateur akzeptiert", en: "DIY, if accepted by the electrician", it: "Fai da te, se accettato dall'elettricista" } },
+        { id: "SH", category: "maurer", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Versorgungsschacht", en: "Utility shaft", it: "Cavedio impiantistico" },
+            notes: { de: "Vertikaler Schacht für Wasser, Abwasser, Lüftung und Elektrik, in der Rückwand Mitte. Erschwerend sind die Bogendecken im 2. OG.", en: "Vertical shaft for water, wastewater, ventilation and electrics, in the middle of the rear wall. The vaulted ceilings on the 2nd floor make this more difficult.", it: "Cavedio verticale per acqua, scarico, ventilazione ed elettrico, al centro della parete posteriore. Le volte al 2° piano complicano l'intervento." },
+            executor: { de: "Maurer, Spezialist für die Bogendecke im 2. OG", en: "Mason, specialist for the vaulted ceiling on the 2nd floor", it: "Muratore, specialista per le volte al 2° piano" } },
+        { id: "LB1", category: "maurer", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Wand zur Abtrennung des neuen Bades im EG", en: "Partition wall for the new ground floor bathroom", it: "Parete divisoria per il nuovo bagno al piano terra" },
+            notes: { de: "Eine Leichtbauwand mit Tür zur Abtrennung des Bades im EG.", en: "A lightweight partition wall with a door to separate off the ground floor bathroom.", it: "Una parete in cartongesso con porta per separare il bagno al piano terra." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "LB2", category: "maurer", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Wand zur Abtrennung des neuen Bades im 2. OG", en: "Partition wall for the new bathroom on the 2nd floor", it: "Parete divisoria per il nuovo bagno al 2° piano" },
+            notes: { de: "Eine Leichtbauwand mit Tür zur Abtrennung des Bades im 2. OG.", en: "A lightweight partition wall with a door to separate off the bathroom on the 2nd floor.", it: "Una parete in cartongesso con porta per separare il bagno al 2° piano." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "SAB", category: "abriss", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Abriss altes Bad im EG, Abwasseranschluss freilegen", en: "Demolition of old ground floor bathroom, expose wastewater connection", it: "Demolizione del vecchio bagno al piano terra, messa a nudo dello scarico" },
+            notes: { de: "Abriss und Abtransport des alten Bades: Innenwände, Sanitärmöbel.", en: "Demolition and removal of the old bathroom: interior walls, sanitary fixtures.", it: "Demolizione e smaltimento del vecchio bagno: pareti interne, sanitari." },
+            executor: { de: "Eigenleistung oder Dienstleister – Preis einholen", en: "DIY or contractor – get a quote", it: "Fai da te o ditta esterna – richiedere preventivo" } },
+        { id: "AB3", category: "abriss", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Altes Bad im 3. Obergeschoss entfernen", en: "Remove old bathroom on the 3rd floor", it: "Rimozione del vecchio bagno al 3° piano" },
+            notes: { de: "–", en: "–", it: "–" },
+            executor: { de: "Eigenleistung oder Dienstleister – Preis einholen", en: "DIY or contractor – get a quote", it: "Fai da te o ditta esterna – richiedere preventivo" } },
+        { id: "AAK", category: "abriss", prio: 3,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Entsorgung der alten Autoklave", en: "Disposal of the old autoclave", it: "Smaltimento della vecchia autoclave" },
+            notes: { de: "–", en: "–", it: "–" },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "AEW", category: "abriss", prio: 3,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Entfernung der alten Elektro- und Wasserinstallation", en: "Removal of the old electrical and water installation", it: "Rimozione del vecchio impianto elettrico e idrico" },
+            notes: { de: "–", en: "–", it: "–" },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "SI1", category: "sanitaer", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Sanitärinstallation Bad EG (Wasser und Abwasser)", en: "Plumbing installation, ground floor bathroom (water and wastewater)", it: "Impianto idrosanitario bagno piano terra (acqua e scarico)" },
+            notes: { de: "Wasser und Abwasser in Wand und Boden für das neue Bad im Erdgeschoss. Anschlüsse für Autoklav und Wärmepumpe (Warmwasser). Inklusive Installation von Wasser, Abwasser und Lüftung im Schacht, von unten bis zur Terrasse.", en: "Water and wastewater in wall and floor for the new ground floor bathroom. Connections for the autoclave and heat pump (hot water). Includes water, wastewater and ventilation installation in the shaft, from the bottom up to the terrace.", it: "Impianto idrico e di scarico a parete e a pavimento per il nuovo bagno al piano terra. Allacci per autoclave e pompa di calore (acqua calda). Comprende l'installazione idrica, di scarico e di ventilazione nel cavedio, dal basso fino alla terrazza." },
+            executor: { de: "Zertifizierter Klempner (DiCo/DiRi)", en: "Certified plumber (DiCo/DiRi)", it: "Idraulico certificato (DiCo/DiRi)" } },
+        { id: "SI2", category: "sanitaer", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Sanitärinstallation Bad 2. OG (Wasser und Abwasser)", en: "Plumbing installation, 2nd floor bathroom (water and wastewater)", it: "Impianto idrosanitario bagno 2° piano (acqua e scarico)" },
+            notes: { de: "Wandanschlüsse für WC und Waschbecken.", en: "Wall connections for WC and washbasin.", it: "Allacci a parete per WC e lavabo." },
+            executor: { de: "Zertifizierter Klempner (DiCo/DiRi)", en: "Certified plumber (DiCo/DiRi)", it: "Idraulico certificato (DiCo/DiRi)" } },
+        { id: "SI3", category: "sanitaer", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Sanitärinstallation Küche 3. OG (Wasser und Abwasser)", en: "Plumbing installation, 3rd floor kitchen (water and wastewater)", it: "Impianto idrosanitario cucina 3° piano (acqua e scarico)" },
+            notes: { de: "Wandanschlüsse für Waschmaschine, Waschbecken.", en: "Wall connections for washing machine, sink.", it: "Allacci a parete per lavatrice, lavello." },
+            executor: { de: "Zertifizierter Klempner (DiCo/DiRi)", en: "Certified plumber (DiCo/DiRi)", it: "Idraulico certificato (DiCo/DiRi)" } },
+        { id: "SI4", category: "sanitaer", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Sanitärinstallation Terrasse (Wasser und Abwasser)", en: "Plumbing installation, terrace (water and wastewater)", it: "Impianto idrosanitario terrazza (acqua e scarico)" },
+            notes: { de: "Wandanschlüsse für Waschbecken.", en: "Wall connections for sink.", it: "Allacci a parete per lavello." },
+            executor: { de: "Zertifizierter Klempner (DiCo/DiRi) oder Eigenleistung", en: "Certified plumber (DiCo/DiRi) or DIY", it: "Idraulico certificato (DiCo/DiRi) o fai da te" } },
+        { id: "TA", category: "terrasse", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Abdichtung der Terrasse", en: "Terrace waterproofing", it: "Impermeabilizzazione della terrazza" },
+            notes: { de: "Reinigen der alten Fliesen, Sockelleisten entfernen, Wandanschlüsse neu verputzen, grundieren, mit Mapelastic und Vlies abdichten.", en: "Clean the old tiles, remove skirting, re-plaster the wall connections, prime, waterproof with Mapelastic and fleece reinforcement.", it: "Pulizia delle vecchie piastrelle, rimozione battiscopa, nuova intonacatura dei raccordi a parete, aggrappante, impermeabilizzazione con Mapelastic e rete in tessuto non tessuto." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "TH", category: "terrasse", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Terrasse – Holzdeck installieren", en: "Terrace – install wood decking", it: "Terrazza – installazione decking in legno" },
+            notes: { de: "Auf der neuen Mapelastic-Abdichtung: Lattenkonstruktion auf Gummipuffern, darauf Terrassendielen verlegen.", en: "On top of the new Mapelastic waterproofing: batten structure on rubber pads, then lay the decking boards.", it: "Sopra la nuova impermeabilizzazione Mapelastic: struttura di listelli su tamponi in gomma, sopra la quale posare le tavole del decking." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "TB", category: "terrasse", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Terrasse – Erhöhung der Brüstung auf Stehhöhe (1 m)", en: "Terrace – raising the parapet to standing height (1 m)", it: "Terrazza – innalzamento del parapetto ad altezza d'uomo (1 m)" },
+            notes: { de: "Hierfür muss ein Stahlgeländer angefertigt und montiert werden.", en: "A steel railing needs to be fabricated and installed for this.", it: "A tale scopo occorre realizzare e montare una ringhiera in acciaio." },
+            executor: { de: "Schlosser + Eigenleistung", en: "Locksmith + DIY", it: "Fabbro + fai da te" } },
+        { id: "TT", category: "maurer", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Treppenhäuschen Dachterrasse", en: "Roof terrace access housing", it: "Bussola di accesso alla terrazza" },
+            notes: { de: "Verbreiterung um ca. 20 cm für den Einbau der Wendeltreppe. Dazu gehört auch die Vergrößerung der Deckenöffnung auf 120 × 120 cm.", en: "Widening by approx. 20 cm to fit the spiral staircase. This also includes enlarging the ceiling opening to 120 × 120 cm.", it: "Allargamento di circa 20 cm per l'inserimento della scala a chiocciola. Comprende anche l'allargamento dell'apertura nel solaio a 120 × 120 cm." },
+            executor: { de: "Maurer und/oder Eigenleistung", en: "Mason and/or DIY", it: "Muratore e/o fai da te" } },
+        { id: "TW", category: "terrasse", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Wendeltreppe zur Dachterrasse installieren", en: "Install spiral staircase to roof terrace", it: "Installazione scala a chiocciola per la terrazza" },
+            notes: { de: "Fertige passende Wendeltreppe als Bausatz gibt es bei Tecnomat.", en: "A ready-made, suitable spiral staircase kit is available at Tecnomat.", it: "Un kit di scala a chiocciola già pronto e adatto è disponibile da Tecnomat." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "FR", category: "fassade", prio: 3,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Fassade Einrüsten", en: "Facade scaffolding", it: "Montaggio ponteggio in facciata" },
+            notes: { de: "Die Straße ist sehr schmal, es fahren kleine Autos (Müllabfuhr, PKW) – das Gerüst muss unten entsprechend verjüngt werden.", en: "The street is very narrow and used by small vehicles (garbage truck, cars) – the scaffolding must be tapered accordingly at the bottom.", it: "La strada è molto stretta e percorsa da veicoli piccoli (camion della nettezza urbana, auto) – il ponteggio deve essere rastremato di conseguenza nella parte bassa." },
+            executor: { de: "Gerüststeller", en: "Scaffolding company", it: "Ditta di ponteggi" } },
+        { id: "FS", category: "fassade", prio: 3,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Fassade Sanieren – Putz & Anstrich", en: "Facade renovation – plaster & paint", it: "Ristrutturazione facciata – intonaco e tinteggiatura" },
+            notes: { de: "Ausbesserung des Putzes, neuer Anstrich in weichem Pastellton (z. B. Hellblau/Graublau) statt kräftigem Blau – Auflage der Landschaftsschutzbehörde. Neues Fallrohr für Regenabwasser, überflüssige Rohre entfernen.", en: "Plaster repair, new coat in a soft pastel tone (e.g. light blue / grey-blue) instead of strong blue – condition set by the landscape protection authority. New downpipe for rainwater, remove redundant pipes.", it: "Ripristino dell'intonaco, nuova tinteggiatura in tono pastello tenue (es. celeste/grigio-azzurro) anziché blu acceso – prescrizione della Soprintendenza paesaggistica. Nuovo pluviale per le acque piovane, rimozione tubazioni superflue." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "DA", category: "sonstiges", prio: 1,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Dach – Asbestsanierung entfernen", en: "Roof – asbestos removal", it: "Tetto – rimozione amianto" },
+            notes: { de: "Fachgerechte Entsorgung der Eternit-Wellplatten (D.Lgs. 81/2008, Meldung bei ASL), ca. 1 m².", en: "Professional disposal of the Eternit corrugated sheets (Italian Legislative Decree 81/2008, notification to the local health authority ASL), approx. 1 m².", it: "Smaltimento a norma delle lastre in Eternit (D.Lgs. 81/2008, comunicazione alla ASL), circa 1 m²." },
+            executor: { de: "Fachfirma Asbestsanierung – geht Eigenleistung bei 1 m²?", en: "Specialist asbestos removal firm – is DIY possible for just 1 m²?", it: "Ditta specializzata bonifica amianto – è possibile il fai da te per 1 m²?" } },
+        { id: "DN", category: "sonstiges", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Dach – Neueindeckung", en: "Roof – re-roofing", it: "Tetto – nuova copertura" },
+            notes: { de: "Neue Holzkonstruktion mit traditionellen Tondachziegeln (Mönch-Nonne/coppi).", en: "New timber structure with traditional curved roof tiles (coppi).", it: "Nuova struttura lignea con copertura tradizionale in coppi." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } },
+        { id: "HB", category: "sonstiges", prio: 2,
+            status: { de: "offen", en: "open", it: "aperto" },
+            topic: { de: "Holzdielen in beiden Schlafzimmern verlegen", en: "Lay wood flooring in both bedrooms", it: "Posa di pavimenti in legno in entrambe le camere da letto" },
+            notes: { de: "Nach der Elektroinstallation (Steckdosen).", en: "After the electrical installation (sockets).", it: "Dopo l'impianto elettrico (prese)." },
+            executor: { de: "Eigenleistung", en: "DIY", it: "Fai da te" } }
+    ];
+
+    // Farbe wird immer über den deutschen Status-Text (status.de) bestimmt,
+    // damit sie unabhängig von der angezeigten Sprache konsistent bleibt.
+    const statusColors = {
+        'offen':          { bg: '#e2e8f0', fg: '#475569' }, // grau
+        'in Klärung':     { bg: '#fef3c7', fg: '#92400e' }, // gelb
+        'in Umsetzung':   { bg: '#dbeafe', fg: '#1d4ed8' }, // blau
+        'erledigt':       { bg: '#dcfce7', fg: '#166534' }  // grün
+    };
+    function statusStyle(statusDe) {
+        return statusColors[statusDe] || { bg: '#eef2f6', fg: '#64748b' };
+    }
+
+    let currentLang = localStorage.getItem('bosa_lang') || 'de';
+    let currentCategory = localStorage.getItem('bosa_km_category') || 'all';
+
+    function setCategory(category) {
+        currentCategory = category;
+        localStorage.setItem('bosa_km_category', category);
+
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector('.tab-btn[data-category="' + category + '"]').classList.add('active');
+
+        renderRows(currentLang);
+    }
+
+    function renderRows(lang) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        const filtered = currentCategory === 'all' ? rows : rows.filter(r => r.category === currentCategory);
+
+        const sorted = filtered.slice().sort((a, b) => {
+            const pa = (a.prio === null || a.prio === undefined) ? Infinity : a.prio;
+            const pb = (b.prio === null || b.prio === undefined) ? Infinity : b.prio;
+            return pa - pb;
+        });
+
+        sorted.forEach(row => {
+            const s = statusStyle(row.status.de);
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="col-id">' + row.id + '</td>' +
+                '<td class="col-topic">' + row.topic[lang] + '</td>' +
+                '<td class="col-prio">' + (row.prio === null || row.prio === undefined ? '–' : row.prio) + '</td>' +
+                '<td class="col-status"><span class="status-badge" style="background:' + s.bg + ';color:' + s.fg + ';border-color:' + s.fg + '33;">' + row.status[lang] + '</span></td>' +
+                '<td class="col-notes">' + row.notes[lang] + '</td>' +
+                '<td class="col-executor">' + row.executor[lang] + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('bosa_lang', lang);
+        document.documentElement.lang = lang;
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang] && translations[lang][key]) {
+                el.innerHTML = translations[lang][key];
+            }
+        });
+
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-lang-' + lang).classList.add('active');
+
+        renderRows(lang);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.tab-btn[data-category="' + currentCategory + '"]').classList.add('active');
+
+    setLanguage(currentLang);
+</script>
+
+</body>
+</html>
