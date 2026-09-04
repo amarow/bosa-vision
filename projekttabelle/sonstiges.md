@@ -21,6 +21,13 @@ Ausführer: Eigenleistung
 ### PC
 Status: offen
 Prio: 3
-Thema: Fliesen im Obergeschoß reparieren/erneuern
+Thema: Fliesen am Boden im Obergeschoß reparieren/erneuern
+Anmerkungen: 
+Ausführer: Eigenleistung
+
+### CS
+Status: offen
+Prio: 3
+Thema: Fliesen Küchenschild anbringen
 Anmerkungen: 
 Ausführer: Eigenleistung
