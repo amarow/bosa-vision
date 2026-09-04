@@ -390,7 +390,7 @@
             <button class="lang-btn" id="btn-toggle-panel" onclick="togglePanel(true)" title="Menü einklappen">←</button>
         </div>
 
-        <a href="kommunikation.html" data-i18n="commsLink" style="display: block; font-size: 12px; color: var(--text-secondary); text-decoration: none; margin-top: -10px; margin-bottom: 5px; border: 1px solid var(--border-glass); border-radius: 6px; padding: 6px 10px; text-align: center; transition: all 0.2s;" onmouseover="this.style.color='var(--text-primary)'; this.style.borderColor='var(--accent-hover)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-glass)';">📋 Projekttabelle</a>
+        <a href="projekttabelle/projekttabelle.html" data-i18n="commsLink" style="display: block; font-size: 12px; color: var(--text-secondary); text-decoration: none; margin-top: -10px; margin-bottom: 5px; border: 1px solid var(--border-glass); border-radius: 6px; padding: 6px 10px; text-align: center; transition: all 0.2s;" onmouseover="this.style.color='var(--text-primary)'; this.style.borderColor='var(--accent-hover)';" onmouseout="this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-glass)';">📋 Projekttabelle</a>
 
         <!-- Floor Isolator -->
         <div>
@@ -432,6 +432,30 @@
                         <span class="slider-val" id="val-explosion">0%</span>
                     </div>
                     <input type="range" id="slider-explosion" min="0" max="100" value="0" oninput="adjustExplosion(this.value)">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span data-i18n="visStairRotate">Wendeltreppe drehen</span>
+                        <span class="slider-val" id="val-stair-rotate">0°</span>
+                    </div>
+                    <input type="range" id="slider-stair-rotate" min="-180" max="180" value="0" oninput="rotateSpiralStair(this.value)">
+                </div>
+
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span data-i18n="visStairOverlap">Stufen-Überlappung (außen)</span>
+                        <span class="slider-val" id="val-stair-overlap">0 cm</span>
+                    </div>
+                    <input type="range" id="slider-stair-overlap" min="0" max="10" step="0.5" value="0" oninput="setStairOverlap(this.value)">
+                </div>
+
+                <div class="switch-container">
+                    <span data-i18n="visStairMirror">Wendeltreppe spiegeln (rechtsherum)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-stair-mirror" onchange="toggleStairMirror(this.checked)">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <div class="switch-container">
@@ -585,6 +609,9 @@
 
                 visTitle: "Visualisierung",
                 visExplosion: "Explosionsansicht",
+                visStairRotate: "Wendeltreppe drehen",
+                visStairOverlap: "Stufen-Überlappung (außen)",
+                visStairMirror: "Wendeltreppe spiegeln (rechtsherum)",
                 visWalls: "Wände transparent",
                 visFloors: "Böden transparent",
                 visInstall: "Installationen zeigen",
@@ -629,6 +656,9 @@
 
                 visTitle: "Visualization",
                 visExplosion: "Exploded View",
+                visStairRotate: "Rotate Spiral Stair",
+                visStairOverlap: "Tread Overlap (outer edge)",
+                visStairMirror: "Mirror Spiral Stair (clockwise)",
                 visWalls: "Transparent Walls",
                 visFloors: "Transparent Floors",
                 visInstall: "Show Installations",
@@ -673,6 +703,9 @@
 
                 visTitle: "Visualizzazione",
                 visExplosion: "Vista Esplosa",
+                visStairRotate: "Ruota scala a chiocciola",
+                visStairOverlap: "Sovrapposizione gradini (bordo esterno)",
+                visStairMirror: "Specchia scala a chiocciola (senso orario)",
                 visWalls: "Muri Trasparenti",
                 visFloors: "Pavimenti Trasparenti",
                 visInstall: "Mostra Impianti",
@@ -907,11 +940,19 @@
         let labelCrane;     // Global für das Kran-Label
         let craneCable, craneWeight, craneHook; // Global für Seilanimation
         let steelBackGroup, steelRightGroup; // Global für Deckenverstärkungen
+        let spiralStairGroup = null; // Neue Jenny-Wendeltreppe (3. OG), frei drehbar per Slider
+        let spiralTreadGroups = [];  // Eine Group pro Steigstufe (Position+Rotation), fuer Ueberlappung/Spiegelung live neu ausgerichtet
+        let spiralLandingGroup = null; // Podest-Group, ebenfalls live neu ausgerichtet
+        // Werte aus buildFloor3, fuer Ueberlappungs-/Spiegel-Slider gespiegelt (Stufenbreite bleibt immer spiralStepDeg_g)
+        let spiralR_g = 0.55, spiralStepDeg_g = 30, spiralClimb_g = 14, spiralLandingDeg_g = 60, spiralExitDeg_g = 0;
 
         // Parameter
         let currentProjectState = 'after'; // 'before' oder 'after'
         let currentExplosion = 0.0;        // 0.0 (zusammen) bis 1.0 (explodiert)
         let targetExplosion = 0.0;
+        let stairRotateDeg = 0;            // Drehung der gesamten Wendeltreppe um die Mittelsäule (Grad)
+        let stairOverlapCm = 0;            // Überlappung benachbarter Stufen am Außenrand (0-10cm)
+        let stairMirrored = false;         // Wickelrichtung gespiegelt (links-/rechtsherum)
         let wallsTransparent = true;
         let floorsTransparent = false;
         let showInstallations = true;
@@ -943,6 +984,10 @@
 
         const floorHeights = [0, 2.3, 4.8, 7.3, 10.5]; // Start Y-Koordinate (Slab) jeder Etage
         const floorSizes = [2.5, 2.5, 2.5, 3.2, 1.2];  // Wandhöhe jeder Etage
+        // Reale Jenny-Wendeltreppe: 327cm Gesamthöhe, 27cm Deckenstärke (statt der bisherigen
+        // Platzhalter-Annahme von 20cm) -> die gesamte Terrasse (Etage 4: Austrittshaus, Deck,
+        // Kran, Attika) liegt dadurch 7cm höher als im bisherigen Platzhalter-Modell.
+        const floorYCorrection = [0, 0, 0, 0, 0.07];
 
         // --- PERSISTENZ-LOGIK ---
         function loadPersistedState() {
@@ -958,6 +1003,10 @@
             const explosionVal = getVal('bosa_explosion', '0');
             targetExplosion = parseFloat(explosionVal) / 100.0;
             currentExplosion = targetExplosion;
+
+            stairRotateDeg = parseFloat(getVal('bosa_stairRotate', '0'));
+            stairOverlapCm = parseFloat(getVal('bosa_stairOverlap', '0'));
+            stairMirrored = getBool('bosa_stairMirrored', false);
 
             wallsTransparent = getBool('bosa_wallsTransparent', true);
             floorsTransparent = getBool('bosa_floorsTransparent', false);
@@ -1368,6 +1417,11 @@
             // UI Initialzustand synchronisieren
             document.getElementById('slider-explosion').value = Math.round(targetExplosion * 100);
             document.getElementById('val-explosion').innerText = Math.round(targetExplosion * 100) + "%";
+            document.getElementById('slider-stair-rotate').value = Math.round(stairRotateDeg);
+            document.getElementById('val-stair-rotate').innerText = Math.round(stairRotateDeg) + "°";
+            document.getElementById('slider-stair-overlap').value = stairOverlapCm;
+            document.getElementById('val-stair-overlap').innerText = stairOverlapCm.toFixed(1) + " cm";
+            document.getElementById('chk-stair-mirror').checked = stairMirrored;
             document.getElementById('chk-walls').checked = wallsTransparent;
             document.getElementById('chk-floors').checked = floorsTransparent;
             document.getElementById('chk-installations').checked = showInstallations;
@@ -1515,10 +1569,10 @@
                 roughness: 0.2 
             });
 
-            newWoodMat = new THREE.MeshStandardMaterial({ 
-                color: '#d97706', 
-                roughness: 0.5, 
-                metalness: 0.1 
+            newWoodMat = new THREE.MeshStandardMaterial({
+                color: '#3f2a1c', // Massives Nussbaum-Holz, dunkelbraun (Jenny-Bestellfarbe "Noce 25")
+                roughness: 0.55,
+                metalness: 0.05
             });
 
             pipeMat = new THREE.MeshStandardMaterial({ 
@@ -2709,31 +2763,75 @@
 
 
 
-            // Neue Wendeltreppe hinten rechts (1.2m x 1.2m)
-            const spiralPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.2, 16), newMetalMat);
-            spiralPole.position.set(0.9, Y_start + 1.6, -1.9);
-            grp.add(spiralPole);
+            // Neue Wendeltreppe hinten rechts: reale Jenny Ø120cm, Bestellkonfiguration
+            // 15 Stufen (14 Steigstufen a 30 Grad + Podest 60 Grad breit), Gesamthoehe 3,27m,
+            // Alzata 21,8cm, Aufstieg gegen den Uhrzeigersinn (lt. Bestell-Zeichnung).
+            // Eingang (Stufe 1) und Ausstieg vom Podest liegen dadurch 120 Grad auseinander:
+            // 14 x 30 Grad = 420 Grad = 360 + 60 Grad, plus 60 Grad Podestbreite = 480 = 360 + 120 Grad.
+            // Das Podest (0 Grad) ist zur Tuer des Austrittshauses (Z=-1.3) ausgerichtet;
+            // der Eingang (120 Grad) liegt entsprechend gegenueber Richtung rechte Wand/Kuechenzeile.
+            const spiralPoleX = 0.9, spiralPoleZ = -1.9;
+            const spiralR = 0.55;                 // Auftrittstiefe (radial), Ø ca. 110-120cm
+            const spiralClimb = 14;               // Steigstufen bis zum Podest
+            const spiralStepDeg = 30;             // Grad pro Steigstufe (Herstellerangabe)
+            const spiralLandingDeg = 60;          // Podestbreite (Herstellerangabe)
+            const spiralExitDeg = 0;              // Ausrichtung Podest -> Austrittshaus-Tuer
+            const spiralFloorTop = Y_start + 0.2; // 7.5 = Kuechenboden 3. OG (Eingang)
+            const spiralLandingY = spiralFloorTop + 3.27; // 10.77 = Terrassenboden (Ausgang)
+            const spiralRiser = 3.27 / (spiralClimb + 1); // 21,8cm, Podest zaehlt als "Stufe 15"
+            spiralR_g = spiralR; spiralStepDeg_g = spiralStepDeg; spiralClimb_g = spiralClimb;
+            spiralLandingDeg_g = spiralLandingDeg; spiralExitDeg_g = spiralExitDeg; // fuer Ueberlappungs-Slider gespiegelt
+            spiralTreadGroups = [];
 
-            const spiralSteps = 18;
-            const spiralHeight = 10.7 - 7.5;
-            for (let i = 0; i < spiralSteps; i++) {
-                const stepH = spiralHeight / spiralSteps;
-                const stepAngle = i * (Math.PI * 1.5 / (spiralSteps - 1)) - Math.PI / 2; 
-                
+            // Tortenstück-Stufe: Spitze liegt am lokalen Ursprung (Mittelrohr), Bogen symmetrisch um lokal +X.
+            // segs=1 ergibt eine gerade Kontaktkante (Sehne) statt eines runden Bogens - so wie beim
+            // realen Podest, dessen Außenseite an der Austrittsseite gerade anliegt statt gerundet zu sein.
+            function makeWedgeMesh(radius, thicknessY, thetaDeg, mat, segs) {
+                const thetaLen = thetaDeg * Math.PI / 180;
+                const thetaStart = Math.PI / 2 - thetaLen / 2;
+                const s = segs || Math.max(1, Math.round(thetaDeg / 10));
+                const geo = new THREE.CylinderGeometry(radius, radius, thicknessY, s, 1, false, thetaStart, thetaLen);
+                return new THREE.Mesh(geo, mat);
+            }
+
+            // Gesamte Treppe in einer eigenen, frei drehbaren Gruppe (Slider "Wendeltreppe drehen")
+            spiralStairGroup = new THREE.Group();
+            spiralStairGroup.position.set(spiralPoleX, 0, spiralPoleZ);
+            spiralStairGroup.rotation.y = stairRotateDeg * Math.PI / 180;
+            grp.add(spiralStairGroup);
+
+            const spiralPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.27, 16), newMetalMat);
+            spiralPole.position.set(0, spiralFloorTop + 3.27 / 2, 0);
+            spiralStairGroup.add(spiralPole);
+
+            // Rotation jeder Stufe/des Podests wird zentral in updateStairLayout() gesetzt
+            // (beruecksichtigt Ueberlappungs-Slider + Spiegelung); hier nur Aufbau/Positionierung in Y.
+            for (let i = 1; i <= spiralClimb; i++) {
+                const treadY = spiralFloorTop + i * spiralRiser;
+
                 const stepGroup = new THREE.Group();
-                stepGroup.position.set(0.9, Y_start + i * stepH, -1.9);
-                stepGroup.rotation.y = stepAngle;
+                stepGroup.position.set(0, treadY, 0);
+                spiralTreadGroups.push(stepGroup);
 
-                const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.04, 0.18), newWoodMat);
-                stepMesh.position.set(0.275, 0, 0);
+                const stepMesh = makeWedgeMesh(spiralR, 0.045, spiralStepDeg, newWoodMat); // massives Nussbaum, ~4,5cm dick, Breite immer spiralStepDeg
                 stepGroup.add(stepMesh);
 
                 const post = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.95, 8), newMetalMat);
-                post.position.set(0.5, 0.45, 0);
+                post.position.set(spiralR, 0.45, 0);
                 stepGroup.add(post);
 
-                grp.add(stepGroup);
+                spiralStairGroup.add(stepGroup);
             }
+
+            // Podest (Stufe 15): ebenfalls ein Keil (Tortenstück) - Spitze zum Mittelrohr,
+            // die breite (Bogen-)Seite liegt zur Austrittsseite (Tür Austrittshaus).
+            spiralLandingGroup = new THREE.Group();
+            spiralLandingGroup.position.set(0, spiralLandingY, 0);
+            const landingMesh = makeWedgeMesh(spiralR + 0.15, 0.05, spiralLandingDeg, newWoodMat, 1);
+            spiralLandingGroup.add(landingMesh);
+            spiralStairGroup.add(spiralLandingGroup);
+
+            updateStairLayout(); // setzt die Rotation aller Stufen + Podest (Pitch/Ueberlappung, Spiegelung)
 
             // Filigranes Geländer um das Treppenauge der alten Treppe (Z=0.0 bis 1.5, X=0.7 bis 1.5)
             // Offene Seiten sind Links (X=0.7) und Vorne (Z=1.5).
@@ -4300,7 +4398,7 @@
                 { idx: 0, xStart: 1.325, xEnd: 1.325, yStart: 0.0, yEnd: 2.5 },
                 { idx: 1, xStart: 1.325, xEnd: 1.325, yStart: 2.5, yEnd: 5.0 },
                 { idx: 2, xStart: 1.325, xEnd: -0.05,  yStart: 5.0, yEnd: 7.5 },
-                { idx: 3, xStart: -0.05,  xEnd: -0.05,  yStart: 7.5, yEnd: 10.7 },
+                { idx: 3, xStart: -0.05,  xEnd: -0.05,  yStart: 7.5, yEnd: 10.77 },
                 { idx: 4, xStart: -0.05,  xEnd: -0.05,  yStart: 10.7, yEnd: 11.5 }
             ];
 
@@ -4818,8 +4916,8 @@
                     let lightPaths = [];
                     // Cross-over conduit from riser (terminating at the kitchen floor Y=7.5) to right outer wall along the floor, shifted 10cm back (to Z=0.0)
                     lightPaths.push([V(0.35, Y_conduit, 0.1), V(0.35, Y_conduit, 0.0), V(1.49, Y_conduit, 0.0), V(1.49, Y_conduit, -0.1)]);
-                    // Vertical feed on the right outer wall going all the way up to the terrace floor (Y=10.7)
-                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, 10.7, -0.1)]);
+                    // Vertical feed on the right outer wall going all the way up to the terrace floor (Y=10.77)
+                    lightPaths.push([V(1.49, Y_conduit, -0.1), V(1.49, 10.77, -0.1)]);
                     
                     // Connection to distribution board removed (fed from EG main board)
                     const sw = createStairwellSwitch(1.48, Y_switch, -0.1, -Math.PI / 2);
@@ -4925,9 +5023,9 @@
             pipe2OG.position.set(pipeX, 6.25, pipeZ);
             floorGroups[2].add(pipe2OG);
 
-            // 3. OG: Y=7.5 bis 10.7
-            const pipe3OG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 3.2, 16), frontWallMat);
-            pipe3OG.position.set(pipeX, 9.1, pipeZ);
+            // 3. OG: Y=7.5 bis 10.77
+            const pipe3OG = new THREE.Mesh(new THREE.CylinderGeometry(pipeRad, pipeRad, 3.27, 16), frontWallMat);
+            pipe3OG.position.set(pipeX, 9.135, pipeZ);
             floorGroups[3].add(pipe3OG);
 
             // Terrasse (Etage 4): Wasserfangkasten und Wasserspeier (Speiber)
@@ -5605,6 +5703,50 @@
             document.getElementById('val-explosion').innerText = val + "%";
         }
 
+        function rotateSpiralStair(val) {
+            stairRotateDeg = parseFloat(val);
+            localStorage.setItem('bosa_stairRotate', val);
+            document.getElementById('val-stair-rotate').innerText = Math.round(stairRotateDeg) + "°";
+            if (spiralStairGroup) {
+                spiralStairGroup.rotation.y = stairRotateDeg * Math.PI / 180;
+            }
+        }
+
+        // Zentrale Ausrichtung aller Steigstufen + Podest, aus dem aktuellen Zustand
+        // (Überlappungs-Slider, Spiegelung) neu berechnet. Wird beim Bau einmal und danach
+        // von jedem der beiden Regler/Schalter erneut aufgerufen.
+        function updateStairLayout() {
+            if (!spiralTreadGroups.length) return;
+            // Nur der Winkel-Abstand (Pitch) von Stufe zu Stufe wird kleiner - jede Stufe behält
+            // ihre eigene, feste Breite (spiralStepDeg_g) und rückt dadurch unter die nächsthöhere.
+            const overlapDeg = (stairOverlapCm / 100) / spiralR_g * (180 / Math.PI);
+            const pitchDeg = spiralStepDeg_g - overlapDeg;
+            const dir = stairMirrored ? -1 : 1; // Wickelrichtung: -1 = rechtsherum (gespiegelt)
+            const entryDeg = spiralExitDeg_g + dir * (spiralClimb_g * pitchDeg + spiralLandingDeg_g);
+            spiralTreadGroups.forEach((stepGroup, idx) => {
+                const i = idx + 1; // 1-basiert, wie beim Aufbau in buildFloor3
+                const degMid = entryDeg - dir * (i - 0.5) * pitchDeg;
+                stepGroup.rotation.y = degMid * Math.PI / 180 - Math.PI / 2;
+            });
+            if (spiralLandingGroup) {
+                const landingMid = spiralExitDeg_g + dir * spiralLandingDeg_g / 2;
+                spiralLandingGroup.rotation.y = landingMid * Math.PI / 180 - Math.PI / 2;
+            }
+        }
+
+        function setStairOverlap(val) {
+            stairOverlapCm = parseFloat(val);
+            localStorage.setItem('bosa_stairOverlap', val);
+            document.getElementById('val-stair-overlap').innerText = stairOverlapCm.toFixed(1) + " cm";
+            updateStairLayout();
+        }
+
+        function toggleStairMirror(val) {
+            stairMirrored = val;
+            localStorage.setItem('bosa_stairMirrored', val);
+            updateStairLayout();
+        }
+
         function toggleWallsTransparent(val) {
             wallsTransparent = val;
             localStorage.setItem('bosa_wallsTransparent', val);
@@ -5835,10 +5977,11 @@
             currentExplosion += (targetExplosion - currentExplosion) * 0.08;
             
             floorGroups.forEach((group, idx) => {
+                const corr = floorYCorrection[idx] || 0;
                 if (activeFocusedFloor !== 'all') {
-                    group.position.y = 0;
+                    group.position.y = corr;
                 } else {
-                    group.position.y = idx * 2.8 * currentExplosion;
+                    group.position.y = idx * 2.8 * currentExplosion + corr;
                 }
             });
 

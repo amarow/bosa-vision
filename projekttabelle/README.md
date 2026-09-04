@@ -1,6 +1,6 @@
 # Projekttabelle – deutsche Quelle
 
-Die Teilprojekte sind nach Gewerk auf mehrere Dateien in diesem Ordner (`kommunikation-geometra/`) aufgeteilt. Diese Datei ist nur noch die gemeinsame Anleitung + Übersicht, keine Einträge mehr hier.
+Die Teilprojekte sind nach Gewerk auf mehrere Dateien in diesem Ordner (`projekttabelle/`) aufgeteilt. Diese Datei ist nur noch die gemeinsame Anleitung + Übersicht, keine Einträge mehr hier.
 
 - `elektro.md` – Elektroinstallation
 - `sanitaer.md` – Sanitär (Wasser/Abwasser/Lüftung, Bäder, WC)
@@ -11,8 +11,8 @@ Die Teilprojekte sind nach Gewerk auf mehrere Dateien in diesem Ordner (`kommuni
 - `sonstiges.md` – alles andere (Dach, Innenausbau, künftige Sonderfälle)
 
 **Nur Deutsch eintragen**, jeweils in der passenden Datei. Wenn fertig, Claude bitten:
-„Übersetze die Quelldateien neu nach `kommunikation.html`."
-Claude liest dann alle `.md`-Dateien in diesem Ordner und überträgt Änderungen (neue/geänderte/gelöschte Einträge) mit englischer und italienischer Übersetzung in `../kommunikation.html`.
+„Übersetze die Quelldateien neu nach `projekttabelle.html`."
+Claude liest dann alle `.md`-Dateien in diesem Ordner und überträgt Änderungen (neue/geänderte/gelöschte Einträge) mit englischer und italienischer Übersetzung in `projekttabelle.html` (liegt im selben Ordner).
 
 Neue Fach-Datei anlegen: Wenn ein Thema in keine bestehende Datei passt, `sonstiges.md` nutzen oder Claude bitten, eine neue Fach-Datei in diesem Ordner anzulegen und hier in der Liste zu ergänzen.
 

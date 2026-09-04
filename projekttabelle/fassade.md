@@ -1,6 +1,6 @@
 # Projekttabelle – Fassade
 
-Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `kommunikation.html`."
+Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `projekttabelle.html`."
 
 ## Einträge
 

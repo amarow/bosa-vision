@@ -268,7 +268,7 @@
         <p data-i18n="pageSubtitle">Teilprojekte der Renovierung im Überblick</p>
     </div>
     <div class="header-actions">
-        <a class="model-link" href="index.html" data-i18n="modelLink">→ 3D-Modell</a>
+        <a class="model-link" href="../index.html" data-i18n="modelLink">→ 3D-Modell</a>
         <div class="lang-switch">
             <button class="lang-btn active" id="btn-lang-de" onclick="setLanguage('de')">DE</button>
             <button class="lang-btn" id="btn-lang-it" onclick="setLanguage('it')">IT</button>
@@ -314,7 +314,7 @@
     </div>
 </main>
 
-<footer data-i18n="footerNote">Quelle: kommunikation-geometra/*.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten.</footer>
+<footer data-i18n="footerNote">Quelle: *.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten.</footer>
 
 <script>
     const translations = {
@@ -341,7 +341,7 @@
             tabTerrasse: "Terrasse",
             tabFassade: "Fassade",
             tabSonstiges: "Sonstiges",
-            footerNote: "Quelle: kommunikation-geometra/*.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten."
+            footerNote: "Quelle: *.md (Deutsch, nach Gewerk aufgeteilt). Änderungen dort erfassen und Claude um Aktualisierung dieser Seite bitten."
         },
         en: {
             pageTitle: "Turmhaus Bosa - Project Table",
@@ -366,7 +366,7 @@
             tabTerrasse: "Terrace",
             tabFassade: "Facade",
             tabSonstiges: "Other",
-            footerNote: "Source: kommunikation-geometra/*.md (German, split by trade). Record changes there and ask Claude to update this page."
+            footerNote: "Source: *.md (German, split by trade). Record changes there and ask Claude to update this page."
         },
         it: {
             pageTitle: "Turmhaus Bosa - Tabella di Progetto",
@@ -391,13 +391,13 @@
             tabTerrasse: "Terrazza",
             tabFassade: "Facciata",
             tabSonstiges: "Altro",
-            footerNote: "Fonte: kommunikation-geometra/*.md (tedesco, suddivisa per mestiere). Registrare lì le modifiche e chiedere a Claude di aggiornare questa pagina."
+            footerNote: "Fonte: *.md (tedesco, suddivisa per mestiere). Registrare lì le modifiche e chiedere a Claude di aggiornare questa pagina."
         }
     };
 
     // Jede Zeile: { id, category, status:{de,en,it}, prio: number|null, topic:{de,en,it}, notes:{de,en,it}, executor:{de,en,it} }
-    // category: 'elektro'|'sanitaer'|'maurer'|'abriss'|'terrasse'|'fassade'|'sonstiges' - entspricht der kommunikation-geometra/<category>.md
-    // Quelle: kommunikation-geometra/*.md (Nr./Status/Prio/Thema/Anmerkungen/Ausführer) - dort pflegen, nicht direkt hier.
+    // category: 'elektro'|'sanitaer'|'maurer'|'abriss'|'terrasse'|'fassade'|'sonstiges' - entspricht der <category>.md (gleicher Ordner)
+    // Quelle: *.md (Nr./Status/Prio/Thema/Anmerkungen/Ausführer) - dort pflegen, nicht direkt hier.
     const rows = [
         { id: "EH", category: "elektro", prio: 1,
             status: { de: "offen", en: "open", it: "aperto" },
@@ -436,8 +436,8 @@
             executor: { de: "Eigenleistung oder Dienstleister – Preis einholen", en: "DIY or contractor – get a quote", it: "Fai da te o ditta esterna – richiedere preventivo" } },
         { id: "AB3", category: "abriss", prio: 2,
             status: { de: "offen", en: "open", it: "aperto" },
-            topic: { de: "Altes Bad im 3. Obergeschoss entfernen", en: "Remove old bathroom on the 3rd floor", it: "Rimozione del vecchio bagno al 3° piano" },
-            notes: { de: "–", en: "–", it: "–" },
+            topic: { de: "Altes Bad + Trennwand Treppenhaus im 3. Obergeschoss entfernen", en: "Remove old bathroom + stairwell partition wall on the 3rd floor", it: "Rimozione del vecchio bagno + parete divisoria vano scala al 3° piano" },
+            notes: { de: "Neben dem Treppenhaus.", en: "Next to the stairwell.", it: "Accanto al vano scala." },
             executor: { de: "Eigenleistung oder Dienstleister – Preis einholen", en: "DIY or contractor – get a quote", it: "Fai da te o ditta esterna – richiedere preventivo" } },
         { id: "AAK", category: "abriss", prio: 3,
             status: { de: "offen", en: "open", it: "aperto" },

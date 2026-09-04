@@ -1,6 +1,6 @@
 # Projekttabelle – Abriss
 
-Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `kommunikation.html`."
+Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten: „Übersetze die Quelldateien neu nach `projekttabelle.html`."
 
 ## Einträge
 
@@ -14,8 +14,8 @@ Ausführer: Eigenleistung oder Dienstleister Preis?
 ### AB3
 Status: offen
 Prio: 2
-Thema: Altes Bad im 3. Obergeschoss entfernen
-Anmerkungen: 
+Thema: Altes Bad + Trennwand Treppenhaus im 3. Obergeschoss entfernen
+Anmerkungen: Neben dem TReppen
 Ausführer: Eigenleistung oder Dienstleister Preis?
 
 ### AAK
