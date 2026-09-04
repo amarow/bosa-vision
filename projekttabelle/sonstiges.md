@@ -31,3 +31,10 @@ Prio: 3
 Thema: Fliesen Küchenschild anbringen
 Anmerkungen: 
 Ausführer: Eigenleistung
+
+### CT
+Status: offen
+Prio: 3
+Thema: Küchenplatte aus Steingut und GAs-Kochplatte sowei Küchen-Waschbecken installieren
+Anmerkungen: Entscheidung gemauert oder Holzkorpus steht aus
+Ausführer: Eigenleistung
