@@ -8,7 +8,7 @@ Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten
 Status: offen
 Prio: 3
 Thema: Fassade Einrüsten
-Anmerkungen: Die Strasse ist sehr schmal, es fahren kleine Autos (Müllabfuhr, PKW) Gerüst muss entsprechend unten verjüngt werden
+Anmerkungen: Die Strasse ist sehr schmal, es fahren Autos (Müllabfuhr, PKW) Gerüst muss entsprechend unten verjüngt werden
 Ausführer: Gerüststeller
 
 ### FS

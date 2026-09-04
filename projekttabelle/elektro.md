@@ -7,8 +7,8 @@ Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten
 ### EH
 Status: offen
 Prio: 1
-Thema: Elektroinstallation Hauptverteilung / Zählerkasten EG / Erdung
-Anmerkungen: Anschluss und setzung des Verteilerkasten im EG, Steigleitung durch den Schacht zu den Unterverteilern der Obergeschosse.
+Thema: Elektroinstallation Hauptverteilung / Zählerkasten EG / Erdung / Lastabwurf Möglichkeit für unwichtige Verbraucher z.B Wärmepumpe, Heizlüfter
+Anmerkungen: Anschluss und Setzung des Verteilerkasten im EG, Steigleitung durch den Schacht zu den Unterverteilern der Obergeschosse.
 Ausführer: zertifizierter Elektro Installateur (DICO/DIRI)
 
 ### EU
@@ -22,6 +22,6 @@ Ausführer: Eigenleistung wenn OK für Elektroinstallateur
 Status: offen
 Prio: 2
 Thema: Elektroinstallation feste Beleuchtung: Treppenhauslicht und Zimmerbeleuchtung
-Anmerkungen: Treppenhauslicht soll an den Ein und Ausgängen jedes Treppenhauses ein oder aus geschaltet werden können. Lampe im Treppenhaus und Wandleuchte auf der Etage werden zusammen geschaltet (Eltako)
+Anmerkungen: Treppenhauslicht soll an den Ein und Ausgängen jedes Treppenhauses ein oder aus geschaltet werden können. Lampe im Treppenhaus und Wandleuchte auf der Etage werden zusammen geschaltet (Eltako). Weitere Beleuchtung wird über Steh/Tischlampen geegelt
 Ausführer: Eigenleistung wenn OK für Elektroinstallateur
 

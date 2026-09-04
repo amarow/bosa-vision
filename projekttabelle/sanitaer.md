@@ -30,6 +30,6 @@ Ausführer: zertifizierter Klempner für DiCo/DiRi
 Status: offen
 Prio: 2
 Thema: Sanitärinstallation Terasse (Wasser und Abwasser)
-Anmerkungen: Wandanschlüsse für Waschbecken
-Ausführer: zertifizierter Klempner für DiCo/DiRi oder Eigenleistung
+Anmerkungen: Wandanschlüsse für Waschbecken, Ausgang des Lüftungsrohres
+Ausführer: zertifizierter Klempner für DiCo/DiRi
 

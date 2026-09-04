@@ -7,22 +7,22 @@ Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten
 ### SAB
 Status: offen
 Prio: 1
-Thema: Abriss altes Bad im EG, Abwasser Anschluss freilegen
-Anmerkungen: Abriss und Abtransport des alten Bades, Innenwände, Sanitärmöbel  
+Thema: Abriss altes Bad im EG
+Anmerkungen: Abriss und Abtransport des alten Bades,  Abwasser Anschluss freilegen, Innenwände, Sanitärmöbel  
 Ausführer: Eigenleistung oder Dienstleister Preis?
 
 ### AB3
 Status: offen
 Prio: 2
 Thema: Altes Bad + Trennwand Treppenhaus im 3. Obergeschoss entfernen
-Anmerkungen: Neben dem TReppen
+Anmerkungen: Auch die Rohre an der Aussenwand müssen weg
 Ausführer: Eigenleistung oder Dienstleister Preis?
 
 ### AAK
 Status: offen
 Prio: 3
 Thema: Entsorgung der alten Autoklave
-Anmerkungen: 
+Anmerkungen: vieleicht verkaufen auf Subito
 Ausführer: Eigenleistung
 
 ### AEW

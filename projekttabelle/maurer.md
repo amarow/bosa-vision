@@ -15,20 +15,20 @@ Ausführer: Maurer, Spezialist für die Bogendecke im 2. OG
 Status: offen
 Prio: 1
 Thema: Treppenhäuschen Dachterrasse
-Anmerkungen: Verbreiterung um ca. 20 cm für den Einbau der Wendeltreppe. Hierzu gehört auch die Verbreiterung Deckenöffnung 120 × 120 cm
+Anmerkungen: Verbreiterung auf 130 cm für den Einbau der Wendeltreppe. Hierzu gehört auch die Verbreiterung Deckenöffnung auf 120 × 115 cm. Versetzen der Tür von der Seite zur Front. 
 Ausführer: Maurer und/oder Eigenleistung
 
 ### LB1
 Status: offen
 Prio: 2
-Thema: Wand zur Abtrennung des neuen Bades im EG
+Thema: Wand und Tür zur Abtrennung des neuen Bades im EG
 Anmerkungen: eine Leichtbauwand mit Tür zur Abtrennung des Bades im EG 
 Ausführer: Eigenleistung
 
 ### LB2
 Status: offen
 Prio: 2
-Thema: Wand zur Abtrennung des neuen Bades im 2.OG
+Thema: Wände und Tür zur Abtrennung des neuen Bades im 2.OG
 Anmerkungen: eine Leichtbauwand mit Tür zur Abtrennung des Bades im 2. OG 
 Ausführer: Eigenleistung
 
