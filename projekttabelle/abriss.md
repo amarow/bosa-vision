@@ -25,9 +25,16 @@ Thema: Entsorgung der alten Autoklave
 Anmerkungen: vieleicht verkaufen auf Subito
 Ausführer: Eigenleistung
 
-### AEW
+### AEW 
 Status: offen
 Prio: 3
 Thema: Entfernung der alten Elektro- und Wasserinstallation
 Anmerkungen: 
 Ausführer: Eigenleistung
+
+### DA
+Status: offen
+Prio: 1
+Thema: Dach – Asbestsanierung entfernen
+Anmerkungen: Fachgerechte Entsorgung der Eternit-Wellplatten (D.Lgs. 81/2008, Meldung bei ASL), 1 qm
+Ausführer: Fachfirma Asbestsanierung
