@@ -17,3 +17,10 @@ Prio: 2
 Thema: Holzdielen in beiden Schlafzimmern verlegen
 Anmerkungen: nach Elektroinstallation Steckdosen
 Ausführer: Eigenleistung
+
+### PC
+Status: offen
+Prio: 3
+Thema: Fliesen im Obergeschoß reparieren/erneuern
+Anmerkungen: 
+Ausführer: Eigenleistung
