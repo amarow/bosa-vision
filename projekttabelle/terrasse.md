@@ -8,7 +8,7 @@ Format & Anleitung: siehe `README.md`. Nur Deutsch eintragen, dann Claude bitten
 Status: offen
 Prio: 1
 Thema: Abdichtung der Terasse. 
-Anmerkungen: Reinigen der allten Fliesen, Sockelleisten entfernen, Wandanschlüsse neu verputzen, Grundieren, mit Mapelastic und Flies abdichten
+Anmerkungen: Reinigen der allten Fliesen, Sockelleisten entfernen, Wandanschlüsse neu verputzen, Grundieren, mit Mapelastic und Flies abdichten. Detaillierter Ablaufplan (3 Zonen, Materialien, Schritt-für-Schritt): https://amarow.github.io/bosa-vision/ablaufplaene/Variante-A-Ablaufplan.html
 Ausführer: Eigenleistung
 
 ### TH

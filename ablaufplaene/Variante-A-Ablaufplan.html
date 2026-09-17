@@ -1,0 +1,489 @@
+<title>Nassbau-Ablaufplan</title>
+<style>
+  :root{
+    --ground:#E8E4DA;
+    --surface:#F6F3EC;
+    --surface-alt:#ECE6D8;
+    --line:#D2CAB8;
+    --ink:#24211D;
+    --ink-muted:#6E675B;
+    --accent:#12585D;
+    --accent-strong:#0C4144;
+    --accent-soft:#D9EAE9;
+    --accent-ink:#F4FBFA;
+    --warn-ink:#7A3417;
+    --warn-bg:#F1DFCF;
+    --warn-line:#CDA57E;
+    --shadow: 0 1px 0 rgba(36,33,29,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#17191A;
+      --surface:#1E2224;
+      --surface-alt:#262B2D;
+      --line:#3A4042;
+      --ink:#ECE7DD;
+      --ink-muted:#A29B90;
+      --accent:#4FB6BB;
+      --accent-strong:#7ED2D6;
+      --accent-soft:#1B3839;
+      --accent-ink:#07191A;
+      --warn-ink:#F0C9A6;
+      --warn-bg:#3A2A1E;
+      --warn-line:#6B4A2E;
+      --shadow: 0 1px 0 rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#17191A;
+    --surface:#1E2224;
+    --surface-alt:#262B2D;
+    --line:#3A4042;
+    --ink:#ECE7DD;
+    --ink-muted:#A29B90;
+    --accent:#4FB6BB;
+    --accent-strong:#7ED2D6;
+    --accent-soft:#1B3839;
+    --accent-ink:#07191A;
+    --warn-ink:#F0C9A6;
+    --warn-bg:#3A2A1E;
+    --warn-line:#6B4A2E;
+    --shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"Source Serif 4", Georgia, "Times New Roman", serif;
+    padding-inline:16px;
+    padding-block:32px;
+  }
+  .sheet{
+    max-width:2200px;
+    margin-inline:auto;
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+  }
+  .prose{max-width:72ch;}
+
+  .cover{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:28px clamp(18px,4vw,40px);
+    box-shadow:var(--shadow);
+  }
+  .cover-eyebrow{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:"Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-weight:900;
+    font-size:clamp(2rem, 5vw, 2.9rem);
+    line-height:1.02;
+    letter-spacing:-0.01em;
+    margin:0 0 18px;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  h1 .sub{
+    display:block;
+    font-weight:600;
+    font-size:.42em;
+    letter-spacing:0;
+    color:var(--ink-muted);
+    margin-top:6px;
+  }
+  .cover-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px 32px;
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  .meta-item{display:flex; flex-direction:column; gap:3px;}
+  .meta-label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+  }
+  .meta-value{
+    font-family:"Archivo", sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .callout{
+    background:var(--warn-bg);
+    border:1px solid var(--warn-line);
+    color:var(--warn-ink);
+    border-radius:4px;
+    padding:14px 18px;
+    font-size:.96rem;
+    line-height:1.5;
+  }
+  .callout strong{font-family:"Archivo",sans-serif; letter-spacing:.02em;}
+
+  .zones{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:14px;
+  }
+  .zone-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:4px solid var(--accent);
+    border-radius:4px;
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .zone-card h3{
+    font-family:"Archivo", sans-serif;
+    font-size:.98rem;
+    margin:0 0 6px;
+    color:var(--accent-strong);
+  }
+  .zone-card p{
+    margin:0;
+    font-size:.88rem;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .zone-card .dims{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.76rem;
+    color:var(--ink-muted);
+    margin-top:6px;
+  }
+
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:920px;
+    font-size:.92rem;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    text-align:left;
+    padding:12px 14px;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:14px;
+    border-top:1px solid var(--line);
+    vertical-align:top;
+    color:var(--ink);
+  }
+  tbody tr:nth-child(even){background:var(--surface-alt);}
+  tbody tr:hover{background:var(--accent-soft);}
+
+  .col-step{
+    font-family:"IBM Plex Mono", monospace;
+    color:var(--accent-ink);
+    width:2.4em;
+  }
+  td.step{
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  td.material{
+    font-family:"Archivo", sans-serif;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  td.it{font-style:italic; color:var(--ink-muted); white-space:nowrap;}
+  td.de{white-space:nowrap;}
+  td.qty, td.proc, td.wait{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.84rem;
+    line-height:1.45;
+    font-variant-numeric:tabular-nums;
+    min-width:11em;
+  }
+  td.work{
+    line-height:1.5;
+    min-width:22em;
+  }
+  tr.optional td{opacity:.82;}
+  .tag{
+    display:inline-block;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.66rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:var(--accent-soft);
+    color:var(--accent-strong);
+    border-radius:3px;
+    padding:2px 6px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .tag.z1{background:var(--accent-soft); color:var(--accent-strong);}
+  .tag.z2{background:var(--warn-bg); color:var(--warn-ink);}
+  .tag.z3{background:var(--accent-soft); color:var(--accent-strong); border:1px solid var(--accent);}
+
+  footer{
+    font-size:.82rem;
+    color:var(--ink-muted);
+    line-height:1.6;
+    padding-inline:4px;
+  }
+
+  @media (max-width:520px){
+    .cover{padding:22px 18px;}
+    .cover-meta{gap:16px 24px;}
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;900&family=Source+Serif+4:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="sheet">
+
+  <header class="cover">
+    <p class="cover-eyebrow">Scheda di lavorazione · Dachterrasse Bosa</p>
+    <h1>Variante A<span class="sub">Alter Estrich erhalten &amp; Mapelastic</span></h1>
+    <div class="cover-meta">
+      <div class="meta-item">
+        <span class="meta-label">Fläche</span>
+        <span class="meta-value">15 m² (5 × 3 m)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Budget Variante A</span>
+        <span class="meta-value">≈ 1.120 – 1.840 € + TBD</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Klima-Fenster</span>
+        <span class="meta-value">≥ 8 °C, morgens</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Zonen</span>
+        <span class="meta-value">3 (Gully · Mitte · oben)</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="zones">
+    <div class="zone-card">
+      <h3>Zone 1 — Gully-Ecke<span class="tag z1">gebunden</span></h3>
+      <p>Ecke am Ablauf, wird vertieft/aufgebaut. Zweistufig: CLX 40 Mono für den Volumenaufbau, darauf – falls nötig – dünn Planitop Rasa &amp; Ripara Zero zum Feathern bis 0 mm am Ablauf. Gebunden, ohne Folie. Feste Referenzkante, wird zuerst gebaut.</p>
+      <div class="dims">≈ 1 m² · CLX 40: 2–40 mm/Schicht · Planitop: 3–40 mm</div>
+    </div>
+    <div class="zone-card">
+      <h3>Zone 2 — Mitte<span class="tag z2">alter Estrich, erhalten</span></h3>
+      <p>Restliche Fläche zwischen Zone 1 und Zone 3. Bestehender alter Estrich bleibt Unterbau; mürbe/feuchte Stellen ausgestemmt &amp; verfüllt, danach komplett mit CLX 40 oder MapeTop überputzt/ausgeglichen.</p>
+      <div class="dims">≈ 10–11 m² · Menge Überputzen TBD</div>
+    </div>
+    <div class="zone-card">
+      <h3>Zone 3 — oben<span class="tag z3">neuer Estrich</span></h3>
+      <p>Streifen an der gully-fernsten Wand, Breite reduziert um die Treppenauge-Aufkantung. Aufbau: PE-Trennfolie auf Ziegelschicht (schwimmend) → Randdämmstreifen → neuer Estrich für Außenbereich mit Gefälle.</p>
+      <div class="dims">1,60 m × 1,70 m (3,00 m − 1,30 m Treppenauge) = 2,72 m² · Ø ≈ 7 cm mit Gefälle · Bedarf ca. 13–14 Säcke à 25 kg (18 gekauft, 4–5 zurückzugeben)</div>
+    </div>
+  </div>
+
+  <div class="callout prose">
+    <strong>Randfuge nur an Zone 3:</strong> 1 cm Schaumstoff-Randstreifen an den Wänden nur um Zone 3 – frischer Estrich schwindet/dehnt sich noch, Zone 2 (alter Estrich) nicht mehr, dort reicht die alte Bitumenpappe.<br>
+    <strong>Naht Zone 2 → Zone 3 (Bewegungsfuge, bewusst keine Verzahnung):</strong> alte Kante sauber gerade anschneiden, dünnen Trennstreifen (Bitumenfilz- oder PE-Folienstreifen, ca. 10 cm) an der Stirnseite einlegen, <em>nicht verkleben</em> – kein dicker Kompressionsstreifen nötig, die zu erwartende Gesamtbewegung ist klein (≈ 1–2 mm über die Lebensdauer aus Schwinden + thermischer Dehnung auf ~1,7 m). Trotzdem bewusst keine Verzahnung (Bewehrungseisen/Bruchkante): schon kleine verhinderte Schwindbewegung im jungen Estrich erzeugt lokal Zugspannungen weit über dessen Zugfestigkeit → Rissgefahr an der Naht, unabhängig von der Flächengröße. Fuge durch <em>alle</em> Schichten weiterführen: Spachtelmasse Zone 2 (Schritt 10) genau an der Fugenlinie stoppen, nicht darüberziehen. Oben in der Mapelastic-Schicht die Fuge nur mit dem elastischen <strong>Mapeband</strong> überbrücken; <strong>Mapenet 150 beidseitig kurz vor der Fuge enden lassen</strong> – laut Mapelastic-Zero-Datenblatt ist Mapeband für jede Untergrundfuge vorgeschrieben, Mapenet ist nur Flächenbewehrung. Sonst koppelt die jeweils starre Schicht die Felder wieder zusammen.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-step">#</th>
+          <th>Material</th>
+          <th>Bezeichnung (IT)</th>
+          <th>Bezeichnung (DE)</th>
+          <th>Menge</th>
+          <th>Verarbeitungszeit</th>
+          <th>Wartezeit</th>
+          <th>Arbeitsgang</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="step">01</td>
+          <td class="material">Putz-Klopftest</td>
+          <td class="it">Verifica a percussione<br>sull'intonaco</td>
+          <td class="de">Wandputz auf Tragfähigkeit<br>abklopfen</td>
+          <td class="qty">Umlaufend, Zielhöhe<br>15–20 cm + Schraubpunkte</td>
+          <td class="proc">wenige Minuten</td>
+          <td class="wait">keine</td>
+          <td class="work">Wandputz bis zur Ziel-Höhe abklopfen – muss nur tragfähig genug für Mapelastic + Dübel der Alu-Abschlussschiene sein (Schritt 15), kein Abstemmen nötig. Hohl klingende Stellen genau an späteren Schraubpunkten der Schiene vormerken (Schritt 15: dort lokal verfestigen oder tiefer dübeln).</td>
+        </tr>
+        <tr>
+          <td class="step">02</td>
+          <td class="material">Abklopfen &amp; Ausstemmen<span class="tag">alle Zonen</span></td>
+          <td class="it">Verifica a percussione +<br>rimozione parti deteriorate</td>
+          <td class="de">Bestand abklopfen, mürbe/<br>feuchte Stellen entfernen</td>
+          <td class="qty">Gesamte alte Estrichfläche<br>(Zone 1+2) + Fliesenkleberreste</td>
+          <td class="proc">n. Bedarf, mechanisch<br>(Meißel/Stemmer)</td>
+          <td class="wait">danach einige Tage<br>abtrocknen lassen</td>
+          <td class="work">Alten Estrich und noch vorhandenen Fliesenkleber abklopfen. Hohl klingende, mürbe oder feuchte Stellen wegstemmen. Fest haftender, sauberer Fliesenkleber (auch mit Zahnkellen-Struktur) kann bleiben – bessere mechanische Verzahnung für den Überputz. Zur Kontrolle ein paar Probebohrungen zur Feuchteprüfung.</td>
+        </tr>
+        <tr>
+          <td class="step">03</td>
+          <td class="material">Untergrund­vorbereitung</td>
+          <td class="it">Pulizia meccanica +<br>Primer 3296 (zona gully)</td>
+          <td class="de">Bitumen-/Staubreste entfernen +<br>Grundierung (Zone 1)</td>
+          <td class="qty">Ganze Fläche mech.<br>Primer nur Zone 1 (~1 m²)</td>
+          <td class="proc">mechanisch n. Bedarf<br>Primer dünn auftragen</td>
+          <td class="wait">Primer ablüften<br>≈ 2–4 h</td>
+          <td class="work">Fläche von losen Rückständen befreien (Drahtbürste/Spachtel). In Zone 1 (Gully) zusätzlich mit Primer 3296 grundieren. Zusätzlich: Mulde der waagerechten Fallrohr-Wanddurchführung von alten Gummi-Dichtungsresten befreien.</td>
+        </tr>
+        <tr>
+          <td class="step">04</td>
+          <td class="material">Treppenauge<span class="tag">mauern</span></td>
+          <td class="it">Muratura in mattoni<br>(cordolo vano scala)</td>
+          <td class="de">Ziegel-Aufkantung mauern</td>
+          <td class="qty">Umlaufend 120×120 cm innen<br>wenige Ziegelsteine + Mörtel</td>
+          <td class="proc">normales Mauern,<br>mehrere Stunden</td>
+          <td class="wait">Mörtel aushärten<br>≈ 24–48 h</td>
+          <td class="work">Mit ein paar Ziegelsteinen im Mörtelbett die Aufkantung für das künftige Treppenauge hochmauern – drei Seiten auf volle Höhe, Türseite (Richtung Front) niedriger für die spätere Schwellenlösung. Vor dem restlichen Bodenaufbau fertigstellen.</td>
+        </tr>
+        <tr>
+          <td class="step">05</td>
+          <td class="material">Gully-Ecke, Aufbau<span class="tag z1">Zone 1</span></td>
+          <td class="it">Malta fibrata R4<br><em>(CLX 40 Mono)</em></td>
+          <td class="de">Reparaturmörtel,<br>Volumenaufbau</td>
+          <td class="qty">n. Bedarf<br>2–40 mm pro Schicht<br>17 kg/m² pro cm</td>
+          <td class="proc">Erstarrung Beginn/Ende<br>≈ 35–40 Min</td>
+          <td class="wait">mind. 24 Std. vor<br>Schritt 06 (Herstellerangabe<br>fehlt, Praxiswert)</td>
+          <td class="work"><strong>Wird zuerst gebaut.</strong> Ca. 1 m² an der Ablauf-Ecke vertiefen/aufbauen. <strong>Kein Spachtel/Glättung</strong> – Mindestdicke 2 mm, grobes Korn, nicht bis 0 mm ausziehbar. Nur für den groben Volumenaufbau, Feinschliff macht Schritt 06.</td>
+        </tr>
+        <tr>
+          <td class="step">06</td>
+          <td class="material">Gully-Ecke, Finish<span class="tag z1">Zone 1</span></td>
+          <td class="it">Malta cementizia tissotropica<br><em>(Planitop Rasa &amp; Ripara Zero)</em></td>
+          <td class="de">Fein-Ausgleichsmörtel,<br>feathert bis 0 mm</td>
+          <td class="qty">2 × 25 kg<br><em>bereits vorhanden</em><br>Auftrag 3–40 mm</td>
+          <td class="proc">Topfzeit ≈ 15 Min<br>(m. Mapetard ES +15–20 Min)</td>
+          <td class="wait">Abbindeende ≈ 30 Min<br>danach 24 h feucht halten</td>
+          <td class="work"><strong>Nur falls nötig</strong> (z. B. wenn CLX 40 nicht sauber bis zum Ablauf ausläuft). Dünn auf dem ausgehärteten CLX 40 auftragen, mit der Kelle bis auf 0 mm zum Ablauf auslaufen lassen, abreiben – bildet die feste Referenzkante für Zone 2 und Zone 3.</td>
+        </tr>
+        <tr>
+          <td class="step">07</td>
+          <td class="material">Trennfolie<span class="tag z3">Zone 3</span></td>
+          <td class="it">Foglio separatore in PE</td>
+          <td class="de">PE-Trennfolie, schwimmend</td>
+          <td class="qty">≈ 3 m²<br>(2,72 m² + Überlappung)</td>
+          <td class="proc">≈ 10 Min<br>auslegen/überlappen</td>
+          <td class="wait">keine</td>
+          <td class="work">Auf der Ziegelschicht auslegen, an den Wänden hochschlagen, Bahnen ≈ 10 cm überlappen. Trennt den neuen Estrich vom Untergrund (schwimmende Konstruktion) statt fest zu verkleben.</td>
+        </tr>
+        <tr>
+          <td class="step">08</td>
+          <td class="material">Randstreifen<span class="tag z3">Zone 3</span></td>
+          <td class="it">Nastro perimetrale in polietilene espanso</td>
+          <td class="de">Rand-Dämmstreifen, 1 cm</td>
+          <td class="qty">≈ 5 lfm<br>(Wände an Zone 3 + Treppenauge)</td>
+          <td class="proc">≈ 20 Min<br>Zuschnitt/Ankleben</td>
+          <td class="wait">keine</td>
+          <td class="work">Nur an den Wänden entlang Zone 3 (und an der Treppenauge-Aufkantung, falls dort betroffen) vor dem neuen Estrich ansetzen – Bewegungsfuge für den frischen, noch schwindenden Estrich. Zone 2 (alter Estrich) braucht keinen neuen Randstreifen.</td>
+        </tr>
+        <tr>
+          <td class="step">09</td>
+          <td class="material">Neuer Estrich<span class="tag z3">Zone 3</span></td>
+          <td class="it">Massetto per esterni</td>
+          <td class="de">Estrich für Außenbereich</td>
+          <td class="qty">Bedarf ca. 13–14 Säcke à 25 kg<br>1,60 × 1,70 m (− 1,30 m Treppenauge) × Ø ≈ 7 cm<br>18 gekauft (90 €), 4–5 zurückgeben → ca. 65–70 € netto</td>
+          <td class="proc">i.d.R. mit Rührgerät<br>mischbar (Sackangabe prüfen)</td>
+          <td class="wait">Aushärtung lt. Sackangabe<br>begehbar meist n. 24–48 h</td>
+          <td class="work">Auf Trennfolie anmischen und einbauen, von der Zone-2-Kante ausgehend auf die höchste Stelle aufbauen, Gefälle mitbringen. An der Naht zu Zone 2: Trennstreifen einlegen statt verkleben (s. Hinweis oben).</td>
+        </tr>
+        <tr>
+          <td class="step">10</td>
+          <td class="material">Überputzen<span class="tag z2">Zone 2</span></td>
+          <td class="it">Rasatura<br><em>(Spachtelmasse, noch offen)</em></td>
+          <td class="de">Ausbessern &amp; Egalisieren<br>gesamte Mittelfläche</td>
+          <td class="qty">Menge TBD<br>(nach Ausmessen der Unebenheiten)</td>
+          <td class="proc">lt. Sackangabe</td>
+          <td class="wait">Aushärtung/Curing<br>lt. Sackangabe (feucht halten)</td>
+          <td class="work"><strong>CLX 40 Mono ist hierfür nicht geeignet</strong> (Mindestdicke 2 mm, grobes Reparaturkorn – für Betoninstandsetzung, nicht zum Glätten großer Flächen). Passende Spachtel-/Glättungsmasse noch besorgen (z. B. MapeTop). Alten (ausgebesserten) Estrich in Zone 2 komplett überputzen – Löcher spachteln, Übergang zu Zone 1 glätten, ebene Fläche für die Abdichtung herstellen. <strong>An der Naht zu Zone 3: Spachtelmasse dünn auslaufen lassen und genau an der Fugenlinie stoppen, nicht darüberziehen</strong> – sonst wird die Trennfuge durch die Spachtelschicht selbst wieder starr überbrückt (s. Hinweis oben).</td>
+        </tr>
+        <tr class="optional">
+          <td class="step">11</td>
+          <td class="material">Rissverschluss<span class="tag">falls nötig</span></td>
+          <td class="it">Resina epossidica<br><em>(Eporip)</em></td>
+          <td class="de">Epoxidharz-Rissverschluss</td>
+          <td class="qty">nach Bedarf<br>nur an sichtbaren Rissen</td>
+          <td class="proc">lt. Herstellerangabe</td>
+          <td class="wait">vollständig<br>aushärten lassen</td>
+          <td class="work">Sichtbare Setz-/Trocknungsrisse im Untergrund vor der Abdichtung verschließen.</td>
+        </tr>
+        <tr>
+          <td class="step">12</td>
+          <td class="material">Abdichtung – 1. Lage</td>
+          <td class="it">Malta bicomponente elastica<br><em>(Mapelastic Zero)</em> + rete Mapenet 150</td>
+          <td class="de">2K-Dichtschlämme + Armierungsgewebe</td>
+          <td class="qty">≤ 2 mm, Fläche +<br>15–20 cm Wandhochzug</td>
+          <td class="proc">Verarbeitung binnen<br>60 Min, nur mech. Mischen</td>
+          <td class="wait">Antrocknen<br>4–5 h</td>
+          <td class="work">Komponente B vorlegen, Komponente A einrühren, dünn auftragen, Mapenet 150 frisch in die nasse Schicht einbetten, glatt abziehen. Deckt alle drei Zonen durchgehend als eine Fläche ab.</td>
+        </tr>
+        <tr>
+          <td class="step">13</td>
+          <td class="material">Wandanschluss + Ecken</td>
+          <td class="it">Banda elastica <em>(Mapeband)</em><br>+ pezzi angolari preformati</td>
+          <td class="de">Eck-/Anschlussband<br>+ vorgeformte Eckgummis</td>
+          <td class="qty">≈ 21 lfm Mapeband<br>10 Eckgummis <em>(bereits vorhanden, ≈50 €)</em></td>
+          <td class="proc">in die frische<br>1. Lage einbetten</td>
+          <td class="wait">wie Schritt 12</td>
+          <td class="work"><strong>Vor der 2. Lage!</strong> Mapeband + Eckgummis (7 cm Boden/7 cm Wand) decken nur Hohlkehle + untere ~7 cm ab – in allen Boden/Wand-Ecken, an der Treppenauge-Aufkantung, um die Ablauf-Manschette und die Fallrohr-Wanddurchführung in die noch frische 1. Lage einbetten. Oberer Abschluss (volle Ziel-Höhe 15–20 cm) läuft ohne Band einfach weiter – Details zur mechanischen Sicherung dieser oberen Kante siehe Schritt 15.</td>
+        </tr>
+        <tr>
+          <td class="step">14</td>
+          <td class="material">Abdichtung – 2. Lage</td>
+          <td class="it">Malta bicomponente elastica<br><em>(Mapelastic Zero)</em>, seconda mano</td>
+          <td class="de">2K-Dichtschlämme, 2. Anstrich</td>
+          <td class="qty">≤ 2 mm<br>kreuzweise zur 1. Lage</td>
+          <td class="proc">wie Schritt 12<br>min. +8 °C, morgens</td>
+          <td class="wait">≥ 24 h (trocken/warm) –<br>5 Tage vor Belastung</td>
+          <td class="work">Zweite Lage kreuzweise zur ersten auftragen, deckt Gewebe, Mapeband und Eckgummis vollständig ab, glatt abziehen.</td>
+        </tr>
+        <tr>
+          <td class="step">15</td>
+          <td class="material">Wandanschluss – oberer Abschluss</td>
+          <td class="it">Profilo di finitura in alluminio<br>+ nastro butilico adesivo</td>
+          <td class="de">Alu-Abschlussschiene<br>+ Butyl-Kautschukband</td>
+          <td class="qty">≈ 23–24 lfm Alu-Flachschiene<br>(30–40×2–3 mm) · ≈ 25 lfm Butylband<br>(40–50 mm) · ≈ 120 Inox-A4-Schrauben<br>m. Dichtscheibe (20 cm-Abstand)</td>
+          <td class="proc">Montage nach<br>Aushärtung 2. Lage</td>
+          <td class="wait">keine (PU-Fuge<br>lt. Herstellerangabe)</td>
+          <td class="work">Nach Aushärtung der 2. Lage: flache Aluminiumschiene über die obere Kante der Mapelastic-Beschichtung (15–20 cm Höhe) legen, selbstklebendes Butyl-Kautschukband zwischen Schiene und Wand/Beschichtungskante als flächige Dichtung. Schiene alle 20–30 cm mit Inox-A4-Schrauben mit gummiunterlegter Dichtscheibe (nicht blank – vermeidet Kontaktkorrosion Alu/Edelstahl) dübeln – an hohl klingenden Stellen (Schritt 01) lokal vorher verfestigen oder tiefer/länger dübeln. Obere Schienenkante zusätzlich mit PU-Dichtmasse-Raupe versiegeln. Funktioniert unabhängig von der alten Putzdicke, kein Abstemmen/Neuverputzen nötig.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="prose">
+    Quelle: Terrasse.md (Variante A) sowie Hersteller-Datenblätter Mapei (Primer 3296, Planitop Rasa &amp; Ripara Zero, Mapelastic Zero, Mapenet 150, Mapeband). Zeiten/Mengen sind Herstellerangaben bzw. Berechnungen für 15 m² – vor Ort mit dem aktuellen Datenblatt gegenprüfen.
+  </footer>
+
+</div>
